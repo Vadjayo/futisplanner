@@ -1,0 +1,492 @@
+/* Etusivun tyyli — tumma teema, pääväri #1D9E75 */
+
+/* ── POHJA ── */
+.page {
+  background: #0f1117;
+  color: #ffffff;
+  min-height: 100vh;
+  font-family: inherit;
+}
+
+/* ── NAVIGAATIO ── */
+.nav {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(15, 17, 23, 0.85);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid #2a2d35;
+}
+
+.navInner {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 24px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  gap: 32px;
+}
+
+.logo {
+  font-size: 18px;
+  font-weight: 700;
+  color: #ffffff;
+  flex-shrink: 0;
+}
+
+.navLinks {
+  display: flex;
+  gap: 24px;
+  flex: 1;
+}
+
+.navLink {
+  color: #8b8d97;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  transition: color 0.15s;
+}
+
+.navLink:hover {
+  color: #ffffff;
+}
+
+.navActions {
+  display: flex;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+/* ── NAPIT ── */
+.btnOutline {
+  padding: 8px 16px;
+  border: 1px solid #2a2d35;
+  border-radius: 8px;
+  color: #ffffff;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.btnOutline:hover {
+  border-color: #1D9E75;
+  background: rgba(29, 158, 117, 0.08);
+}
+
+.btnPrimary {
+  padding: 8px 16px;
+  border-radius: 8px;
+  background: #1D9E75;
+  color: #ffffff;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 600;
+  border: none;
+  transition: background 0.15s;
+}
+
+.btnPrimary:hover {
+  background: #18856200;
+}
+
+.btnPrimaryLg {
+  display: inline-block;
+  padding: 14px 28px;
+  border-radius: 10px;
+  background: #1D9E75;
+  color: #ffffff;
+  text-decoration: none;
+  font-size: 16px;
+  font-weight: 700;
+  transition: background 0.15s, transform 0.1s;
+}
+
+.btnPrimaryLg:hover {
+  background: #158560;
+  transform: translateY(-1px);
+}
+
+.btnGhostLg {
+  display: inline-block;
+  padding: 14px 28px;
+  border-radius: 10px;
+  border: 1px solid #2a2d35;
+  color: #8b8d97;
+  text-decoration: none;
+  font-size: 16px;
+  font-weight: 600;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.btnGhostLg:hover {
+  border-color: #4a4d55;
+  color: #ffffff;
+}
+
+.btnOutlineLg {
+  display: block;
+  padding: 14px 28px;
+  border-radius: 10px;
+  border: 1px solid #2a2d35;
+  color: #ffffff;
+  text-decoration: none;
+  font-size: 16px;
+  font-weight: 600;
+  text-align: center;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.btnOutlineLg:hover {
+  border-color: #1D9E75;
+  background: rgba(29, 158, 117, 0.08);
+}
+
+/* ── HERO ── */
+.hero {
+  padding: 100px 24px 80px;
+}
+
+.heroInner {
+  max-width: 760px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.badge {
+  display: inline-block;
+  padding: 6px 14px;
+  border: 1px solid rgba(29, 158, 117, 0.4);
+  border-radius: 100px;
+  color: #1D9E75;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 28px;
+  background: rgba(29, 158, 117, 0.08);
+}
+
+.heroTitle {
+  font-size: clamp(36px, 6vw, 64px);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  margin: 0 0 20px;
+  color: #ffffff;
+}
+
+.heroAccent {
+  color: #1D9E75;
+}
+
+.heroDesc {
+  font-size: 18px;
+  color: #8b8d97;
+  line-height: 1.6;
+  margin: 0 0 36px;
+  max-width: 560px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.heroBtns {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 56px;
+}
+
+.heroStats {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 32px;
+  flex-wrap: wrap;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.statNum {
+  font-size: 28px;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.statLabel {
+  font-size: 13px;
+  color: #8b8d97;
+}
+
+.statDivider {
+  width: 1px;
+  height: 40px;
+  background: #2a2d35;
+}
+
+/* ── YHTEINEN OSIORAKENNE ── */
+.sectionInner {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.sectionHeader {
+  text-align: center;
+  margin-bottom: 56px;
+}
+
+.sectionTitle {
+  font-size: 36px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin: 0 0 12px;
+}
+
+.sectionDesc {
+  font-size: 16px;
+  color: #8b8d97;
+  margin: 0;
+}
+
+/* ── OMINAISUUDET ── */
+.features {
+  padding: 80px 0;
+  border-top: 1px solid #2a2d35;
+}
+
+.featuresGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.featureCard {
+  background: #161820;
+  border: 1px solid #2a2d35;
+  border-radius: 12px;
+  padding: 24px;
+  display: flex;
+  gap: 16px;
+  transition: border-color 0.2s;
+}
+
+.featureCard:hover {
+  border-color: #3a3d45;
+}
+
+.featureIcon {
+  font-size: 28px;
+  line-height: 1;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.featureContent {
+  flex: 1;
+}
+
+.featureTitleRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.featureTitle {
+  font-size: 15px;
+  font-weight: 700;
+  margin: 0;
+  color: #ffffff;
+}
+
+.proBadge {
+  font-size: 10px;
+  font-weight: 700;
+  background: rgba(124, 58, 237, 0.2);
+  color: #a78bfa;
+  border: 1px solid rgba(124, 58, 237, 0.3);
+  border-radius: 4px;
+  padding: 1px 6px;
+  letter-spacing: 0.04em;
+}
+
+.featureDesc {
+  font-size: 13px;
+  color: #8b8d97;
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* ── HINNOITTELU ── */
+.pricing {
+  padding: 80px 0;
+  border-top: 1px solid #2a2d35;
+}
+
+.pricingGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+.pricingCard {
+  background: #161820;
+  border: 1px solid #2a2d35;
+  border-radius: 16px;
+  padding: 32px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Pro-kortti korostettu vihreällä reunuksella */
+.pricingHighlighted {
+  border-color: #1D9E75;
+  background: linear-gradient(135deg, #161820 0%, #0f1f1a 100%);
+}
+
+.popularBadge {
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1D9E75;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 14px;
+  border-radius: 100px;
+  white-space: nowrap;
+}
+
+.planName {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.planPrice {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.planPriceNum {
+  font-size: 40px;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.planPricePeriod {
+  font-size: 14px;
+  color: #8b8d97;
+}
+
+.planDesc {
+  font-size: 14px;
+  color: #8b8d97;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.planFeatures {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1;
+}
+
+.planFeature {
+  font-size: 14px;
+  color: #d0d2db;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.planFeatureMissing {
+  color: #4a4d55;
+}
+
+.checkIcon {
+  color: #1D9E75;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.crossIcon {
+  color: #4a4d55;
+  flex-shrink: 0;
+}
+
+/* ── FOOTER ── */
+.footer {
+  border-top: 1px solid #2a2d35;
+  padding: 24px;
+}
+
+.footerInner {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.footerLogo {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.footerCopy {
+  font-size: 13px;
+  color: #8b8d97;
+}
+
+/* ── MOBIILI ── */
+@media (max-width: 768px) {
+  .navLinks {
+    display: none;
+  }
+
+  .featuresGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .pricingGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .heroStats {
+    gap: 20px;
+  }
+
+  .statDivider {
+    display: none;
+  }
+
+  .footerInner {
+    flex-direction: column;
+    gap: 8px;
+    text-align: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .navActions .btnOutline {
+    display: none;
+  }
+}

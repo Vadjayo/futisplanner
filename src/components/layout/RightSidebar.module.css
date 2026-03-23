@@ -1,0 +1,146 @@
+.sidebar {
+  width: 200px;
+  background: #1a2535;
+  border-left: 1px solid #2d3f55;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 12px 0;
+  overflow: hidden;
+}
+
+.sectionTitle {
+  font-size: 11px;
+  font-weight: 600;
+  color: #3d5068;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 0 12px 8px;
+  margin: 0;
+}
+
+.drillList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.drillItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 12px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #8a9bb0;
+  text-align: left;
+  transition: background 0.15s;
+}
+
+.drillItem:hover {
+  background: #0f1923;
+  color: #d0dce8;
+}
+
+.drillItem.active {
+  background: #0f1923;
+  color: #3b82f6;
+}
+
+.drillNum {
+  font-size: 11px;
+  font-weight: 700;
+  color: #3d5068;
+  width: 16px;
+  flex-shrink: 0;
+}
+
+.drillItem.active .drillNum {
+  color: #3b82f6;
+}
+
+.drillName {
+  flex: 1;
+  font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.drillDuration {
+  font-size: 11px;
+  color: #3d5068;
+  flex-shrink: 0;
+}
+
+.addBtn {
+  margin: 8px 12px 0;
+  padding: 8px;
+  background: none;
+  border: 1px dashed #2d3f55;
+  border-radius: 6px;
+  color: #3b82f6;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.addBtn:hover {
+  background: #0f1923;
+  border-color: #3b82f6;
+}
+
+.libraryBtn {
+  margin: 6px 12px 0;
+  padding: 8px;
+  background: none;
+  border: 1px solid #2d3f55;
+  border-radius: 6px;
+  color: #8a9bb0;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  width: calc(100% - 24px);
+}
+
+.libraryBtn:hover {
+  background: #0f1923;
+  border-color: #3d5068;
+  color: #d0dce8;
+}
+
+.footer {
+  border-top: 1px solid #2d3f55;
+  padding: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.totalLabel {
+  font-size: 11px;
+  color: #3d5068;
+}
+
+.totalValue {
+  font-size: 14px;
+  font-weight: 700;
+  color: #d0dce8;
+}
+
+@media (max-width: 900px) {
+  .sidebar {
+    display: none;
+  }
+}

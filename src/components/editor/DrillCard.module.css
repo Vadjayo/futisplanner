@@ -1,0 +1,170 @@
+.card {
+  background: #1a2535;
+  border: 1px solid #2d3f55;
+  border-radius: 10px;
+  overflow: hidden;
+  transition: border-color 0.2s;
+  cursor: pointer;
+}
+
+.card:hover {
+  border-color: #3d5068;
+}
+
+.card.active {
+  border-color: #3b82f6;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-bottom: 1px solid #2d3f55;
+  flex-wrap: wrap;
+}
+
+.index {
+  font-size: 13px;
+  font-weight: 700;
+  color: #3d5068;
+  flex-shrink: 0;
+}
+
+.titleBtn {
+  background: none;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  color: #d0dce8;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 3px 8px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: border-color 0.2s;
+  min-width: 100px;
+  flex: 1;
+  max-width: 240px;
+  text-align: left;
+}
+
+.titleBtn:hover {
+  border-color: #2d3f55;
+  background: #0f1923;
+}
+
+.titleInput {
+  background: #0f1923;
+  border: 1px solid #3b82f6;
+  border-radius: 5px;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 3px 8px;
+  outline: none;
+  flex: 1;
+  max-width: 240px;
+  min-width: 100px;
+}
+
+.placeholder {
+  color: #3d5068;
+  font-weight: 400;
+  font-style: italic;
+}
+
+.editHint {
+  font-size: 11px;
+  color: #3d5068;
+}
+
+.fieldTypes {
+  display: flex;
+  gap: 3px;
+  flex-shrink: 0;
+}
+
+.ftBtn {
+  padding: 3px 7px;
+  background: #0f1923;
+  border: 1px solid #2d3f55;
+  border-radius: 4px;
+  color: #3d5068;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.ftBtn:hover {
+  border-color: #3d5068;
+  color: #8a9bb0;
+}
+
+.ftBtn.ftActive {
+  background: #1e3a5f;
+  border-color: #3b82f6;
+  color: #60a5fa;
+}
+
+.durationWrapper {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.durationInput {
+  width: 44px;
+  padding: 3px 6px;
+  background: #0f1923;
+  border: 1px solid #2d3f55;
+  border-radius: 4px;
+  color: #d0dce8;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+  outline: none;
+}
+
+.durationInput:focus {
+  border-color: #3b82f6;
+}
+
+/* Remove number input arrows */
+.durationInput::-webkit-outer-spin-button,
+.durationInput::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+}
+
+.durationUnit {
+  font-size: 12px;
+  color: #3d5068;
+}
+
+.deleteBtn {
+  background: none;
+  border: none;
+  color: #3d5068;
+  cursor: pointer;
+  font-size: 13px;
+  padding: 4px 6px;
+  border-radius: 4px;
+  line-height: 1;
+  flex-shrink: 0;
+  margin-left: auto;
+  transition: color 0.15s, background 0.15s;
+}
+
+.deleteBtn:hover {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.1);
+}
+
+@media (max-width: 480px) {
+  .fieldTypes {
+    display: none;
+  }
+}
