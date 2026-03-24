@@ -193,15 +193,14 @@ export default function LeftToolbar({ activeTool, onToolChange, toolOptions, onT
           <span className={styles.label}>Välineet</span>
         </button>
 
-        {/* TODO: Animaatio-ominaisuus – tulossa Pro-versioon */}
+        {/* Animaatiotila – piirtää pelaajien polut ja toistaa ne */}
         <button
-          className={`${styles.toolBtn} ${styles.pro}`}
-          title="Animoi (Pro)"
-          disabled
+          className={`${styles.toolBtn} ${activeTool === 'animate' ? styles.active : ''}`}
+          title="Animoi"
+          onClick={() => onToolChange(activeTool === 'animate' ? 'select' : 'animate')}
         >
           <span className={styles.icon}>▶</span>
           <span className={styles.label}>Animoi</span>
-          <span className={styles.proBadge}>Pro</span>
         </button>
       </aside>
 

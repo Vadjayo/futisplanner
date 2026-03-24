@@ -90,6 +90,15 @@ export default function DrillCanvas({ elements, fieldType, activeTool, toolOptio
   const [drawingShape, setDrawingShape] = useState(null) // Kesken oleva muodonpiirto
   const [editingText, setEditingText] = useState(null)   // Tekstielementti, jota muokataan
 
+  // ── ANIMAATIO ──
+  // animSelectedId = pelaaja jonka polkua muokataan animaatiotilassa
+  const [animSelectedId, setAnimSelectedId] = useState(null)
+  const [isPlaying, setIsPlaying] = useState(false)
+  const [animProgress, setAnimProgress] = useState(0) // 0.0–1.0
+  const ANIM_DURATION = 5000 // toiston kesto millisekunteina
+  const animFrameRef = useRef(null)
+  const animStartTimeRef = useRef(null)
+
   // Skaalauskerroin: looginen kenttäleveys sovitetaan kontainerin pikselileveyteen
   const scale = stageWidth / FIELD_W
   const stageHeight = FIELD_H * scale
@@ -109,6 +118,80 @@ export default function DrillCanvas({ elements, fieldType, activeTool, toolOptio
   useEffect(() => {
     if (activeTool !== 'select') setSelectedId(null)
   }, [activeTool])
+
+  // Pysäytetään animaatio ja nollataan tila kun poistutaan animaatiotilasta
+  useEffect(() => {
+    if (activeTool !== 'animate') {
+      setAnimSelectedId(null)
+      if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current)
+      setIsPlaying(false)
+      setAnimProgress(0)
+    }
+  }, [activeTool])
+
+  // RAF-toistosikklukka — cancelled-lippu estää StrictMode-kaksoisajon
+  useEffect(() => {
+    if (!isPlaying) return
+    let cancelled = false
+    function frame(now) {
+      if (cancelled) return
+      const elapsed = now - animStartTimeRef.current
+      const progress = Math.min(elapsed / ANIM_DURATION, 1)
+      setAnimProgress(progress)
+      if (progress < 1) {
+        animFrameRef.current = requestAnimationFrame(frame)
+      } else {
+        if (!cancelled) setIsPlaying(false)
+      }
+    }
+    animFrameRef.current = requestAnimationFrame(frame)
+    return () => {
+      cancelled = true
+      if (animFrameRef.current) {
+        cancelAnimationFrame(animFrameRef.current)
+        animFrameRef.current = null
+      }
+    }
+  }, [isPlaying]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Aloita toisto — jatkaa nykyisestä progress-kohdasta tai alusta
+  function playAnim() {
+    animStartTimeRef.current = performance.now() - animProgress * ANIM_DURATION
+    setIsPlaying(true)
+  }
+
+  // Pysäytä toisto säilyttäen nykyinen progress
+  function pauseAnim() {
+    if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current)
+    setIsPlaying(false)
+  }
+
+  // Palauta animaatio alkuun
+  function resetAnim() {
+    if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current)
+    setIsPlaying(false)
+    setAnimProgress(0)
+  }
+
+  // Laske elementin animoitu sijainti progress-arvon perusteella
+  // Palauttaa null jos elementillä ei ole polkua
+  function getAnimatedPos(el) {
+    if (!el.animPath || el.animPath.length === 0) return null
+    // Polku alkaa elementin nykyisestä sijainnista
+    const path = [{ x: el.x, y: el.y }, ...el.animPath]
+    const numSegments = path.length - 1
+    if (numSegments === 0) return { x: el.x, y: el.y }
+    // Lasketaan missä segmentissä ollaan
+    const total = animProgress * numSegments
+    const segIdx = Math.min(Math.floor(total), numSegments - 1)
+    const segT = total - segIdx
+    const start = path[segIdx]
+    const end = path[segIdx + 1]
+    return {
+      x: start.x + segT * (end.x - start.x),
+      y: start.y + segT * (end.y - start.y),
+    }
+  }
 
   // Päivitetään Transformer-solmu ja poista-napin sijainti aina kun valinta muuttuu
   useEffect(() => {
@@ -228,6 +311,20 @@ export default function DrillCanvas({ elements, fieldType, activeTool, toolOptio
     if (['arrow', 'line', 'circle', 'freehand'].includes(activeTool)) return
     const isBackground = e.target === e.target.getStage() ||
       (e.target.getClassName?.() === 'Rect' && !e.target.id())
+
+    // Animaatiotila: klikkaus taustaan lisää reittipisteen valitulle elementille
+    if (activeTool === 'animate') {
+      if (isBackground && animSelectedId) {
+        const { x, y } = getPointerLogical()
+        onChange(elements.map((el) =>
+          el.id === animSelectedId
+            ? { ...el, animPath: [...(el.animPath ?? []), { x, y }] }
+            : el
+        ))
+      }
+      return
+    }
+
     if (activeTool === 'select') {
       // Klikkaus taustaan poistaa valinnan
       if (isBackground) setSelectedId(null)
@@ -335,8 +432,17 @@ export default function DrillCanvas({ elements, fieldType, activeTool, toolOptio
     e.target.position({ x: 0, y: 0 })
   }, [elements, onChange, scale])
 
-  // Asettaa elementin valituksi valinta-tilassa – estää tapahtuman kuplimisen Stagelle
+  // Asettaa elementin valituksi valinta-tilassa tai polunmuokkaukseen animaatiotilassa
   function selectEl(e, id) {
+    if (activeTool === 'animate') {
+      e.cancelBubble = true
+      // Vain pelaaja, valmentaja ja pallo voivat saada animaatiopolun
+      const el = elements.find((el) => el.id === id)
+      if (el && ['player', 'coach', 'ball'].includes(el.type)) {
+        setAnimSelectedId(id)
+      }
+      return
+    }
     if (activeTool !== 'select') return
     e.cancelBubble = true
     setSelectedId(id)
@@ -352,10 +458,15 @@ export default function DrillCanvas({ elements, fieldType, activeTool, toolOptio
   }
 
   // Valinta-tilassa normaalikursori, piirtotyökaluissa tähtäinkursori, välineillä plus-kursori
+  // Animaatiotilassa: tähtäin kun pelaaja valittu (lisätään reittipisteitä), muuten osoitin
   const draggable = activeTool === 'select'
   const cursor = activeTool === 'select' ? 'default'
+    : activeTool === 'animate' ? (animSelectedId ? 'crosshair' : 'pointer')
     : ['arrow', 'line', 'circle', 'freehand'].includes(activeTool) ? 'crosshair'
     : 'cell'
+
+  // onko animaatio aktiivinen (toisto käynnissä tai progress > 0)
+  const animActive = isPlaying || animProgress > 0
 
   return (
     <div ref={containerRef} className={styles.wrapper}>
@@ -373,14 +484,46 @@ export default function DrillCanvas({ elements, fieldType, activeTool, toolOptio
           {/* Kenttätausta (nurmikuvio, viivat) */}
           <FieldBackground fieldType={fieldType} scale={scale} />
 
+          {/* Animaatiopolkujen visualisointi – näytetään animaatiotilassa tai toiston aikana */}
+          {(activeTool === 'animate' || animActive) &&
+            elements.filter((el) => el.animPath?.length > 0).map((el) => {
+              const isSelected = el.id === animSelectedId
+              const fullPath = [{ x: el.x, y: el.y }, ...el.animPath]
+              return (
+                <Group key={`anim_path_${el.id}`} listening={false}>
+                  {/* Katkoviiva polun varrella */}
+                  <Line
+                    points={fullPath.flatMap((p) => [p.x * scale, p.y * scale])}
+                    stroke={isSelected ? '#1D9E75' : 'rgba(255,255,255,0.3)'}
+                    strokeWidth={2 * scale}
+                    dash={[6 * scale, 4 * scale]}
+                  />
+                  {/* Reittipistepisteet (hypätään yli aloituspisteestä) */}
+                  {el.animPath.map((wp, i) => (
+                    <Circle
+                      key={i}
+                      x={wp.x * scale} y={wp.y * scale}
+                      radius={5 * scale}
+                      fill={isSelected ? '#1D9E75' : 'rgba(255,255,255,0.45)'}
+                      stroke="white" strokeWidth={scale}
+                    />
+                  ))}
+                </Group>
+              )
+            })
+          }
+
           {/* Piirretään jokainen elementti sen tyypin mukaan */}
           {elements.map((el) => {
             // --- PELAAJA ---
             if (el.type === 'player') {
+              // Animoitu sijainti toiston aikana
+              const aPos = animActive ? getAnimatedPos(el) : null
               return (
                 <Group
                   key={el.id} id={`el_${el.id}`}
-                  x={el.x * scale} y={el.y * scale}
+                  x={aPos ? aPos.x * scale : el.x * scale}
+                  y={aPos ? aPos.y * scale : el.y * scale}
                   draggable={draggable}
                   onClick={(e) => selectEl(e, el.id)}
                   onDragEnd={(e) => handleDragEnd(e, el.id)}
@@ -406,10 +549,12 @@ export default function DrillCanvas({ elements, fieldType, activeTool, toolOptio
 
             // --- VALMENTAJA ---
             if (el.type === 'coach') {
+              const aPos = animActive ? getAnimatedPos(el) : null
               return (
                 <Group
                   key={el.id} id={`el_${el.id}`}
-                  x={el.x * scale} y={el.y * scale}
+                  x={aPos ? aPos.x * scale : el.x * scale}
+                  y={aPos ? aPos.y * scale : el.y * scale}
                   draggable={draggable}
                   onClick={(e) => selectEl(e, el.id)}
                   onDragEnd={(e) => handleDragEnd(e, el.id)}
@@ -437,6 +582,7 @@ export default function DrillCanvas({ elements, fieldType, activeTool, toolOptio
             if (el.type === 'ball') {
               const s = scale
               const r = 13 * s
+              const aPos = animActive ? getAnimatedPos(el) : null
               // 5 mustan viisikulmion kulmat (klassinen jalkapallokuvio)
               const patches = [0, 72, 144, 216, 288].map((deg) => {
                 const rad = (deg - 90) * (Math.PI / 180)
@@ -445,7 +591,8 @@ export default function DrillCanvas({ elements, fieldType, activeTool, toolOptio
               return (
                 <Group
                   key={el.id} id={`el_${el.id}`}
-                  x={el.x * s} y={el.y * s}
+                  x={aPos ? aPos.x * s : el.x * s}
+                  y={aPos ? aPos.y * s : el.y * s}
                   draggable={draggable}
                   onClick={(e) => selectEl(e, el.id)}
                   onDragEnd={(e) => handleDragEnd(e, el.id)}
@@ -766,6 +913,55 @@ export default function DrillCanvas({ elements, fieldType, activeTool, toolOptio
           />
         </Layer>
       </Stage>
+
+      {/* ── ANIMAATIOKONTROLLIT – näytetään animaatiotilassa ── */}
+      {activeTool === 'animate' && (
+        <div className={styles.animControls}>
+          {/* Toistopainikkeet */}
+          <div className={styles.animBtns}>
+            <button className={styles.animBtn} onClick={resetAnim} title="Alusta">⏮</button>
+            <button
+              className={`${styles.animBtn} ${styles.animBtnPlay}`}
+              onClick={isPlaying ? pauseAnim : playAnim}
+              title={isPlaying ? 'Tauko' : 'Toista'}
+            >
+              {isPlaying ? '⏸' : '▶'}
+            </button>
+          </div>
+
+          {/* Aikajanaliukuri */}
+          <div className={styles.animScrubberWrap}>
+            <div className={styles.animProgressFill} style={{ width: `${animProgress * 100}%` }} />
+            <input
+              type="range" min={0} max={1} step={0.001}
+              value={animProgress}
+              onChange={(e) => {
+                pauseAnim()
+                setAnimProgress(parseFloat(e.target.value))
+              }}
+              className={styles.animScrubber}
+            />
+          </div>
+
+          {/* Ohjeteksti polun muokkaukseen */}
+          <div className={styles.animHint}>
+            {animSelectedId
+              ? <>
+                  Klikkaa kentällä lisätäksesi reittipiste &nbsp;·&nbsp;
+                  <button
+                    className={styles.animClearBtn}
+                    onClick={() => onChange(elements.map((el) =>
+                      el.id === animSelectedId ? { ...el, animPath: [] } : el
+                    ))}
+                  >
+                    Tyhjennä polku
+                  </button>
+                </>
+              : 'Klikkaa pelaajaa, valmentajaa tai palloa muokataksesi polkua'
+            }
+          </div>
+        </div>
+      )}
 
       {/* Poista-nappi – näytetään valitun elementin Transformerin oikeassa yläkulmassa */}
       {deleteBtnPos && selectedId && activeTool === 'select' && (

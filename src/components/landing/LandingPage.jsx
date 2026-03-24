@@ -107,7 +107,7 @@ export default function LandingPage() {
         <div className={styles.heroInner}>
           {/* Badge */}
           <div className={styles.badge}>
-            ✦ Moderni harjoitussuunnittelutyökalu valmentajille
+            ✦ Moderni harjoitussuunnittelutyökalu valmentajille ✦
           </div>
 
           {/* Pääotsikko */}
@@ -230,7 +230,7 @@ export default function LandingPage() {
       <footer className={styles.footer}>
         <div className={styles.footerInner}>
           <span className={styles.footerLogo}>⚽ FutisPlanner</span>
-          <span className={styles.footerCopy}>© 2025 FutisPlanner. Tehty Suomessa 🇫🇮</span>
+          <span className={styles.footerCopy}>© 2026 FutisPlanner. Tehty Suomessa 🇫🇮</span>
         </div>
       </footer>
 
