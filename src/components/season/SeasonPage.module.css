@@ -1,0 +1,287 @@
+/* ── LATAUS ── */
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background: #0f1117;
+}
+
+.loadingIcon {
+  font-size: 48px;
+  animation: spin 1.5s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* ── SIVU ── */
+.page {
+  min-height: 100vh;
+  background: #0f1117;
+  color: #d0dce8;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── NAVIGAATIO ── */
+.nav {
+  background: #161820;
+  border-bottom: 1px solid #2a2d3e;
+  flex-shrink: 0;
+}
+
+.navInner {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 0 20px;
+  height: 52px;
+}
+
+.btnBack {
+  background: none;
+  border: none;
+  color: #8a9bb0;
+  font-size: 13px;
+  cursor: pointer;
+  padding: 6px 8px;
+  border-radius: 6px;
+  white-space: nowrap;
+  transition: color 0.15s, background 0.15s;
+  flex-shrink: 0;
+}
+
+.btnBack:hover {
+  color: #d0dce8;
+  background: #1a1d27;
+}
+
+.navTitle {
+  font-size: 15px;
+  font-weight: 700;
+  color: #d0dce8;
+  flex: 1;
+}
+
+.navRight {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.savingHint {
+  font-size: 12px;
+  color: #1D9E75;
+}
+
+.userEmail {
+  font-size: 12px;
+  color: #3d5068;
+}
+
+.btnSignOut {
+  background: none;
+  border: none;
+  color: #3d5068;
+  font-size: 12px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: color 0.15s;
+}
+
+.btnSignOut:hover {
+  color: #8a9bb0;
+}
+
+/* ── LAYOUT ── */
+.layout {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  height: calc(100vh - 52px);
+}
+
+/* ── SIVUPALKKI ── */
+.sidebar {
+  width: 220px;
+  flex-shrink: 0;
+  background: #161820;
+  border-right: 1px solid #2a2d3e;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+.sidebarHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 16px 12px;
+  border-bottom: 1px solid #2a2d3e;
+}
+
+.sidebarTitle {
+  font-size: 13px;
+  font-weight: 700;
+  color: #8a9bb0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0;
+}
+
+.btnNew {
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  background: #1D9E75;
+  border: none;
+  color: white;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+}
+
+.btnNew:hover {
+  background: #158560;
+}
+
+.emptyTeams {
+  font-size: 12px;
+  color: #3d5068;
+  padding: 16px;
+  line-height: 1.6;
+}
+
+.teamList {
+  list-style: none;
+  margin: 0;
+  padding: 8px 0;
+}
+
+.teamItem {
+  display: flex;
+  align-items: center;
+  padding: 0 8px;
+  gap: 4px;
+}
+
+.teamBtn {
+  flex: 1;
+  background: none;
+  border: none;
+  border-radius: 6px;
+  text-align: left;
+  padding: 8px 10px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  transition: background 0.1s;
+  min-width: 0;
+}
+
+.teamBtn:hover {
+  background: #1a1d27;
+}
+
+.teamActive {
+  background: #1a1d27 !important;
+  box-shadow: inset 2px 0 0 #1D9E75;
+}
+
+.teamName {
+  font-size: 13px;
+  font-weight: 600;
+  color: #d0dce8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
+}
+
+.teamSeason {
+  font-size: 11px;
+  color: #8a9bb0;
+}
+
+.btnDeleteTeam {
+  background: none;
+  border: none;
+  color: #3d5068;
+  font-size: 11px;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 4px;
+  flex-shrink: 0;
+  transition: color 0.15s;
+}
+
+.btnDeleteTeam:hover {
+  color: #ef4444;
+}
+
+/* ── PÄÄSISÄLTÖ ── */
+.content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 28px 32px;
+}
+
+/* ── TYHJÄ TILA ── */
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 60%;
+  gap: 12px;
+  text-align: center;
+}
+
+.emptyIcon {
+  font-size: 48px;
+}
+
+.emptyTitle {
+  font-size: 20px;
+  font-weight: 700;
+  color: #d0dce8;
+  margin: 0;
+}
+
+.emptyDesc {
+  font-size: 14px;
+  color: #8a9bb0;
+  margin: 0;
+}
+
+.btnNewLg {
+  margin-top: 8px;
+  background: #1D9E75;
+  border: none;
+  border-radius: 8px;
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 10px 24px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.btnNewLg:hover {
+  background: #158560;
+}
+
+@media (max-width: 640px) {
+  .sidebar { display: none; }
+  .content { padding: 16px; }
+}

@@ -6,6 +6,7 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import './lib/i18n'
 import { useAuth } from './hooks/useAuth'
 import { loadRecentSession, loadSessionById, saveSession } from './lib/db'
+import { exportSessionPdf } from './lib/exportPdf'
 import TopBar from './components/layout/TopBar'
 import LeftToolbar from './components/layout/LeftToolbar'
 import RightSidebar from './components/layout/RightSidebar'
@@ -54,23 +55,42 @@ export default function EditorApp() {
   // activeTool = aktiivinen työkalu (select/player/cone/arrow jne.)
   const [activeTool, setActiveTool] = useState('select')
 
+  // Spacebar vaihtaa valinta-työkaluun (paitsi kun kirjoitetaan tekstikenttään)
+  useEffect(() => {
+    function handleKeyDown(e) {
+      if (e.code === 'Space' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+        e.preventDefault()
+        setActiveTool('select')
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [])
+
   // toolOptions = aktiivisen työkalun asetukset (väri, tiimi, nuolityyppi jne.)
   const [toolOptions, setToolOptions] = useState({
     coneColor: 'orange',
     poleColor: 'yellow',
-    playerTeam: 'home',
+    playerTeam: 'blue',
+    playerShape: 'att',
     arrowType: 'syotto',
     drawColor: 'white',
   })
 
   const [drills, setDrills] = useState([createDrill()])
   const [activeDrillIndex, setActiveDrillIndex] = useState(0)
+  const [sessionMeta, setSessionMeta] = useState({
+    description: '', theme: '',
+    focusTechnical: '', focusTactical: '', focusPhysical: '', focusMental: '',
+  })
 
   // saveStatus kertoo automaattitallenuksen tilan UI:lle
   const [saveStatus, setSaveStatus] = useState('idle') // 'idle' | 'saving' | 'saved' | 'error'
   const [libraryOpen, setLibraryOpen] = useState(false)
 
   const autoSaveTimer = useRef(null)
+  // DrillCard-refit indeksoituna — käytetään PDF-vientiin
+  const drillRefs = useRef([])
 
   // isFirstLoad estää auto-tallennuksen käynnistymisen heti latauksen jälkeen
   const isFirstLoad = useRef(true)
@@ -104,6 +124,14 @@ export default function EditorApp() {
       if (data) {
         setSessionId(data.id)
         setSessionName(data.name ?? '')
+        setSessionMeta({
+          description:    data.description    ?? '',
+          theme:          data.theme          ?? '',
+          focusTechnical: data.focus_technical ?? '',
+          focusTactical:  data.focus_tactical  ?? '',
+          focusPhysical:  data.focus_physical  ?? '',
+          focusMental:    data.focus_mental    ?? '',
+        })
         // Järjestä harjoitteet position-kentän mukaan
         const sorted = [...(data.drills ?? [])].sort((a, b) => a.position - b.position)
         setDrills(sorted.length > 0 ? sorted.map(dbDrillToApp) : [createDrill()])
@@ -114,9 +142,9 @@ export default function EditorApp() {
   }, [user]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Tallenna harjoitus — asettaa saveStatus-tilan UI-palautetta varten
-  const doSave = useCallback(async (sid, name, drilList, uid) => {
+  const doSave = useCallback(async (sid, name, drilList, uid, meta) => {
     setSaveStatus('saving')
-    const { error } = await saveSession({ id: sid, name, userId: uid, drills: drilList })
+    const { error } = await saveSession({ id: sid, name, userId: uid, drills: drilList, meta })
     setSaveStatus(error ? 'error' : 'saved')
     if (!error) {
       // Palaa idle-tilaan 2.5 sekunnin kuluttua jotta "Tallennettu" katoaa
@@ -129,15 +157,20 @@ export default function EditorApp() {
     if (isFirstLoad.current || !user) return
     clearTimeout(autoSaveTimer.current)
     autoSaveTimer.current = setTimeout(() => {
-      doSave(sessionId, sessionName, drills, user.id)
+      doSave(sessionId, sessionName, drills, user.id, sessionMeta)
     }, 2000)
     return () => clearTimeout(autoSaveTimer.current)
-  }, [drills, sessionName, sessionId, user, doSave])
+  }, [drills, sessionName, sessionId, sessionMeta, user, doSave])
 
   // Manuaalinen tallennus — peruuttaa vireillä olevan auto-tallennuksen
   function handleManualSave() {
     clearTimeout(autoSaveTimer.current)
-    doSave(sessionId, sessionName, drills, user.id)
+    doSave(sessionId, sessionName, drills, user.id, sessionMeta)
+  }
+
+  // Vie harjoitussuunnitelma PDF:ksi — kuvakaappaus jokaisesta kanvaksesta
+  function handleExportPdf() {
+    exportSessionPdf(drillRefs.current, drills, sessionName, sessionMeta)
   }
 
   // Lisää uusi harjoite listan loppuun ja vieritä siihen
@@ -198,6 +231,7 @@ export default function EditorApp() {
         onSignOut={signOut}
         saveStatus={saveStatus}
         onSave={handleManualSave}
+        onExportPdf={handleExportPdf}
       />
       <div className={styles.body}>
         <LeftToolbar
@@ -217,6 +251,7 @@ export default function EditorApp() {
             onDrillUpdate={updateDrill}
             onDrillDelete={deleteDrill}
             onAddDrill={addDrill}
+            getCardRef={(i, el) => { drillRefs.current[i] = el }}
           />
         </main>
         <RightSidebar
@@ -225,6 +260,8 @@ export default function EditorApp() {
           onDrillSelect={setActiveDrillIndex}
           onAddDrill={addDrill}
           onOpenLibrary={() => setLibraryOpen(true)}
+          sessionMeta={sessionMeta}
+          onSessionMetaChange={(key, val) => setSessionMeta((prev) => ({ ...prev, [key]: val }))}
         />
       </div>
 

@@ -30,6 +30,11 @@
 .logo {
   font-size: 18px;
   font-weight: 700;
+  background: none;
+  border: none;
+  color: #ffffff;
+  cursor: pointer;
+  padding: 0;
 }
 
 .navRight {
@@ -74,6 +79,31 @@
   gap: 16px;
   margin-bottom: 40px;
   flex-wrap: wrap;
+}
+
+.headerActions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.btnSeason {
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid #2a2d3e;
+  background: #161820;
+  color: #d0dce8;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.btnSeason:hover {
+  background: #1a1d27;
+  border-color: #1D9E75;
+  color: #1D9E75;
 }
 
 .title {

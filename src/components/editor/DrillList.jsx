@@ -14,6 +14,7 @@ export default function DrillList({
   onDrillUpdate,
   onDrillDelete,
   onAddDrill,
+  getCardRef, // (index, el) => void — EditorApp kerää DrillCard-refit PDF-vientiä varten
 }) {
   const { t } = useTranslation()
 
@@ -34,6 +35,7 @@ export default function DrillList({
       {drills.map((drill, i) => (
         <DrillCard
           key={drill.id}
+          ref={getCardRef ? (el) => getCardRef(i, el) : null}
           drill={drill}
           index={i}
           activeTool={activeTool}

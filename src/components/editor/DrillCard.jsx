@@ -1,35 +1,31 @@
 // Yksittäinen harjoitekortti — otsikko, kesto, kenttätyyppi ja piirtoalue
 // Otsikko on klikkaamalla muokattava, kesto ja kenttätyyppi vaihdettavissa napista
 
-import { useState } from 'react'
+import { useRef, forwardRef, useImperativeHandle } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useInlineEdit } from '../../hooks/useInlineEdit'
 import DrillCanvas from './DrillCanvas'
 import styles from './DrillCard.module.css'
 
-// Tuetut kenttätyypit — blank = pelkkä vihreä kenttä ilman viivoja
-const FIELD_TYPES = ['11v11', '7v7', '5v5', '3v3', 'blank']
+// Tuetut kenttätyypit — split = kenttä jaettuna kahteen puoliskoon (A+B)
+const FIELD_TYPES = ['11v11', '7v7', '5v5', '3v3', 'blank', 'split']
 
-export default function DrillCard({ drill, index, activeTool, toolOptions, isActive, onSelect, onUpdate, onDelete }) {
+const DrillCard = forwardRef(function DrillCard(
+  { drill, index, activeTool, toolOptions, isActive, onSelect, onUpdate, onDelete },
+  ref
+) {
   const { t } = useTranslation()
+  const canvasRef = useRef(null)
 
-  // editingTitle = true kun otsikkomuokkaus on auki
-  const [editingTitle, setEditingTitle] = useState(false)
-  const [titleDraft, setTitleDraft] = useState(drill.title)
+  // Exposoi getImageDataUrl() PDF-vientiä varten
+  useImperativeHandle(ref, () => ({
+    getImageDataUrl: () => canvasRef.current?.getImageDataUrl(),
+  }))
 
-  // Vahvista otsikon muutos ja sulje muokkaus
-  function commitTitle() {
-    setEditingTitle(false)
-    onUpdate({ title: titleDraft })
-  }
-
-  // Enter vahvistaa, Escape peruuttaa
-  function handleTitleKey(e) {
-    if (e.key === 'Enter') e.target.blur()
-    if (e.key === 'Escape') {
-      setTitleDraft(drill.title)
-      setEditingTitle(false)
-    }
-  }
+  const { editing, draft, setDraft, startEdit, commit, handleKeyDown } = useInlineEdit(
+    drill.title,
+    (val) => onUpdate({ title: val })
+  )
 
   // Rajoita kesto 1–120 minuuttiin
   function handleDurationChange(e) {
@@ -47,24 +43,20 @@ export default function DrillCard({ drill, index, activeTool, toolOptions, isAct
         <span className={styles.index}>{index + 1}.</span>
 
         {/* Harjoitteen otsikko — klikattava muokkaustila */}
-        {editingTitle ? (
+        {editing ? (
           <input
             className={styles.titleInput}
-            value={titleDraft}
-            onChange={(e) => setTitleDraft(e.target.value)}
-            onBlur={commitTitle}
-            onKeyDown={handleTitleKey}
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            onBlur={commit}
+            onKeyDown={handleKeyDown}
             autoFocus
             placeholder={t('drill.untitled')}
           />
         ) : (
           <button
             className={styles.titleBtn}
-            onClick={(e) => {
-              e.stopPropagation()
-              setTitleDraft(drill.title)
-              setEditingTitle(true)
-            }}
+            onClick={(e) => { e.stopPropagation(); startEdit() }}
           >
             {drill.title || <span className={styles.placeholder}>{t('drill.untitled')}</span>}
             <span className={styles.editHint}>✎</span>
@@ -77,10 +69,7 @@ export default function DrillCard({ drill, index, activeTool, toolOptions, isAct
             <button
               key={ft}
               className={`${styles.ftBtn} ${drill.fieldType === ft ? styles.ftActive : ''}`}
-              onClick={(e) => {
-                e.stopPropagation()
-                onUpdate({ fieldType: ft })
-              }}
+              onClick={(e) => { e.stopPropagation(); onUpdate({ fieldType: ft }) }}
             >
               {ft}
             </button>
@@ -105,10 +94,7 @@ export default function DrillCard({ drill, index, activeTool, toolOptions, isAct
         <button
           className={styles.deleteBtn}
           title="Poista harjoite"
-          onClick={(e) => {
-            e.stopPropagation()
-            onDelete()
-          }}
+          onClick={(e) => { e.stopPropagation(); onDelete() }}
         >
           ✕
         </button>
@@ -116,6 +102,7 @@ export default function DrillCard({ drill, index, activeTool, toolOptions, isAct
 
       {/* Piirtoalue — välittää aktiiviisen työkalun ja vaihtoehdot alaspäin */}
       <DrillCanvas
+        ref={canvasRef}
         elements={drill.elements}
         fieldType={drill.fieldType}
         activeTool={activeTool}
@@ -124,4 +111,6 @@ export default function DrillCard({ drill, index, activeTool, toolOptions, isAct
       />
     </div>
   )
-}
+})
+
+export default DrillCard

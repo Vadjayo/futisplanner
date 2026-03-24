@@ -1,21 +1,27 @@
-// Oikea sivupalkki — harjoiteluettelo, navigointi harjoitteiden välillä
-// ja kirjastonappula. Näyttää myös harjoituksen kokonaiskeston.
+// Oikea sivupalkki — harjoiteluettelo ja harjoituksen yhteenveto
 
 import { useTranslation } from 'react-i18next'
+import { totalDuration } from '../../utils/drillUtils'
 import styles from './RightSidebar.module.css'
 
-export default function RightSidebar({ drills, activeDrillIndex, onDrillSelect, onAddDrill, onOpenLibrary }) {
-  const { t } = useTranslation()
+const FOCUS_FIELDS = [
+  { key: 'focusTechnical', label: 'Tekninen' },
+  { key: 'focusTactical',  label: 'Taktinen' },
+  { key: 'focusPhysical',  label: 'Fyysinen' },
+  { key: 'focusMental',    label: 'Henkinen' },
+]
 
-  // Laske harjoitteiden yhteiskesto minuuteissa
-  const totalMinutes = drills.reduce((sum, d) => sum + (d.duration || 0), 0)
+export default function RightSidebar({ drills, activeDrillIndex, onDrillSelect, onAddDrill, onOpenLibrary, sessionMeta, onSessionMetaChange }) {
+  const { t } = useTranslation()
+  const totalMinutes = totalDuration(drills)
 
   return (
     <aside className={styles.sidebar}>
+
+      {/* ── HARJOITTEET ── */}
       <div className={styles.section}>
         <h3 className={styles.sectionTitle}>{t('sidebar.drills')}</h3>
 
-        {/* Harjoiteluettelo — aktiivinen harjoite korostettu */}
         <ul className={styles.drillList}>
           {drills.map((drill, i) => (
             <li key={drill.id}>
@@ -39,13 +45,62 @@ export default function RightSidebar({ drills, activeDrillIndex, onDrillSelect, 
           {t('sidebar.addDrill')}
         </button>
 
-        {/* Kirjasto — avaa valmiiden harjoitteiden paneelin */}
         <button className={styles.libraryBtn} onClick={onOpenLibrary}>
           📚 Kirjasto
         </button>
       </div>
 
-      {/* Alatunniste — näyttää harjoituksen kokonaiskeston */}
+      {/* ── YHTEENVETO ── */}
+      <div className={styles.summarySection}>
+        <h3 className={styles.sectionTitle}>Yhteenveto</h3>
+
+        <div className={styles.summaryFields}>
+          <label className={styles.fieldLabel}>
+            Teema
+            <input
+              className={styles.fieldInput}
+              type="text"
+              value={sessionMeta?.theme ?? ''}
+              onChange={(e) => onSessionMetaChange('theme', e.target.value)}
+              placeholder="esim. Prässääminen"
+              maxLength={80}
+            />
+          </label>
+
+          <label className={styles.fieldLabel}>
+            Kuvaus
+            <textarea
+              className={styles.fieldTextarea}
+              value={sessionMeta?.description ?? ''}
+              onChange={(e) => onSessionMetaChange('description', e.target.value)}
+              placeholder="Lyhyt kuvaus harjoituksesta..."
+              rows={3}
+            />
+          </label>
+
+          <div className={styles.durationRow}>
+            <span className={styles.durationLabel}>Kesto</span>
+            <span className={styles.durationValue}>{totalMinutes} min</span>
+          </div>
+
+          <div className={styles.focusFields}>
+            {FOCUS_FIELDS.map(({ key, label }) => (
+              <label key={key} className={styles.fieldLabel}>
+                {label}
+                <textarea
+                  className={styles.fieldTextarea}
+                  value={sessionMeta?.[key] ?? ''}
+                  onChange={(e) => onSessionMetaChange(key, e.target.value)}
+                  placeholder={`${label} tavoitteet...`}
+                  rows={2}
+                />
+              </label>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* ── ALATUNNISTE ── */}
       <div className={styles.footer}>
         <span className={styles.totalLabel}>{t('sidebar.totalDuration')}</span>
         <span className={styles.totalValue}>

@@ -1,0 +1,301 @@
+.section {
+  margin-bottom: 40px;
+}
+
+/* ── OTSIKKORIVI ── */
+.header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #d0dce8;
+  margin: 0;
+  flex-shrink: 0;
+}
+
+/* ── TYYPIN VALITSIN ── */
+.typeBar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.typeBarLabel {
+  font-size: 12px;
+  color: #8a9bb0;
+}
+
+.typeBtn {
+  background: #1a1d27;
+  border: 1px solid #2a2d3e;
+  border-radius: 20px;
+  color: #8a9bb0;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 5px 14px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.typeBtn:hover {
+  border-color: #8a9bb0;
+  color: #d0dce8;
+}
+
+.typeBtnActive {
+  color: white !important;
+  font-weight: 700;
+}
+
+/* ── MODAL ── */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal {
+  background: #1a1d27;
+  border: 1px solid #2a2d3e;
+  border-radius: 12px;
+  width: 280px;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+}
+
+.modalHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 14px;
+  border-bottom: 1px solid #2a2d3e;
+  border-left: 3px solid transparent;
+}
+
+.modalTitle {
+  font-size: 14px;
+  font-weight: 700;
+  color: #d0dce8;
+}
+
+.modalDate {
+  font-size: 12px;
+  color: #8a9bb0;
+  flex: 1;
+}
+
+.modalClose {
+  background: none;
+  border: none;
+  color: #3d5068;
+  cursor: pointer;
+  font-size: 13px;
+  padding: 2px 4px;
+  border-radius: 4px;
+  transition: color 0.15s;
+}
+
+.modalClose:hover { color: #d0dce8; }
+
+.modalForm {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px;
+}
+
+.modalLabel {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 12px;
+  color: #8a9bb0;
+  font-weight: 500;
+}
+
+.modalInput {
+  background: #0f1117;
+  border: 1px solid #2a2d3e;
+  border-radius: 7px;
+  color: #d0dce8;
+  font-size: 13px;
+  padding: 7px 10px;
+  outline: none;
+  transition: border-color 0.15s;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.modalInput:focus { border-color: #1D9E75; }
+
+.modalBtn {
+  border: none;
+  border-radius: 8px;
+  color: white;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 9px 0;
+  cursor: pointer;
+  transition: opacity 0.15s;
+  margin-top: 2px;
+}
+
+.modalBtn:hover { opacity: 0.85; }
+
+/* ── KUUKAUSIRUUDUKKO ── */
+.monthsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+@media (max-width: 1100px) {
+  .monthsGrid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 640px) {
+  .monthsGrid { grid-template-columns: 1fr; }
+}
+
+/* ── KUUKAUSIKORTTI ── */
+.monthCard {
+  background: #161820;
+  border: 1px solid #2a2d3e;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.monthHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-bottom: 1px solid #2a2d3e;
+  border-left: 3px solid transparent;
+}
+
+.monthName {
+  font-size: 13px;
+  font-weight: 700;
+  color: #d0dce8;
+}
+
+.monthYear {
+  font-size: 12px;
+  color: #3d5068;
+}
+
+.phaseBadge {
+  font-size: 11px;
+  font-weight: 600;
+  margin-left: auto;
+}
+
+/* ── PÄIVIEN OTSIKOT ── */
+.dayLabels {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  padding: 4px 6px 2px;
+}
+
+.dayLabel {
+  text-align: center;
+  font-size: 10px;
+  font-weight: 600;
+  color: #3d5068;
+  padding: 2px 0;
+}
+
+/* ── VIIKKO ── */
+.week {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  padding: 0 6px;
+}
+
+/* ── PÄIVÄSOLU ── */
+.dayCell {
+  padding: 3px 2px;
+  cursor: pointer;
+  border-radius: 5px;
+  min-height: 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  transition: background 0.1s;
+}
+
+.dayCell:hover {
+  background: #1a1d27;
+}
+
+.emptyCell {
+  min-height: 48px;
+}
+
+.dayNum {
+  font-size: 11px;
+  color: #3d5068;
+  line-height: 1;
+  margin-bottom: 2px;
+  display: block;
+  text-align: center;
+}
+
+.today .dayNum {
+  color: #1D9E75;
+  font-weight: 700;
+}
+
+.outside {
+  cursor: default;
+  opacity: 0.3;
+}
+
+.weekend .dayNum {
+  color: #8a9bb0;
+}
+
+/* ── CHIPPIT ── */
+.chips {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.chip {
+  border-radius: 3px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 4px;
+  transition: opacity 0.1s;
+  overflow: hidden;
+}
+
+.chip:hover { opacity: 0.7; }
+
+.chipShort {
+  font-size: 9px;
+  font-weight: 700;
+  color: rgba(255,255,255,0.9);
+  flex-shrink: 0;
+}
+
+.chipTime {
+  font-size: 9px;
+  color: rgba(255,255,255,0.75);
+  white-space: nowrap;
+  overflow: hidden;
+}

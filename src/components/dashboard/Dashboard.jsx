@@ -5,22 +5,8 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 import { loadAllSessions, deleteSession } from '../../lib/db'
+import { formatDate, totalDuration } from '../../utils/drillUtils'
 import styles from './Dashboard.module.css'
-
-// Muotoile päivämäärä suomalaiseen muotoon (esim. "21.3.2025")
-function formatDate(isoString) {
-  if (!isoString) return ''
-  return new Date(isoString).toLocaleDateString('fi-FI', {
-    day: 'numeric',
-    month: 'numeric',
-    year: 'numeric',
-  })
-}
-
-// Laske session harjoitteiden yhteiskesto minuutteina
-function totalDuration(drills) {
-  return (drills ?? []).reduce((sum, d) => sum + (d.duration ?? 0), 0)
-}
 
 export default function Dashboard() {
   const { user, signOut } = useAuth()
@@ -71,7 +57,7 @@ export default function Dashboard() {
       {/* ── NAVIGAATIO ── */}
       <nav className={styles.nav}>
         <div className={styles.navInner}>
-          <span className={styles.logo}>⚽ FutisPlanner</span>
+          <button className={styles.logo} onClick={() => navigate('/')}>⚽ FutisPlanner</button>
           <div className={styles.navRight}>
             <span className={styles.userEmail}>{user?.email}</span>
             <button className={styles.btnSignOut} onClick={signOut}>
@@ -93,9 +79,14 @@ export default function Dashboard() {
               </p>
             )}
           </div>
-          <button className={styles.btnNew} onClick={handleNewSession}>
-            + Uusi suunnitelma
-          </button>
+          <div className={styles.headerActions}>
+            <button className={styles.btnSeason} onClick={() => navigate('/kausi')}>
+              📅 Kausisuunnittelu
+            </button>
+            <button className={styles.btnNew} onClick={handleNewSession}>
+              + Uusi suunnitelma
+            </button>
+          </div>
         </div>
 
         {/* ── LATAUS ── */}

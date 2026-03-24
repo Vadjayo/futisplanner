@@ -6,6 +6,7 @@ import LandingPage from './components/landing/LandingPage'
 import AuthPage from './components/auth/AuthPage'
 import Dashboard from './components/dashboard/Dashboard'
 import EditorApp from './EditorApp'
+import SeasonPage from './components/season/SeasonPage'
 
 export default function App() {
   return (
@@ -21,6 +22,9 @@ export default function App() {
 
       {/* Editori — suojattu, vaatii kirjautumisen */}
       <Route path="/sovellus" element={<EditorApp />} />
+
+      {/* Kausisuunnittelu */}
+      <Route path="/kausi" element={<SeasonPage />} />
 
       {/* Tuntematon polku — ohjaa etusivulle */}
       <Route path="*" element={<Navigate to="/" replace />} />

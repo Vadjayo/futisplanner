@@ -1,7 +1,7 @@
 // Kentän taustapiirros — renderöi kenttätyypin mukaiset viivat ja maalit
 // Kaikki mitat loogisissa koordinaateissa (1000×650) ja skaalataan scale-propilla
 
-import { Rect, Line, Circle } from 'react-konva'
+import { Rect, Line, Circle, Text } from 'react-konva'
 
 const GRASS = '#2d5a27'                    // nurmikon vihreä
 const LINE  = 'rgba(255,255,255,0.88)'    // kenttäviivat
@@ -113,6 +113,38 @@ export default function FieldBackground({ fieldType, scale: s }) {
   // Tyhjä kenttä — pelkkä nurmi, ei viivoja
   if (fieldType === 'blank') {
     return <Rect x={0} y={0} width={W * s} height={H * s} fill={GRASS} />
+  }
+
+  // Jaettu kenttä — kaksi puoliskoa rinnakkain, selkeä jakoviiva keskellä
+  // Idea: yksi kanvas, kaksi erillistä harjoitusta vierekkäin
+  if (fieldType === 'split') {
+    const MID = (W / 2) * s
+    return (
+      <>
+        {/* Vasen puoli — hieman vaaleampi sävy erottumiseksi */}
+        <Rect x={0} y={0} width={MID} height={H * s} fill="#315f2b" />
+        {/* Oikea puoli — normaali sävy */}
+        <Rect x={MID} y={0} width={MID} height={H * s} fill={GRASS} />
+        {/* Ulkoraja */}
+        <Rect x={0} y={0} width={W * s} height={H * s} stroke={LINE} strokeWidth={lw} fill="transparent" />
+        {/* Jakoviiva */}
+        <Line
+          points={[MID, 0, MID, H * s]}
+          stroke={LINE} strokeWidth={lw}
+        />
+        {/* Puoliskojen tunnisteet — A vasemmalla, B oikealla */}
+        <Text
+          text="A" x={20 * s} y={20 * s}
+          fontSize={28 * s} fontStyle="bold" fill="rgba(255,255,255,0.25)"
+          listening={false}
+        />
+        <Text
+          text="B" x={(W / 2 + 20) * s} y={20 * s}
+          fontSize={28 * s} fontStyle="bold" fill="rgba(255,255,255,0.25)"
+          listening={false}
+        />
+      </>
+    )
   }
 
   // 3v3 — yksinkertaistettu kenttä keskiviivalla ja maaleilla

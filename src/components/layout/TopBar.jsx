@@ -1,9 +1,9 @@
 // Ylärivi — harjoituksen nimi, tallennustila ja toimintopainikkeet
 // PDF ja Jaa ovat Pro-ominaisuuksia, tällä hetkellä poissa käytöstä
 
-import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import { useInlineEdit } from '../../hooks/useInlineEdit'
 import styles from './TopBar.module.css'
 
 // Tallennuspainikkeen tekstit eri tiloissa
@@ -14,28 +14,14 @@ const SAVE_LABEL = {
   error:  '⚠ Virhe',
 }
 
-export default function TopBar({ sessionName, onSessionNameChange, onSignOut, saveStatus = 'idle', onSave }) {
+export default function TopBar({ sessionName, onSessionNameChange, onSignOut, saveStatus = 'idle', onSave, onExportPdf }) {
   const { t } = useTranslation()
   const navigate = useNavigate()
 
-  // editing = true kun käyttäjä muokkaa harjoituksen nimeä
-  const [editing, setEditing] = useState(false)
-  const [draft, setDraft] = useState(sessionName)
-
-  // Vahvista nimen muutos kun kenttä menettää fokuksen
-  function handleNameBlur() {
-    setEditing(false)
-    onSessionNameChange(draft || t('topbar.placeholder'))
-  }
-
-  // Enter vahvistaa, Escape peruuttaa muutoksen
-  function handleNameKeyDown(e) {
-    if (e.key === 'Enter') e.target.blur()
-    if (e.key === 'Escape') {
-      setDraft(sessionName)
-      setEditing(false)
-    }
-  }
+  const { editing, draft, setDraft, startEdit, commit, handleKeyDown } = useInlineEdit(
+    sessionName,
+    (val) => onSessionNameChange(val || t('topbar.placeholder'))
+  )
 
   return (
     <header className={styles.topbar}>
@@ -57,18 +43,12 @@ export default function TopBar({ sessionName, onSessionNameChange, onSignOut, sa
             className={styles.nameInput}
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
-            onBlur={handleNameBlur}
-            onKeyDown={handleNameKeyDown}
+            onBlur={commit}
+            onKeyDown={handleKeyDown}
             autoFocus
           />
         ) : (
-          <button
-            className={styles.namePlaceholder}
-            onClick={() => {
-              setDraft(sessionName)
-              setEditing(true)
-            }}
-          >
+          <button className={styles.namePlaceholder} onClick={startEdit}>
             {sessionName || t('topbar.placeholder')}
             <span className={styles.editHint}>✎</span>
           </button>
@@ -76,8 +56,11 @@ export default function TopBar({ sessionName, onSessionNameChange, onSignOut, sa
       </div>
 
       <div className={styles.right}>
-        {/* TODO: PDF-vienti Pro-ominaisuutena */}
-        <button className={`${styles.btn} ${styles.btnSecondary}`} disabled title="Pro">
+        <button
+          className={`${styles.btn} ${styles.btnSecondary}`}
+          onClick={onExportPdf}
+          title="Vie PDF:ksi"
+        >
           {t('topbar.pdf')}
         </button>
         {/* TODO: Jakaminen Pro-ominaisuutena */}

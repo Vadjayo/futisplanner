@@ -1,11 +1,13 @@
 // Harjoituksen Konva-kanvas – piirtää kaikki kenttäelementit ja hallitsee käyttäjän vuorovaikutusta
-import { useRef, useState, useEffect, useCallback } from 'react'
+import { useRef, useState, useEffect, useCallback, forwardRef, useImperativeHandle } from 'react'
 import {
   Stage, Layer, Group,
-  Circle, Rect, RegularPolygon, Arrow, Line,
+  Circle, Rect, RegularPolygon, Arrow, Line, Shape,
   Text as KonvaText, Transformer,
 } from 'react-konva'
 import FieldBackground from './FieldBackground'
+import { useAnimationEngine, getAnimatedPos } from '../../hooks/useAnimationEngine'
+import { CONE_HEX, DRAW_HEX } from '../../constants/colors'
 import styles from './DrillCanvas.module.css'
 
 // Kentän looginen koko pikseleinä – skaalaus lasketaan tästä suhteessa kontainerin leveyteen
@@ -55,33 +57,19 @@ function getKuljetusPoints(x1, y1, x2, y2, scale) {
   return pts
 }
 
-// Piirtotyökalujen värit – avain vastaa LeftToolbarin CONE_COLORS id-arvoja
-const DRAW_HEX = {
-  white:  '#f1f5f9',
-  yellow: '#fbbf24',
-  orange: '#f97316',
-  red:    '#ef4444',
-  blue:   '#3b82f6',
-  green:  '#22c55e',
-}
-
-// Tötsien ja keppien täyttö- ja reunusvärit värityypeittäin
-const CONE_HEX = {
-  orange: { fill: '#f97316', stroke: '#c2410c' },
-  red:    { fill: '#ef4444', stroke: '#b91c1c' },
-  blue:   { fill: '#3b82f6', stroke: '#1d4ed8' },
-  yellow: { fill: '#fbbf24', stroke: '#d97706' },
-  green:  { fill: '#22c55e', stroke: '#15803d' },
-  white:  { fill: '#f1f5f9', stroke: '#94a3b8' },
-}
-
 // Pääkomponentti: Konva-pohjainen harjoituskenttä
 // Props: elements – kenttäelementtien lista, fieldType – kentän tyyppi,
 //        activeTool – valittu työkalu, toolOptions – lisäasetukset, onChange – elementit päivitetty
-export default function DrillCanvas({ elements, fieldType, activeTool, toolOptions, onChange }) {
+// Ref: exposoi getImageDataUrl() PDF-vientiä varten
+const DrillCanvas = forwardRef(function DrillCanvas({ elements, fieldType, activeTool, toolOptions, onChange }, ref) {
   const containerRef = useRef(null)
   const stageRef = useRef(null)
   const trRef = useRef(null) // Konva Transformer -viite valitun elementin muokkaamiseen
+
+  // Exposoi getImageDataUrl() ref:n kautta PDF-vientiä varten (pixelRatio=2 = terävä kuva)
+  useImperativeHandle(ref, () => ({
+    getImageDataUrl: () => stageRef.current?.toDataURL({ pixelRatio: 2 }),
+  }))
 
   const [stageWidth, setStageWidth] = useState(800)
   const [selectedId, setSelectedId] = useState(null)
@@ -90,18 +78,16 @@ export default function DrillCanvas({ elements, fieldType, activeTool, toolOptio
   const [drawingShape, setDrawingShape] = useState(null) // Kesken oleva muodonpiirto
   const [editingText, setEditingText] = useState(null)   // Tekstielementti, jota muokataan
 
-  // ── ANIMAATIO ──
-  // animSelectedId = pelaaja jonka polkua muokataan animaatiotilassa
-  const [animSelectedId, setAnimSelectedId] = useState(null)
-  const [isPlaying, setIsPlaying] = useState(false)
-  const [animProgress, setAnimProgress] = useState(0) // 0.0–1.0
-  const ANIM_DURATION = 5000 // toiston kesto millisekunteina
-  const animFrameRef = useRef(null)
-  const animStartTimeRef = useRef(null)
-
   // Skaalauskerroin: looginen kenttäleveys sovitetaan kontainerin pikselileveyteen
   const scale = stageWidth / FIELD_W
   const stageHeight = FIELD_H * scale
+
+  // ── ANIMAATIO ──
+  const {
+    animSelectedId, setAnimSelectedId,
+    isPlaying, animProgress, animProgressRef,
+    playAnim, pauseAnim, resetAnim, resetAll,
+  } = useAnimationEngine({ stageRef, elements, scale })
 
   // Seurataan kontainerin leveyttä ResizeObserverilla – päivitetään skaalaus automaattisesti
   useEffect(() => {
@@ -121,77 +107,8 @@ export default function DrillCanvas({ elements, fieldType, activeTool, toolOptio
 
   // Pysäytetään animaatio ja nollataan tila kun poistutaan animaatiotilasta
   useEffect(() => {
-    if (activeTool !== 'animate') {
-      setAnimSelectedId(null)
-      if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current)
-      setIsPlaying(false)
-      setAnimProgress(0)
-    }
-  }, [activeTool])
-
-  // RAF-toistosikklukka — cancelled-lippu estää StrictMode-kaksoisajon
-  useEffect(() => {
-    if (!isPlaying) return
-    let cancelled = false
-    function frame(now) {
-      if (cancelled) return
-      const elapsed = now - animStartTimeRef.current
-      const progress = Math.min(elapsed / ANIM_DURATION, 1)
-      setAnimProgress(progress)
-      if (progress < 1) {
-        animFrameRef.current = requestAnimationFrame(frame)
-      } else {
-        if (!cancelled) setIsPlaying(false)
-      }
-    }
-    animFrameRef.current = requestAnimationFrame(frame)
-    return () => {
-      cancelled = true
-      if (animFrameRef.current) {
-        cancelAnimationFrame(animFrameRef.current)
-        animFrameRef.current = null
-      }
-    }
-  }, [isPlaying]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  // Aloita toisto — jatkaa nykyisestä progress-kohdasta tai alusta
-  function playAnim() {
-    animStartTimeRef.current = performance.now() - animProgress * ANIM_DURATION
-    setIsPlaying(true)
-  }
-
-  // Pysäytä toisto säilyttäen nykyinen progress
-  function pauseAnim() {
-    if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current)
-    setIsPlaying(false)
-  }
-
-  // Palauta animaatio alkuun
-  function resetAnim() {
-    if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current)
-    setIsPlaying(false)
-    setAnimProgress(0)
-  }
-
-  // Laske elementin animoitu sijainti progress-arvon perusteella
-  // Palauttaa null jos elementillä ei ole polkua
-  function getAnimatedPos(el) {
-    if (!el.animPath || el.animPath.length === 0) return null
-    // Polku alkaa elementin nykyisestä sijainnista
-    const path = [{ x: el.x, y: el.y }, ...el.animPath]
-    const numSegments = path.length - 1
-    if (numSegments === 0) return { x: el.x, y: el.y }
-    // Lasketaan missä segmentissä ollaan
-    const total = animProgress * numSegments
-    const segIdx = Math.min(Math.floor(total), numSegments - 1)
-    const segT = total - segIdx
-    const start = path[segIdx]
-    const end = path[segIdx + 1]
-    return {
-      x: start.x + segT * (end.x - start.x),
-      y: start.y + segT * (end.y - start.y),
-    }
-  }
+    if (activeTool !== 'animate') resetAll()
+  }, [activeTool]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Päivitetään Transformer-solmu ja poista-napin sijainti aina kun valinta muuttuu
   useEffect(() => {
@@ -266,7 +183,7 @@ export default function DrillCanvas({ elements, fieldType, activeTool, toolOptio
     let newEl
     switch (activeTool) {
       case 'player':
-        newEl = { id, type: 'player', x, y, number: nextPlayerNumber(team), team }
+        newEl = { id, type: 'player', x, y, number: nextPlayerNumber(team), team, shape: toolOptions?.playerShape ?? 'att', rotation: 0 }
         break
       case 'coach':
         newEl = { id, type: 'coach', x, y }
@@ -419,6 +336,15 @@ export default function DrillCanvas({ elements, fieldType, activeTool, toolOptio
     ))
   }, [elements, onChange])
 
+  // Pyörittää elementtiä hiiren rullalla — 15° per askel
+  const handleWheel = useCallback((e, id) => {
+    e.evt.preventDefault()
+    const delta = e.evt.deltaY > 0 ? 5 : -5
+    onChange(elements.map((el) =>
+      el.id === id ? { ...el, rotation: ((el.rotation ?? 0) + delta + 360) % 360 } : el
+    ))
+  }, [elements, onChange])
+
   // Siirtää nuolen (tai viivan) molempia päätepisteitä yhtä paljon – nollaa Group-position siirron jälkeen
   const handleArrowDragEnd = useCallback((e, id) => {
     const dx = e.target.x() / scale
@@ -465,8 +391,8 @@ export default function DrillCanvas({ elements, fieldType, activeTool, toolOptio
     : ['arrow', 'line', 'circle', 'freehand'].includes(activeTool) ? 'crosshair'
     : 'cell'
 
-  // onko animaatio aktiivinen (toisto käynnissä tai progress > 0)
-  const animActive = isPlaying || animProgress > 0
+  // animActive vain animaatiotilassa — estää elementtien siirtymisen normaalissa muokkauksessa
+  const animActive = activeTool === 'animate' && (isPlaying || animProgress > 0)
 
   return (
     <div ref={containerRef} className={styles.wrapper}>
@@ -517,30 +443,78 @@ export default function DrillCanvas({ elements, fieldType, activeTool, toolOptio
           {elements.map((el) => {
             // --- PELAAJA ---
             if (el.type === 'player') {
-              // Animoitu sijainti toiston aikana
-              const aPos = animActive ? getAnimatedPos(el) : null
+              const aPos = animActive ? getAnimatedPos(el, animProgressRef.current) : null
+              const ROLE_COLORS = {
+                gk: '#f59e0b', blue: '#2563eb', red: '#dc2626', green: '#16a34a', dark: '#374151',
+                home: '#2563eb', away: '#dc2626',
+              }
+              const color = ROLE_COLORS[el.team] ?? '#2563eb'
+              const isDef = el.shape === 'def'
               return (
                 <Group
                   key={el.id} id={`el_${el.id}`}
                   x={aPos ? aPos.x * scale : el.x * scale}
                   y={aPos ? aPos.y * scale : el.y * scale}
+                  rotation={el.rotation ?? 0}
                   draggable={draggable}
                   onClick={(e) => selectEl(e, el.id)}
                   onDragEnd={(e) => handleDragEnd(e, el.id)}
+                  onTransformEnd={(e) => handleTransformEnd(e, el.id)}
+                  onWheel={(e) => handleWheel(e, el.id)}
                 >
-                  {/* Ympyrä – sininen kotijoukkueelle, punainen vieraille */}
-                  <Circle
-                    radius={18 * scale}
-                    fill={el.team === 'home' ? '#2563eb' : '#dc2626'}
-                    stroke="white" strokeWidth={1.5 * scale}
-                  />
-                  {/* Pelaajan numero ympyrän sisällä */}
+                  {isDef ? (
+                    /* Puolustaja: kolmio + kaari yhtenä yhtenäisenä muotona */
+                    <>
+                      <Shape
+                        sceneFunc={(ctx, shape) => {
+                          // Vasemmasta kulmasta kärjen kautta oikeaan kulmaan,
+                          // sitten kaari oikeasta kulmasta myötäpäivään alas ja ympäri vasempaan
+                          ctx.beginPath()
+                          ctx.moveTo(-10 * scale, -5 * scale)
+                          ctx.lineTo(0, 10 * scale)
+                          ctx.lineTo(10 * scale, -5 * scale)
+                          ctx.arc(0, 4 * scale, Math.sqrt(181) * scale,
+                            Math.atan2(-9, 10), Math.atan2(-9, -10), false)
+                          ctx.closePath()
+                          ctx.fillStrokeShape(shape)
+                        }}
+                        fill={color} stroke="white" strokeWidth={1.5 * scale}
+                      />
+                    </>
+                  ) : (
+                    /* Hyökkääjä / MV: ympyrä + pidemmät käsikaaret */
+                    <>
+                      {/* Paksu valkoinen kaari käsille */}
+                      <Shape
+                        sceneFunc={(ctx, shape) => {
+                          ctx.beginPath()
+                          ctx.arc(0, 3 * scale, 15 * scale, Math.PI * 1.05, Math.PI * 1.95, false)
+                          ctx.strokeShape(shape)
+                        }}
+                        stroke="white" strokeWidth={5 * scale} lineCap="round"
+                      />
+                      {/* Valkoinen ympyrä — ääriviivaksi */}
+                      <Circle radius={11.5 * scale} fill="white" />
+                      {/* Värillinen kaari käsille */}
+                      <Shape
+                        sceneFunc={(ctx, shape) => {
+                          ctx.beginPath()
+                          ctx.arc(0, 3 * scale, 15 * scale, Math.PI * 1.05, Math.PI * 1.95, false)
+                          ctx.strokeShape(shape)
+                        }}
+                        stroke={color} strokeWidth={2.5 * scale} lineCap="round"
+                      />
+                      {/* Värillinen ympyrä */}
+                      <Circle radius={10 * scale} fill={color} />
+                    </>
+                  )}
+                  {/* Numero */}
                   <KonvaText
+                    x={-7 * scale} y={isDef ? -3 * scale : -6 * scale}
                     text={String(el.number)}
-                    fontSize={13 * scale} fill="white" fontStyle="bold"
+                    fontSize={10 * scale} fill="white" fontStyle="bold"
+                    width={14 * scale} height={12 * scale}
                     align="center" verticalAlign="middle"
-                    width={36 * scale} height={36 * scale}
-                    offsetX={18 * scale} offsetY={18 * scale}
                     listening={false}
                   />
                 </Group>
@@ -549,7 +523,7 @@ export default function DrillCanvas({ elements, fieldType, activeTool, toolOptio
 
             // --- VALMENTAJA ---
             if (el.type === 'coach') {
-              const aPos = animActive ? getAnimatedPos(el) : null
+              const aPos = animActive ? getAnimatedPos(el, animProgressRef.current) : null
               return (
                 <Group
                   key={el.id} id={`el_${el.id}`}
@@ -582,7 +556,7 @@ export default function DrillCanvas({ elements, fieldType, activeTool, toolOptio
             if (el.type === 'ball') {
               const s = scale
               const r = 13 * s
-              const aPos = animActive ? getAnimatedPos(el) : null
+              const aPos = animActive ? getAnimatedPos(el, animProgressRef.current) : null
               // 5 mustan viisikulmion kulmat (klassinen jalkapallokuvio)
               const patches = [0, 72, 144, 216, 288].map((deg) => {
                 const rad = (deg - 90) * (Math.PI / 180)
@@ -661,7 +635,10 @@ export default function DrillCanvas({ elements, fieldType, activeTool, toolOptio
 
             // --- PIENI MAALI ---
             if (el.type === 'smallgoal') {
-              const w = 60, d = 24, bar = 5
+              const w = 60, d = 24, bar = 4
+              const iw = w - 2 * bar  // sisäleveys
+              const id = d - bar      // sisäsyvyys
+              const netStep = 10
               return (
                 <Group
                   key={el.id} id={`el_${el.id}`}
@@ -672,8 +649,23 @@ export default function DrillCanvas({ elements, fieldType, activeTool, toolOptio
                   onClick={(e) => selectEl(e, el.id)}
                   onDragEnd={(e) => handleDragEnd(e, el.id)}
                   onTransformEnd={(e) => handleTransformEnd(e, el.id)}
+                  onWheel={(e) => handleWheel(e, el.id)}
                 >
-                  {/* Poikkitanko, vasen tolppa, oikea tolppa */}
+                  {/* Verkon täyttö */}
+                  <Rect x={(-w/2+bar)*scale} y={(-d/2+bar)*scale} width={iw*scale} height={id*scale} fill="rgba(255,255,255,0.10)" />
+                  {/* Verkon pystyviivat */}
+                  {Array.from({ length: Math.floor(iw / netStep) - 1 }, (_, i) => (
+                    <Line key={`v${i}`}
+                      points={[(-w/2+bar+netStep*(i+1))*scale, (-d/2+bar)*scale, (-w/2+bar+netStep*(i+1))*scale, (d/2)*scale]}
+                      stroke="rgba(255,255,255,0.3)" strokeWidth={0.6*scale} />
+                  ))}
+                  {/* Verkon vaakaviivat */}
+                  {Array.from({ length: Math.floor(id / netStep) }, (_, i) => (
+                    <Line key={`h${i}`}
+                      points={[(-w/2+bar)*scale, (-d/2+bar+netStep*(i+1))*scale, (w/2-bar)*scale, (-d/2+bar+netStep*(i+1))*scale]}
+                      stroke="rgba(255,255,255,0.3)" strokeWidth={0.6*scale} />
+                  ))}
+                  {/* Tolpat ja poikkitanko */}
                   <Rect x={(-w/2)*scale} y={(-d/2)*scale} width={w*scale} height={bar*scale} fill="white" cornerRadius={scale} />
                   <Rect x={(-w/2)*scale} y={(-d/2)*scale} width={bar*scale} height={d*scale} fill="white" cornerRadius={scale} />
                   <Rect x={(w/2-bar)*scale} y={(-d/2)*scale} width={bar*scale} height={d*scale} fill="white" cornerRadius={scale} />
@@ -683,7 +675,10 @@ export default function DrillCanvas({ elements, fieldType, activeTool, toolOptio
 
             // --- MAALI ---
             if (el.type === 'goal') {
-              const w = 100, d = 30, bar = 5
+              const w = 110, d = 36, bar = 5
+              const iw = w - 2 * bar
+              const id = d - bar
+              const netStepX = 14, netStepY = 12
               return (
                 <Group
                   key={el.id} id={`el_${el.id}`}
@@ -694,8 +689,23 @@ export default function DrillCanvas({ elements, fieldType, activeTool, toolOptio
                   onClick={(e) => selectEl(e, el.id)}
                   onDragEnd={(e) => handleDragEnd(e, el.id)}
                   onTransformEnd={(e) => handleTransformEnd(e, el.id)}
+                  onWheel={(e) => handleWheel(e, el.id)}
                 >
-                  {/* Poikkitanko, vasen tolppa, oikea tolppa */}
+                  {/* Verkon täyttö */}
+                  <Rect x={(-w/2+bar)*scale} y={(-d/2+bar)*scale} width={iw*scale} height={id*scale} fill="rgba(255,255,255,0.10)" />
+                  {/* Verkon pystyviivat */}
+                  {Array.from({ length: Math.floor(iw / netStepX) - 1 }, (_, i) => (
+                    <Line key={`v${i}`}
+                      points={[(-w/2+bar+netStepX*(i+1))*scale, (-d/2+bar)*scale, (-w/2+bar+netStepX*(i+1))*scale, (d/2)*scale]}
+                      stroke="rgba(255,255,255,0.3)" strokeWidth={0.7*scale} />
+                  ))}
+                  {/* Verkon vaakaviivat */}
+                  {Array.from({ length: Math.floor(id / netStepY) }, (_, i) => (
+                    <Line key={`h${i}`}
+                      points={[(-w/2+bar)*scale, (-d/2+bar+netStepY*(i+1))*scale, (w/2-bar)*scale, (-d/2+bar+netStepY*(i+1))*scale]}
+                      stroke="rgba(255,255,255,0.3)" strokeWidth={0.7*scale} />
+                  ))}
+                  {/* Tolpat ja poikkitanko */}
                   <Rect x={(-w/2)*scale} y={(-d/2)*scale} width={w*scale} height={bar*scale} fill="white" cornerRadius={scale} />
                   <Rect x={(-w/2)*scale} y={(-d/2)*scale} width={bar*scale} height={d*scale} fill="white" cornerRadius={scale} />
                   <Rect x={(w/2-bar)*scale} y={(-d/2)*scale} width={bar*scale} height={d*scale} fill="white" cornerRadius={scale} />
@@ -717,6 +727,7 @@ export default function DrillCanvas({ elements, fieldType, activeTool, toolOptio
                   onClick={(e) => selectEl(e, el.id)}
                   onDragEnd={(e) => handleDragEnd(e, el.id)}
                   onTransformEnd={(e) => handleTransformEnd(e, el.id)}
+                  onWheel={(e) => handleWheel(e, el.id)}
                 >
                   {/* Vasemman ja oikean kaiteen pitkät palkit */}
                   <Rect x={(-w/2)*scale} y={(-h/2)*scale} width={rail*scale} height={h*scale} fill="#fbbf24" cornerRadius={scale} />
@@ -742,6 +753,7 @@ export default function DrillCanvas({ elements, fieldType, activeTool, toolOptio
                   onClick={(e) => selectEl(e, el.id)}
                   onDragEnd={(e) => handleDragEnd(e, el.id)}
                   onTransformEnd={(e) => handleTransformEnd(e, el.id)}
+                  onWheel={(e) => handleWheel(e, el.id)}
                 >
                   {/* Yläpalkki, vasen jalka, oikea jalka, vasemman jalan jalusta, oikean jalan jalusta */}
                   <Rect x={(-w/2)*scale} y={barY*scale} width={w*scale} height={4*scale} fill="white" cornerRadius={scale} />
@@ -936,8 +948,20 @@ export default function DrillCanvas({ elements, fieldType, activeTool, toolOptio
               type="range" min={0} max={1} step={0.001}
               value={animProgress}
               onChange={(e) => {
+                const p = parseFloat(e.target.value)
                 pauseAnim()
-                setAnimProgress(parseFloat(e.target.value))
+                animProgressRef.current = p
+                // Päivitä nodet heti skrubbauksen yhteydessä
+                if (stageRef.current) {
+                  elements.forEach((el) => {
+                    if (!['player', 'coach', 'ball'].includes(el.type)) return
+                    const aPos = getAnimatedPos(el, p)
+                    if (!aPos) return
+                    const node = stageRef.current.findOne(`#el_${el.id}`)
+                    if (node) { node.x(aPos.x * scale); node.y(aPos.y * scale) }
+                  })
+                  stageRef.current.getLayers()[0]?.batchDraw()
+                }
               }}
               className={styles.animScrubber}
             />
@@ -990,4 +1014,6 @@ export default function DrillCanvas({ elements, fieldType, activeTool, toolOptio
       )}
     </div>
   )
-}
+})
+
+export default DrillCanvas

@@ -1,19 +1,18 @@
 .sidebar {
-  width: 200px;
+  width: 210px;
   background: #1a2535;
   border-left: 1px solid #2d3f55;
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
-  overflow: hidden;
+  overflow-y: auto;
 }
 
 .section {
-  flex: 1;
   display: flex;
   flex-direction: column;
   padding: 12px 0;
-  overflow: hidden;
+  border-bottom: 1px solid #2d3f55;
 }
 
 .sectionTitle {
@@ -119,6 +118,86 @@
   border-color: #3d5068;
   color: #d0dce8;
 }
+
+/* ── YHTEENVETO ── */
+.summarySection {
+  padding: 12px 0;
+  border-bottom: 1px solid #2d3f55;
+}
+
+.summaryFields {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 0 12px;
+}
+
+.fieldLabel {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 11px;
+  color: #3d5068;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.fieldInput {
+  background: #0f1923;
+  border: 1px solid #2d3f55;
+  border-radius: 6px;
+  color: #d0dce8;
+  font-size: 12px;
+  padding: 6px 8px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.fieldInput:focus { border-color: #3b82f6; }
+
+.fieldTextarea {
+  background: #0f1923;
+  border: 1px solid #2d3f55;
+  border-radius: 6px;
+  color: #d0dce8;
+  font-size: 12px;
+  padding: 6px 8px;
+  outline: none;
+  resize: vertical;
+  font-family: inherit;
+  line-height: 1.4;
+  transition: border-color 0.15s;
+}
+
+.fieldTextarea:focus { border-color: #3b82f6; }
+
+.durationRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.durationLabel {
+  font-size: 11px;
+  color: #3d5068;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.durationValue {
+  font-size: 13px;
+  font-weight: 700;
+  color: #d0dce8;
+}
+
+.focusFields {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
 
 .footer {
   border-top: 1px solid #2d3f55;

@@ -9,7 +9,7 @@ export async function loadRecentSession(userId) {
   const { data, error } = await supabase
     .from('sessions')
     .select(`
-      id, name,
+      id, name, description, theme, focus_technical, focus_tactical, focus_physical, focus_mental,
       drills ( id, title, duration, field_type, elements, position )
     `)
     .eq('user_id', userId)
@@ -23,11 +23,19 @@ export async function loadRecentSession(userId) {
 // Tallenna sessio + kaikki harjoitteet atomisesti.
 // Strategia: upsert sessio → poista vanhat harjoitteet → lisää uudet
 // (yksinkertaisempi kuin diff-pohjainen päivitys, riittää tähän käyttötarkoitukseen)
-export async function saveSession({ id, name, userId, drills }) {
+export async function saveSession({ id, name, userId, drills, meta = {} }) {
   // Upsert sessio — luo uusi tai päivitä olemassa oleva id:n perusteella
   const { data: session, error: sessionError } = await supabase
     .from('sessions')
-    .upsert({ id, user_id: userId, name, updated_at: new Date().toISOString() })
+    .upsert({
+      id, user_id: userId, name, updated_at: new Date().toISOString(),
+      description: meta.description ?? null,
+      theme: meta.theme ?? null,
+      focus_technical: meta.focusTechnical ?? 0,
+      focus_tactical:  meta.focusTactical  ?? 0,
+      focus_physical:  meta.focusPhysical  ?? 0,
+      focus_mental:    meta.focusMental    ?? 0,
+    })
     .select('id')
     .single()
 
@@ -83,7 +91,7 @@ export async function loadSessionById(userId, sessionId) {
   const { data, error } = await supabase
     .from('sessions')
     .select(`
-      id, name,
+      id, name, description, theme, focus_technical, focus_tactical, focus_physical, focus_mental,
       drills ( id, title, duration, field_type, elements, position )
     `)
     .eq('user_id', userId)

@@ -1,0 +1,85 @@
+.section {
+  margin-bottom: 32px;
+}
+
+.title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #d0dce8;
+  margin: 0 0 16px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+@media (max-width: 700px) {
+  .grid { grid-template-columns: 1fr; }
+}
+
+.card {
+  background: #161820;
+  border: 1px solid #2a2d3e;
+  border-radius: 10px;
+  padding: 16px;
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.cardIcon {
+  font-size: 18px;
+}
+
+.cardLabel {
+  font-size: 13px;
+  font-weight: 600;
+  color: #d0dce8;
+  flex: 1;
+}
+
+.selectedCount {
+  background: #1D9E75;
+  color: white;
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 10px;
+  padding: 1px 7px;
+  min-width: 20px;
+  text-align: center;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.tag {
+  background: #1a1d27;
+  border: 1px solid #2a2d3e;
+  border-radius: 20px;
+  color: #8a9bb0;
+  font-size: 12px;
+  padding: 4px 10px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.tag:hover {
+  border-color: #1D9E75;
+  color: #d0dce8;
+}
+
+.tagActive {
+  background: rgba(29, 158, 117, 0.15);
+  border-color: #1D9E75;
+  color: #1D9E75;
+  font-weight: 600;
+}

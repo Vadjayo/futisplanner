@@ -1,0 +1,84 @@
+.section {
+  margin-bottom: 32px;
+}
+
+.title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #d0dce8;
+  margin: 0 0 16px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+@media (max-width: 800px) {
+  .grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 500px) {
+  .grid { grid-template-columns: 1fr; }
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #8a9bb0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.input {
+  background: #1a1d27;
+  border: 1px solid #2a2d3e;
+  border-radius: 7px;
+  color: #d0dce8;
+  font-size: 14px;
+  padding: 8px 12px;
+  outline: none;
+  transition: border-color 0.15s;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.input:focus {
+  border-color: #1D9E75;
+}
+
+.input::placeholder {
+  color: #3d5068;
+}
+
+.levelToggle {
+  display: flex;
+  gap: 6px;
+}
+
+.levelBtn {
+  flex: 1;
+  background: #1a1d27;
+  border: 1px solid #2a2d3e;
+  border-radius: 7px;
+  color: #8a9bb0;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 8px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.levelActive {
+  background: rgba(29, 158, 117, 0.15);
+  border-color: #1D9E75;
+  color: #1D9E75;
+  font-weight: 700;
+}

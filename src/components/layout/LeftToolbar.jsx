@@ -1,16 +1,34 @@
 // Vasemman reunan työkalupalkki harjoituseditorille – sisältää välinevalinnat ja piirtotyökalut
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { CONE_COLORS } from '../../constants/colors'
 import styles from './LeftToolbar.module.css'
 
-// Tötsien ja keppien värivaihtoehdot – id vastaa CONE_HEX-avaimia DrillCanvasissa
-const CONE_COLORS = [
-  { id: 'orange', hex: '#f97316', label: 'Oranssi' },
-  { id: 'red',    hex: '#ef4444', label: 'Punainen' },
-  { id: 'blue',   hex: '#3b82f6', label: 'Sininen' },
-  { id: 'yellow', hex: '#fbbf24', label: 'Keltainen' },
-  { id: 'green',  hex: '#22c55e', label: 'Vihreä' },
-  { id: 'white',  hex: '#f1f5f9', label: 'Valkoinen' },
-]
+// Pelaajan siluetti-ikoni — sama logiikka kuin kanvaksessa
+function PlayerSilhouette({ color, type = 'att' }) {
+  if (type === 'def') {
+    // Kolmion kulmat (1,3) ja (21,3) — kaari alkaa täsmälleen niistä, r=√(10²+8²)≈12.8
+    return (
+      <svg width="22" height="24" viewBox="0 0 22 24" style={{ display: 'block' }}>
+        {/* Kaari ensin (taakse), alkaa kolmion kulmista */}
+        <path d="M 1 3 A 12.8 12.8 0 0 1 21 3" fill="none" stroke={color} strokeWidth="3" strokeLinecap="round" />
+        {/* Kolmio päälle */}
+        <path d="M 1 3 L 21 3 L 11 18 Z" fill={color} stroke="white" strokeWidth="1.5" strokeLinejoin="round" />
+      </svg>
+    )
+  }
+  return (
+    <svg width="22" height="22" viewBox="0 0 22 22" style={{ display: 'block' }}>
+      {/* Paksu valkoinen kaari (pidemmät) */}
+      <path d="M 0.5 7 A 10.5 10.5 0 0 1 21.5 7" fill="none" stroke="white" strokeWidth="5" strokeLinecap="round" />
+      {/* Valkoinen ympyrä */}
+      <circle cx="11" cy="7" r="8.5" fill="white" />
+      {/* Värillinen kaari */}
+      <path d="M 0.5 7 A 10.5 10.5 0 0 1 21.5 7" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" />
+      {/* Värillinen ympyrä */}
+      <circle cx="11" cy="7" r="7" fill={color} />
+    </svg>
+  )
+}
 
 // Nuolityypit liike-osion painikkeisiin
 const ARROW_TYPES = [
@@ -155,6 +173,11 @@ export default function LeftToolbar({ activeTool, onToolChange, toolOptions, onT
   // Flyout-valikon avaus/sulkeminen
   const [toolsOpen, setToolsOpen] = useState(false)
 
+  // Sulje flyout kun valinta-työkalu aktivoituu (esim. spacebar)
+  useEffect(() => {
+    if (activeTool === 'select') setToolsOpen(false)
+  }, [activeTool])
+
   // Valitsee työkalun ja asettaa siihen liittyvät lisäasetukset kerralla
   function pick(tool, options = {}) {
     onToolChange(tool)
@@ -211,21 +234,58 @@ export default function LeftToolbar({ activeTool, onToolChange, toolOptions, onT
           {/* PELAAJAT */}
           <div className={styles.section}>
             <div className={styles.sectionLabel}>Pelaajat</div>
+
+            {/* Maalivahti */}
+            <div className={styles.playerTypeLabel}>MV</div>
             <div className={styles.playerRow}>
-              {/* Kotijoukkueen pelaaja – sininen */}
               <button
-                className={`${styles.playerBtn} ${activeTool === 'player' && toolOptions.playerTeam === 'home' ? styles.itemActive : ''}`}
-                style={{ '--c': '#2563eb' }}
-                onClick={() => pick('player', { playerTeam: 'home' })}
-                title="Kotijoukkue"
-              >K</button>
-              {/* Vierasjoukkueen pelaaja – punainen */}
-              <button
-                className={`${styles.playerBtn} ${activeTool === 'player' && toolOptions.playerTeam === 'away' ? styles.itemActive : ''}`}
-                style={{ '--c': '#dc2626' }}
-                onClick={() => pick('player', { playerTeam: 'away' })}
-                title="Vierasjoukkue"
-              >V</button>
+                className={`${styles.playerBtn} ${activeTool === 'player' && toolOptions.playerTeam === 'gk' ? styles.itemActive : ''}`}
+                style={{ '--c': '#f59e0b' }}
+                onClick={() => pick('player', { playerTeam: 'gk', playerShape: 'att' })}
+                title="Maalivahti"
+              >
+                <PlayerSilhouette color="#f59e0b" type="att" />
+              </button>
+            </div>
+
+            {/* Hyökkääjät */}
+            <div className={styles.playerTypeLabel}>Hyökkääjät</div>
+            <div className={styles.playerRow}>
+              {[
+                { role: 'blue',  color: '#2563eb' },
+                { role: 'red',   color: '#dc2626' },
+                { role: 'green', color: '#16a34a' },
+                { role: 'dark',  color: '#374151' },
+              ].map(({ role, color }) => (
+                <button
+                  key={role}
+                  className={`${styles.playerBtn} ${activeTool === 'player' && toolOptions.playerTeam === role && toolOptions.playerShape === 'att' ? styles.itemActive : ''}`}
+                  style={{ '--c': color }}
+                  onClick={() => pick('player', { playerTeam: role, playerShape: 'att' })}
+                >
+                  <PlayerSilhouette color={color} type="att" />
+                </button>
+              ))}
+            </div>
+
+            {/* Puolustajat */}
+            <div className={styles.playerTypeLabel}>Puolustajat</div>
+            <div className={styles.playerRow}>
+              {[
+                { role: 'blue',  color: '#2563eb' },
+                { role: 'red',   color: '#dc2626' },
+                { role: 'green', color: '#16a34a' },
+                { role: 'dark',  color: '#374151' },
+              ].map(({ role, color }) => (
+                <button
+                  key={role}
+                  className={`${styles.playerBtn} ${activeTool === 'player' && toolOptions.playerTeam === role && toolOptions.playerShape === 'def' ? styles.itemActive : ''}`}
+                  style={{ '--c': color }}
+                  onClick={() => pick('player', { playerTeam: role, playerShape: 'def' })}
+                >
+                  <PlayerSilhouette color={color} type="def" />
+                </button>
+              ))}
             </div>
           </div>
 
