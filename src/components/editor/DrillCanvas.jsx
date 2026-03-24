@@ -2,7 +2,7 @@
 import { useRef, useState, useEffect, useCallback, forwardRef, useImperativeHandle } from 'react'
 import {
   Stage, Layer, Group,
-  Circle, Rect, RegularPolygon, Arrow, Line, Shape,
+  Circle, Rect, RegularPolygon, Arrow, Line,
   Text as KonvaText, Transformer,
 } from 'react-konva'
 import FieldBackground from './FieldBackground'
@@ -57,6 +57,25 @@ function getKuljetusPoints(x1, y1, x2, y2, scale) {
   return pts
 }
 
+// Laskee nuolenpään pisteet vapaan nuolen lopulle – käyttää viimeisiä pisteitä suunnan arvaamiseen
+function getFreeArrowHead(points, scale) {
+  const n = points.length
+  if (n < 4) return null
+  const lastX = points[n - 2], lastY = points[n - 1]
+  // Katsotaan taaksepäin enintään 9 pisteparia pehmeämmän suunnan saamiseksi
+  const backIdx = Math.max(0, n - 20)
+  const angle = Math.atan2(lastY - points[backIdx + 1], lastX - points[backIdx])
+  const len = 12, spread = Math.PI / 6
+  return [
+    (lastX - len * Math.cos(angle - spread)) * scale,
+    (lastY - len * Math.sin(angle - spread)) * scale,
+    lastX * scale,
+    lastY * scale,
+    (lastX - len * Math.cos(angle + spread)) * scale,
+    (lastY - len * Math.sin(angle + spread)) * scale,
+  ]
+}
+
 // Pääkomponentti: Konva-pohjainen harjoituskenttä
 // Props: elements – kenttäelementtien lista, fieldType – kentän tyyppi,
 //        activeTool – valittu työkalu, toolOptions – lisäasetukset, onChange – elementit päivitetty
@@ -72,11 +91,16 @@ const DrillCanvas = forwardRef(function DrillCanvas({ elements, fieldType, activ
   }))
 
   const [stageWidth, setStageWidth] = useState(800)
-  const [selectedId, setSelectedId] = useState(null)
+  const [selectedIds, setSelectedIds] = useState([])     // valitut elementit (yksi tai useita)
   const [deleteBtnPos, setDeleteBtnPos] = useState(null) // Poista-napin sijainti pikseleissä
   const [drawingArrow, setDrawingArrow] = useState(null) // Kesken oleva nuolenpiirto
   const [drawingShape, setDrawingShape] = useState(null) // Kesken oleva muodonpiirto
   const [editingText, setEditingText] = useState(null)   // Tekstielementti, jota muokataan
+  const [selectionRect, setSelectionRect] = useState(null) // Kumilankahaku-suorakulmio {x,y,w,h}
+  const selectionStartRef = useRef(null)    // Kumilankahaku aloituspiste pikseleinä
+  const rubberBandApplied = useRef(false)   // Estetään handleStageClick kumilankahaulta
+  const historyRef = useRef([])             // Undo-historia (max 50 tilaa)
+  const groupDragStartRef = useRef(null)    // Ryhmäsiirron ankkurielementtien lähtötilanne
 
   // Skaalauskerroin: looginen kenttäleveys sovitetaan kontainerin pikselileveyteen
   const scale = stageWidth / FIELD_W
@@ -102,7 +126,7 @@ const DrillCanvas = forwardRef(function DrillCanvas({ elements, fieldType, activ
 
   // Poistetaan valinta aina kun työkalu vaihtuu pois valinta-tilasta
   useEffect(() => {
-    if (activeTool !== 'select') setSelectedId(null)
+    if (activeTool !== 'select') setSelectedIds([])
   }, [activeTool])
 
   // Pysäytetään animaatio ja nollataan tila kun poistutaan animaatiotilasta
@@ -110,15 +134,30 @@ const DrillCanvas = forwardRef(function DrillCanvas({ elements, fieldType, activ
     if (activeTool !== 'animate') resetAll()
   }, [activeTool]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  // commitChange – tallentaa nykyisen tilan historiaan ennen muutosta (Ctrl+Z käyttää tätä)
+  const commitChange = useCallback((newElements) => {
+    historyRef.current = [...historyRef.current.slice(-49), elements]
+    onChange(newElements)
+  }, [elements, onChange])
+
+  // Siirtää elementin annetulla dx/dy-deltalla – tukee kaikkia elementtityyppejä
+  function moveElementByDelta(el, dx, dy) {
+    if (el.x1 !== undefined) return { ...el, x1: el.x1 + dx, y1: el.y1 + dy, x2: el.x2 + dx, y2: el.y2 + dy }
+    if (el.points) return { ...el, points: el.points.map((v, i) => i % 2 === 0 ? v + dx : v + dy) }
+    return { ...el, x: el.x + dx, y: el.y + dy }
+  }
+
   // Päivitetään Transformer-solmu ja poista-napin sijainti aina kun valinta muuttuu
   useEffect(() => {
     if (!trRef.current || !stageRef.current) return
-    if (selectedId) {
-      const node = stageRef.current.findOne(`#el_${selectedId}`)
-      if (node) {
-        trRef.current.nodes([node])
-        trRef.current.getLayer()?.batchDraw()
-        // Asetetaan poista-nappi Transformerin oikean yläkulman viereen
+    if (selectedIds.length > 0) {
+      const nodes = selectedIds.flatMap((id) => {
+        const node = stageRef.current.findOne(`#el_${id}`)
+        return node ? [node] : []
+      })
+      trRef.current.nodes(nodes)
+      trRef.current.getLayer()?.batchDraw()
+      if (nodes.length > 0) {
         const box = trRef.current.getClientRect()
         setDeleteBtnPos({ x: box.x + box.width, y: box.y })
       }
@@ -127,28 +166,37 @@ const DrillCanvas = forwardRef(function DrillCanvas({ elements, fieldType, activ
       trRef.current.getLayer()?.batchDraw()
       setDeleteBtnPos(null)
     }
-  }, [selectedId, elements])
+  }, [selectedIds, elements])
 
-  // Poistaa valitun elementin elementtilistasta
+  // Poistaa valitut elementit elementtilistasta
   function deleteSelected() {
-    onChange(elements.filter((el) => el.id !== selectedId))
-    setSelectedId(null)
+    commitChange(elements.filter((el) => !selectedIds.includes(el.id)))
+    setSelectedIds([])
     setDeleteBtnPos(null)
   }
 
-  // Delete/Backspace poistaa valitun elementin – ei toimi tekstitilan aikana
+  // Delete/Backspace poistaa valitut elementit, Ctrl+Z peruuttaa viimeisen muutoksen
   useEffect(() => {
     function handleKey(e) {
       if (editingText) return
-      if ((e.key === 'Delete' || e.key === 'Backspace') && selectedId) {
-        onChange(elements.filter((el) => el.id !== selectedId))
-        setSelectedId(null)
+      if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+        e.preventDefault()
+        if (historyRef.current.length > 0) {
+          const prev = historyRef.current[historyRef.current.length - 1]
+          historyRef.current = historyRef.current.slice(0, -1)
+          onChange(prev)
+        }
+        return
+      }
+      if ((e.key === 'Delete' || e.key === 'Backspace') && selectedIds.length > 0) {
+        commitChange(elements.filter((el) => !selectedIds.includes(el.id)))
+        setSelectedIds([])
         setDeleteBtnPos(null)
       }
     }
     window.addEventListener('keydown', handleKey)
     return () => window.removeEventListener('keydown', handleKey)
-  }, [selectedId, elements, onChange, editingText])
+  }, [selectedIds, elements, onChange, commitChange, editingText])
 
   // Muuntaa Stage-koordinaatit loogisiksi kenttäkoordinaateiksi
   function toLogical(stageX, stageY) {
@@ -216,7 +264,7 @@ const DrillCanvas = forwardRef(function DrillCanvas({ elements, fieldType, activ
         return
     }
 
-    onChange([...elements, newEl])
+    commitChange([...elements, newEl])
     // Avataan tekstieditori heti kun tekstielementti lisätään
     if (activeTool === 'text') {
       setEditingText({ id, x: stagePos.x, y: stagePos.y, text: 'Teksti' })
@@ -225,7 +273,7 @@ const DrillCanvas = forwardRef(function DrillCanvas({ elements, fieldType, activ
 
   // Käsittelee klikkaukset Stagella – nuoli/viiva/ympyrä/vapaapiirto ohitetaan (ne käyttävät mousedown/up)
   function handleStageClick(e) {
-    if (['arrow', 'line', 'circle', 'freehand'].includes(activeTool)) return
+    if (['arrow', 'line', 'circle', 'freehand', 'freearrow'].includes(activeTool)) return
     const isBackground = e.target === e.target.getStage() ||
       (e.target.getClassName?.() === 'Rect' && !e.target.id())
 
@@ -243,48 +291,90 @@ const DrillCanvas = forwardRef(function DrillCanvas({ elements, fieldType, activ
     }
 
     if (activeTool === 'select') {
-      // Klikkaus taustaan poistaa valinnan
-      if (isBackground) setSelectedId(null)
+      if (rubberBandApplied.current) { rubberBandApplied.current = false; return }
+      if (isBackground) setSelectedIds([])
       return
     }
     addElement(stageRef.current.getPointerPosition())
   }
 
-  // Aloittaa nuolen tai muodon piirtämisen hiiren painalluksesta
-  function handleMouseDown() {
+  // Aloittaa nuolen/muodon piirtämisen tai kumilankahauun valinta-tilassa
+  function handleMouseDown(e) {
     const { x, y } = getPointerLogical()
     if (activeTool === 'arrow') {
       setDrawingArrow({ x1: x, y1: y, x2: x, y2: y })
     } else if (activeTool === 'line' || activeTool === 'circle') {
       setDrawingShape({ type: activeTool, x1: x, y1: y, x2: x, y2: y })
     } else if (activeTool === 'freehand') {
-      // Vapaapiirtoon kerätään pisteitä taulukkoon
       setDrawingShape({ type: 'freehand', points: [x, y] })
+    } else if (activeTool === 'freearrow') {
+      setDrawingShape({ type: 'freearrow', points: [x, y] })
+    } else if (activeTool === 'select') {
+      // Kumilankahaku alkaa vain taustalta (ei elementtien päältä)
+      const isBackground = e.target === e.target.getStage() ||
+        (e.target.getClassName?.() === 'Rect' && !e.target.id())
+      if (isBackground) {
+        const pos = stageRef.current.getPointerPosition()
+        selectionStartRef.current = pos
+        setSelectionRect(null)
+      }
     }
   }
 
-  // Päivittää kesken olevan piirron loppupisteen tai lisää pisteen vapaapiirtoon
+  // Päivittää kesken olevan piirron tai kumilankahaku-suorakulmion
   function handleMouseMove() {
+    if (activeTool === 'select' && selectionStartRef.current) {
+      const pos = stageRef.current.getPointerPosition()
+      const sx = selectionStartRef.current.x
+      const sy = selectionStartRef.current.y
+      setSelectionRect({
+        x: Math.min(sx, pos.x), y: Math.min(sy, pos.y),
+        w: Math.abs(pos.x - sx), h: Math.abs(pos.y - sy),
+      })
+      return
+    }
     if (!drawingArrow && !drawingShape) return
     const { x, y } = getPointerLogical()
     if (drawingArrow) {
       setDrawingArrow((prev) => ({ ...prev, x2: x, y2: y }))
-    } else if (drawingShape?.type === 'freehand') {
-      // Vapaapiirto: lisätään jokainen hiiripiste taulukkoon
+    } else if (drawingShape?.type === 'freehand' || drawingShape?.type === 'freearrow') {
       setDrawingShape((prev) => ({ ...prev, points: [...prev.points, x, y] }))
     } else {
       setDrawingShape((prev) => ({ ...prev, x2: x, y2: y }))
     }
   }
 
-  // Tallentaa valmiin nuolen tai muodon elementtilistaan hiiren nostossa
+  // Tallentaa valmiin nuolen/muodon tai päättää kumilankahauun
   function handleMouseUp() {
+    // Kumilankahaku päättyy – valitaan suorakulmion sisällä olevat elementit
+    if (activeTool === 'select' && selectionStartRef.current) {
+      if (selectionRect && selectionRect.w > 5 && selectionRect.h > 5) {
+        const minX = selectionRect.x / scale
+        const maxX = (selectionRect.x + selectionRect.w) / scale
+        const minY = selectionRect.y / scale
+        const maxY = (selectionRect.y + selectionRect.h) / scale
+        const inRect = elements
+          .filter((el) => {
+            const cx = el.x ?? el.x1 ?? (el.points ? el.points[0] : null)
+            const cy = el.y ?? el.y1 ?? (el.points ? el.points[1] : null)
+            return cx != null && cx >= minX && cx <= maxX && cy != null && cy >= minY && cy <= maxY
+          })
+          .map((el) => el.id)
+        if (inRect.length > 0) {
+          setSelectedIds(inRect)
+          rubberBandApplied.current = true
+        }
+      }
+      selectionStartRef.current = null
+      setSelectionRect(null)
+      return
+    }
+
     if (drawingArrow) {
       const dx = drawingArrow.x2 - drawingArrow.x1
       const dy = drawingArrow.y2 - drawingArrow.y1
-      // Vähintään 15 yksikön matka vaaditaan – vältetään tahattomia pisteitä
       if (Math.sqrt(dx * dx + dy * dy) > 15) {
-        onChange([...elements, {
+        commitChange([...elements, {
           id: crypto.randomUUID(), type: 'arrow',
           x1: drawingArrow.x1, y1: drawingArrow.y1,
           x2: drawingArrow.x2, y2: drawingArrow.y2,
@@ -300,63 +390,81 @@ const DrillCanvas = forwardRef(function DrillCanvas({ elements, fieldType, activ
     if (drawingShape.type === 'line') {
       const dx = drawingShape.x2 - drawingShape.x1
       const dy = drawingShape.y2 - drawingShape.y1
-      // Vähintään 5 yksikön pituus vaaditaan
       if (Math.sqrt(dx * dx + dy * dy) > 5)
-        onChange([...elements, { id, type: 'line', x1: drawingShape.x1, y1: drawingShape.y1, x2: drawingShape.x2, y2: drawingShape.y2, color }])
+        commitChange([...elements, { id, type: 'line', x1: drawingShape.x1, y1: drawingShape.y1, x2: drawingShape.x2, y2: drawingShape.y2, color }])
     } else if (drawingShape.type === 'circle') {
       const dx = drawingShape.x2 - drawingShape.x1
       const dy = drawingShape.y2 - drawingShape.y1
-      // Säde lasketaan alku- ja loppupisteen etäisyydestä
       const radius = Math.sqrt(dx * dx + dy * dy)
       if (radius > 5)
-        onChange([...elements, { id, type: 'circle', x: drawingShape.x1, y: drawingShape.y1, radius, color }])
+        commitChange([...elements, { id, type: 'circle', x: drawingShape.x1, y: drawingShape.y1, radius, color }])
     } else if (drawingShape.type === 'freehand') {
-      // Vähintään 3 pistettä (6 koordinaattia) vaaditaan
       if (drawingShape.points.length >= 6)
-        onChange([...elements, { id, type: 'freehand', points: drawingShape.points, color }])
+        commitChange([...elements, { id, type: 'freehand', points: drawingShape.points, color }])
+    } else if (drawingShape.type === 'freearrow') {
+      if (drawingShape.points.length >= 6)
+        commitChange([...elements, { id, type: 'freearrow', points: drawingShape.points }])
     }
     setDrawingShape(null)
   }
 
-  // Päivittää elementin x/y-koordinaatit vetämisen jälkeen loogisiin koordinaatteihin
+  // Päivittää elementin x/y-koordinaatit vetämisen jälkeen – tukee ryhmäsiirtoa
   const handleDragEnd = useCallback((e, id) => {
     const node = e.target
-    onChange(elements.map((el) =>
-      el.id === id ? { ...el, x: node.x() / scale, y: node.y() / scale } : el
+    const el = elements.find((el) => el.id === id)
+    if (el && selectedIds.includes(id) && selectedIds.length > 1) {
+      // Ryhmäsiirto: delta lasketaan elementin tallennetusta sijainnista
+      const dx = node.x() / scale - el.x
+      const dy = node.y() / scale - el.y
+      commitChange(elements.map((elem) =>
+        selectedIds.includes(elem.id) ? moveElementByDelta(elem, dx, dy) : elem
+      ))
+      groupDragStartRef.current = null
+      return
+    }
+    commitChange(elements.map((elem) =>
+      elem.id === id ? { ...elem, x: node.x() / scale, y: node.y() / scale } : elem
     ))
-  }, [elements, onChange, scale])
+  }, [elements, commitChange, scale, selectedIds])
 
   // Tallentaa rotaation ja skaalauksen Transformer-muokkauksen jälkeen
   const handleTransformEnd = useCallback((e, id) => {
     const node = e.target
-    onChange(elements.map((el) =>
+    commitChange(elements.map((el) =>
       el.id === id
         ? { ...el, rotation: node.rotation(), scaleX: node.scaleX(), scaleY: node.scaleY() }
         : el
     ))
-  }, [elements, onChange])
+  }, [elements, commitChange])
 
-  // Pyörittää elementtiä hiiren rullalla — 15° per askel
+  // Pyörittää elementtiä hiiren rullalla — 5° per askel
   const handleWheel = useCallback((e, id) => {
     e.evt.preventDefault()
     const delta = e.evt.deltaY > 0 ? 5 : -5
-    onChange(elements.map((el) =>
+    commitChange(elements.map((el) =>
       el.id === id ? { ...el, rotation: ((el.rotation ?? 0) + delta + 360) % 360 } : el
     ))
-  }, [elements, onChange])
+  }, [elements, commitChange])
 
-  // Siirtää nuolen (tai viivan) molempia päätepisteitä yhtä paljon – nollaa Group-position siirron jälkeen
+  // Siirtää nuolen/viivan molempia päätepisteitä yhtä paljon – tukee ryhmäsiirtoa
   const handleArrowDragEnd = useCallback((e, id) => {
     const dx = e.target.x() / scale
     const dy = e.target.y() / scale
-    onChange(elements.map((el) =>
+    if (selectedIds.includes(id) && selectedIds.length > 1) {
+      commitChange(elements.map((el) =>
+        selectedIds.includes(el.id) ? moveElementByDelta(el, dx, dy) : el
+      ))
+      groupDragStartRef.current = null
+      e.target.position({ x: 0, y: 0 })
+      return
+    }
+    commitChange(elements.map((el) =>
       el.id === id
         ? { ...el, x1: el.x1 + dx, y1: el.y1 + dy, x2: el.x2 + dx, y2: el.y2 + dy }
         : el
     ))
-    // Nollataan sijainti, jotta koordinaatit pysyvät loogisissa arvoissa
     e.target.position({ x: 0, y: 0 })
-  }, [elements, onChange, scale])
+  }, [elements, commitChange, scale, selectedIds])
 
   // Asettaa elementin valituksi valinta-tilassa tai polunmuokkaukseen animaatiotilassa
   function selectEl(e, id) {
@@ -371,13 +479,18 @@ const DrillCanvas = forwardRef(function DrillCanvas({ elements, fieldType, activ
     }
     if (activeTool !== 'select') return
     e.cancelBubble = true
-    setSelectedId(id)
+    if (e.evt?.shiftKey) {
+      // Shift+klikkaus lisää tai poistaa valinnan
+      setSelectedIds((prev) => prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id])
+    } else {
+      setSelectedIds([id])
+    }
   }
 
   // Tallentaa muokatun tekstin elementtilistaan – tyhjä teksti korvataan oletusarvolla
   function commitTextEdit(newText) {
     if (!editingText) return
-    onChange(elements.map((el) =>
+    commitChange(elements.map((el) =>
       el.id === editingText.id ? { ...el, text: newText || 'Teksti' } : el
     ))
     setEditingText(null)
@@ -388,8 +501,40 @@ const DrillCanvas = forwardRef(function DrillCanvas({ elements, fieldType, activ
   const draggable = activeTool === 'select'
   const cursor = activeTool === 'select' ? 'default'
     : activeTool === 'animate' ? (animSelectedId ? 'crosshair' : 'pointer')
-    : ['arrow', 'line', 'circle', 'freehand'].includes(activeTool) ? 'crosshair'
+    : ['arrow', 'line', 'circle', 'freehand', 'freearrow'].includes(activeTool) ? 'crosshair'
     : 'cell'
+
+  // Aloittaa ryhmäsiirron – tallentaa kaikkien valittujen elementtien lähtötilan
+  function startGroupDrag(id) {
+    if (selectedIds.length <= 1 || !selectedIds.includes(id)) return
+    groupDragStartRef.current = {
+      anchorId: id,
+      ids: [...selectedIds],
+      snapshot: elements.filter((el) => selectedIds.includes(el.id)),
+    }
+  }
+
+  // Siirtää muita valittuja Konva-solmuja visuaalisesti vedon aikana (ennen tilan päivitystä)
+  function syncGroupDragMove(e, id) {
+    if (!groupDragStartRef.current || groupDragStartRef.current.anchorId !== id) return
+    const anchorSnap = groupDragStartRef.current.snapshot.find((el) => el.id === id)
+    if (!anchorSnap) return
+    const dx = anchorSnap.x !== undefined && anchorSnap.x1 === undefined && !anchorSnap.points
+      ? e.target.x() / scale - anchorSnap.x
+      : e.target.x() / scale
+    const dy = anchorSnap.x !== undefined && anchorSnap.x1 === undefined && !anchorSnap.points
+      ? e.target.y() / scale - anchorSnap.y
+      : e.target.y() / scale
+    groupDragStartRef.current.ids.forEach((otherId) => {
+      if (otherId === id) return
+      const otherNode = stageRef.current.findOne(`#el_${otherId}`)
+      const otherSnap = groupDragStartRef.current.snapshot.find((el) => el.id === otherId)
+      if (!otherNode || !otherSnap) return
+      const baseX = otherSnap.x ?? otherSnap.x1 ?? 0
+      const baseY = otherSnap.y ?? otherSnap.y1 ?? 0
+      otherNode.position({ x: (baseX + dx) * scale, y: (baseY + dy) * scale })
+    })
+  }
 
   // animActive vain animaatiotilassa — estää elementtien siirtymisen normaalissa muokkauksessa
   const animActive = activeTool === 'animate' && (isPlaying || animProgress > 0)
@@ -402,7 +547,7 @@ const DrillCanvas = forwardRef(function DrillCanvas({ elements, fieldType, activ
         height={stageHeight}
         style={{ cursor, display: 'block' }}
         onClick={handleStageClick}
-        onMouseDown={handleMouseDown}
+        onMouseDown={(e) => handleMouseDown(e)}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
       >
@@ -444,76 +589,41 @@ const DrillCanvas = forwardRef(function DrillCanvas({ elements, fieldType, activ
             // --- PELAAJA ---
             if (el.type === 'player') {
               const aPos = animActive ? getAnimatedPos(el, animProgressRef.current) : null
+              // def_* = puolustaja (kolmio), muut = hyökkääjä/mv (ympyrä)
+              const isDefender = el.team?.startsWith('def_')
+              const colorKey = isDefender ? el.team.slice(4) : el.team
               const ROLE_COLORS = {
                 gk: '#f59e0b', blue: '#2563eb', red: '#dc2626', green: '#16a34a', dark: '#374151',
                 home: '#2563eb', away: '#dc2626',
               }
-              const color = ROLE_COLORS[el.team] ?? '#2563eb'
-              const isDef = el.shape === 'def'
+              const color = ROLE_COLORS[colorKey] ?? '#2563eb'
               return (
                 <Group
                   key={el.id} id={`el_${el.id}`}
                   x={aPos ? aPos.x * scale : el.x * scale}
                   y={aPos ? aPos.y * scale : el.y * scale}
-                  rotation={el.rotation ?? 0}
                   draggable={draggable}
                   onClick={(e) => selectEl(e, el.id)}
+                  onDragStart={() => startGroupDrag(el.id)}
+                  onDragMove={(e) => syncGroupDragMove(e, el.id)}
                   onDragEnd={(e) => handleDragEnd(e, el.id)}
-                  onTransformEnd={(e) => handleTransformEnd(e, el.id)}
                   onWheel={(e) => handleWheel(e, el.id)}
                 >
-                  {isDef ? (
-                    /* Puolustaja: kolmio + kaari yhtenä yhtenäisenä muotona */
-                    <>
-                      <Shape
-                        sceneFunc={(ctx, shape) => {
-                          // Vasemmasta kulmasta kärjen kautta oikeaan kulmaan,
-                          // sitten kaari oikeasta kulmasta myötäpäivään alas ja ympäri vasempaan
-                          ctx.beginPath()
-                          ctx.moveTo(-10 * scale, -5 * scale)
-                          ctx.lineTo(0, 10 * scale)
-                          ctx.lineTo(10 * scale, -5 * scale)
-                          ctx.arc(0, 4 * scale, Math.sqrt(181) * scale,
-                            Math.atan2(-9, 10), Math.atan2(-9, -10), false)
-                          ctx.closePath()
-                          ctx.fillStrokeShape(shape)
-                        }}
-                        fill={color} stroke="white" strokeWidth={1.5 * scale}
-                      />
-                    </>
+                  {isDefender ? (
+                    // Puolustaja – ylöspäin osoittava kolmio
+                    <RegularPolygon
+                      sides={3} radius={13 * scale}
+                      fill={color} stroke="white" strokeWidth={1.5 * scale}
+                    />
                   ) : (
-                    /* Hyökkääjä / MV: ympyrä + pidemmät käsikaaret */
-                    <>
-                      {/* Paksu valkoinen kaari käsille */}
-                      <Shape
-                        sceneFunc={(ctx, shape) => {
-                          ctx.beginPath()
-                          ctx.arc(0, 3 * scale, 15 * scale, Math.PI * 1.05, Math.PI * 1.95, false)
-                          ctx.strokeShape(shape)
-                        }}
-                        stroke="white" strokeWidth={5 * scale} lineCap="round"
-                      />
-                      {/* Valkoinen ympyrä — ääriviivaksi */}
-                      <Circle radius={11.5 * scale} fill="white" />
-                      {/* Värillinen kaari käsille */}
-                      <Shape
-                        sceneFunc={(ctx, shape) => {
-                          ctx.beginPath()
-                          ctx.arc(0, 3 * scale, 15 * scale, Math.PI * 1.05, Math.PI * 1.95, false)
-                          ctx.strokeShape(shape)
-                        }}
-                        stroke={color} strokeWidth={2.5 * scale} lineCap="round"
-                      />
-                      {/* Värillinen ympyrä */}
-                      <Circle radius={10 * scale} fill={color} />
-                    </>
+                    <Circle radius={12 * scale} fill={color} stroke="white" strokeWidth={1.5 * scale} />
                   )}
-                  {/* Numero */}
+                  {/* Numero – kolmiossa hieman alemmas siirretty */}
                   <KonvaText
-                    x={-7 * scale} y={isDef ? -3 * scale : -6 * scale}
+                    x={-9 * scale} y={isDefender ? -4 * scale : -7 * scale}
                     text={String(el.number)}
-                    fontSize={10 * scale} fill="white" fontStyle="bold"
-                    width={14 * scale} height={12 * scale}
+                    fontSize={11 * scale} fill="white" fontStyle="bold"
+                    width={18 * scale} height={14 * scale}
                     align="center" verticalAlign="middle"
                     listening={false}
                   />
@@ -531,6 +641,8 @@ const DrillCanvas = forwardRef(function DrillCanvas({ elements, fieldType, activ
                   y={aPos ? aPos.y * scale : el.y * scale}
                   draggable={draggable}
                   onClick={(e) => selectEl(e, el.id)}
+                  onDragStart={() => startGroupDrag(el.id)}
+                  onDragMove={(e) => syncGroupDragMove(e, el.id)}
                   onDragEnd={(e) => handleDragEnd(e, el.id)}
                 >
                   {/* Harmaa neliö valmentajaa kuvaamaan */}
@@ -569,6 +681,8 @@ const DrillCanvas = forwardRef(function DrillCanvas({ elements, fieldType, activ
                   y={aPos ? aPos.y * s : el.y * s}
                   draggable={draggable}
                   onClick={(e) => selectEl(e, el.id)}
+                  onDragStart={() => startGroupDrag(el.id)}
+                  onDragMove={(e) => syncGroupDragMove(e, el.id)}
                   onDragEnd={(e) => handleDragEnd(e, el.id)}
                 >
                   {/* Valkoinen pallo */}
@@ -623,7 +737,7 @@ const DrillCanvas = forwardRef(function DrillCanvas({ elements, fieldType, activ
                   onDragEnd={(e) => {
                     const node = e.target
                     // Oikaistaan Rectin vasemman yläkulman offset takaisin loogisiin koordinaatteihin
-                    onChange(elements.map((elem) =>
+                    commitChange(elements.map((elem) =>
                       elem.id === el.id
                         ? { ...elem, x: (node.x() + 2.5 * scale) / scale, y: (node.y() + 18 * scale) / scale }
                         : elem
@@ -805,11 +919,20 @@ const DrillCanvas = forwardRef(function DrillCanvas({ elements, fieldType, activ
               return (
                 <Group key={el.id} id={`el_${el.id}`} draggable={draggable}
                   onClick={(e) => selectEl(e, el.id)}
+                  onDragStart={() => startGroupDrag(el.id)}
+                  onDragMove={(e) => syncGroupDragMove(e, el.id)}
                   onDragEnd={(e) => {
                     const dx = e.target.x() / scale
                     const dy = e.target.y() / scale
-                    // Siirretään jokaista pistettä: parilliset indeksit = x, parittomat = y
-                    onChange(elements.map((elem) =>
+                    if (selectedIds.includes(el.id) && selectedIds.length > 1) {
+                      commitChange(elements.map((elem) =>
+                        selectedIds.includes(elem.id) ? moveElementByDelta(elem, dx, dy) : elem
+                      ))
+                      groupDragStartRef.current = null
+                      e.target.position({ x: 0, y: 0 })
+                      return
+                    }
+                    commitChange(elements.map((elem) =>
                       elem.id === el.id
                         ? { ...elem, points: elem.points.map((v, i) => i % 2 === 0 ? v + dx : v + dy) }
                         : elem
@@ -821,6 +944,45 @@ const DrillCanvas = forwardRef(function DrillCanvas({ elements, fieldType, activ
                   <Line points={skaalatuPisteet} stroke={väri} strokeWidth={2.5*scale}
                     lineCap="round" lineJoin="round" tension={0.4} listening={false} />
                   {/* Leveämpi näkymätön alue – helpottaa valitsemista */}
+                  <Line points={skaalatuPisteet} stroke="transparent"
+                    strokeWidth={20*scale} hitStrokeWidth={20*scale} tension={0.4} />
+                </Group>
+              )
+            }
+
+            // --- VAPAA NUOLI ---
+            if (el.type === 'freearrow') {
+              const skaalatuPisteet = el.points.map((v) => v * scale)
+              const head = getFreeArrowHead(el.points, scale)
+              return (
+                <Group key={el.id} id={`el_${el.id}`} draggable={draggable}
+                  onClick={(e) => selectEl(e, el.id)}
+                  onDragStart={() => startGroupDrag(el.id)}
+                  onDragMove={(e) => syncGroupDragMove(e, el.id)}
+                  onDragEnd={(e) => {
+                    const dx = e.target.x() / scale
+                    const dy = e.target.y() / scale
+                    if (selectedIds.includes(el.id) && selectedIds.length > 1) {
+                      commitChange(elements.map((elem) =>
+                        selectedIds.includes(elem.id) ? moveElementByDelta(elem, dx, dy) : elem
+                      ))
+                      groupDragStartRef.current = null
+                      e.target.position({ x: 0, y: 0 })
+                      return
+                    }
+                    commitChange(elements.map((elem) =>
+                      elem.id === el.id
+                        ? { ...elem, points: elem.points.map((v, i) => i % 2 === 0 ? v + dx : v + dy) }
+                        : elem
+                    ))
+                    e.target.position({ x: 0, y: 0 })
+                  }}
+                >
+                  <Line points={skaalatuPisteet} stroke="white" strokeWidth={2.5*scale}
+                    lineCap="round" lineJoin="round" tension={0.4} listening={false} />
+                  {head && <Line points={head} stroke="white" strokeWidth={2.5*scale}
+                    lineCap="round" lineJoin="round" listening={false} />}
+                  {/* Leveämpi näkymätön alue valitsemisen helpottamiseksi */}
                   <Line points={skaalatuPisteet} stroke="transparent"
                     strokeWidth={20*scale} hitStrokeWidth={20*scale} tension={0.4} />
                 </Group>
@@ -914,13 +1076,37 @@ const DrillCanvas = forwardRef(function DrillCanvas({ elements, fieldType, activ
               lineCap="round" lineJoin="round" tension={0.4} listening={false}
             />
           )}
+          {drawingShape?.type === 'freearrow' && drawingShape.points.length >= 4 && (() => {
+            const head = getFreeArrowHead(drawingShape.points, scale)
+            return (
+              <>
+                <Line
+                  points={drawingShape.points.map((v) => v * scale)}
+                  stroke="rgba(255,255,255,0.55)" strokeWidth={2.5*scale}
+                  lineCap="round" lineJoin="round" tension={0.4} listening={false}
+                />
+                {head && <Line points={head} stroke="rgba(255,255,255,0.55)" strokeWidth={2.5*scale}
+                  lineCap="round" lineJoin="round" listening={false} />}
+              </>
+            )
+          })()}
+
+          {/* Kumilankahaku-suorakulmio */}
+          {selectionRect && (
+            <Rect
+              x={selectionRect.x} y={selectionRect.y}
+              width={selectionRect.w} height={selectionRect.h}
+              fill="rgba(59,130,246,0.08)"
+              stroke="#3b82f6" strokeWidth={1}
+              dash={[4, 3]} listening={false}
+            />
+          )}
 
           {/* Transformer – näyttää kahvat ja sallii kierron ja skaalauksen valitulle elementille */}
           <Transformer
             ref={trRef} rotateEnabled={true}
             borderStroke="#3b82f6" borderStrokeWidth={1.5}
             anchorFill="#3b82f6" anchorStroke="#1d4ed8" anchorSize={8}
-            // Estetään elementtiä kutistumasta liian pieneksi
             boundBoxFunc={(oldBox, newBox) => newBox.width < 10 || newBox.height < 10 ? oldBox : newBox}
           />
         </Layer>
@@ -988,7 +1174,7 @@ const DrillCanvas = forwardRef(function DrillCanvas({ elements, fieldType, activ
       )}
 
       {/* Poista-nappi – näytetään valitun elementin Transformerin oikeassa yläkulmassa */}
-      {deleteBtnPos && selectedId && activeTool === 'select' && (
+      {deleteBtnPos && selectedIds.length > 0 && activeTool === 'select' && (
         <button
           className={styles.deleteBtn}
           style={{ left: deleteBtnPos.x, top: deleteBtnPos.y }}

@@ -3,32 +3,6 @@ import { useState, useEffect } from 'react'
 import { CONE_COLORS } from '../../constants/colors'
 import styles from './LeftToolbar.module.css'
 
-// Pelaajan siluetti-ikoni — sama logiikka kuin kanvaksessa
-function PlayerSilhouette({ color, type = 'att' }) {
-  if (type === 'def') {
-    // Kolmion kulmat (1,3) ja (21,3) — kaari alkaa täsmälleen niistä, r=√(10²+8²)≈12.8
-    return (
-      <svg width="22" height="24" viewBox="0 0 22 24" style={{ display: 'block' }}>
-        {/* Kaari ensin (taakse), alkaa kolmion kulmista */}
-        <path d="M 1 3 A 12.8 12.8 0 0 1 21 3" fill="none" stroke={color} strokeWidth="3" strokeLinecap="round" />
-        {/* Kolmio päälle */}
-        <path d="M 1 3 L 21 3 L 11 18 Z" fill={color} stroke="white" strokeWidth="1.5" strokeLinejoin="round" />
-      </svg>
-    )
-  }
-  return (
-    <svg width="22" height="22" viewBox="0 0 22 22" style={{ display: 'block' }}>
-      {/* Paksu valkoinen kaari (pidemmät) */}
-      <path d="M 0.5 7 A 10.5 10.5 0 0 1 21.5 7" fill="none" stroke="white" strokeWidth="5" strokeLinecap="round" />
-      {/* Valkoinen ympyrä */}
-      <circle cx="11" cy="7" r="8.5" fill="white" />
-      {/* Värillinen kaari */}
-      <path d="M 0.5 7 A 10.5 10.5 0 0 1 21.5 7" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" />
-      {/* Värillinen ympyrä */}
-      <circle cx="11" cy="7" r="7" fill={color} />
-    </svg>
-  )
-}
 
 // Nuolityypit liike-osion painikkeisiin
 const ARROW_TYPES = [
@@ -39,7 +13,7 @@ const ARROW_TYPES = [
 ]
 
 // Kaikki välinetyökalut – käytetään tarkistamaan, onko jokin väline aktiivisena
-const EQUIPMENT_TOOLS = ['player', 'coach', 'ball', 'cone', 'pole', 'smallgoal', 'goal', 'ladder', 'hurdle', 'arrow', 'text', 'line', 'circle', 'freehand']
+const EQUIPMENT_TOOLS = ['player', 'coach', 'ball', 'cone', 'pole', 'smallgoal', 'goal', 'ladder', 'hurdle', 'arrow', 'freearrow', 'text', 'line', 'circle', 'freehand']
 
 // Piirtää pienen SVG-esikatselun nuolityypille flyout-valikkoon
 function ArrowPreview({ type }) {
@@ -88,6 +62,27 @@ function ArrowPreview({ type }) {
     }
     default: return null
   }
+}
+
+// SVG-esikatselu vapaalle nuolelle – käyrä viiva nuolenpäällä
+function FreeArrowPreview() {
+  const W = 52, H = 28
+  // Kaarevan polun suunta lopussa: ohjauspiste (32,26) → päätepiste (46,10)
+  const angle = Math.atan2(10 - 26, 46 - 32)
+  const len = 8, spread = Math.PI / 6
+  const p1x = 46 - len * Math.cos(angle - spread)
+  const p1y = 10 - len * Math.sin(angle - spread)
+  const p2x = 46 - len * Math.cos(angle + spread)
+  const p2y = 10 - len * Math.sin(angle + spread)
+  return (
+    <svg width={W} height={H} style={{ display: 'block', flexShrink: 0 }}>
+      <path d="M 3 22 C 12 4, 32 26, 46 10"
+        stroke="white" strokeWidth="2.5" fill="none" strokeLinecap="round" />
+      <polyline
+        points={`${p1x.toFixed(1)},${p1y.toFixed(1)} 46,10 ${p2x.toFixed(1)},${p2y.toFixed(1)}`}
+        stroke="white" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
 }
 
 // Pieni SVG-ikoni viiva-työkalulle
@@ -236,19 +231,17 @@ export default function LeftToolbar({ activeTool, onToolChange, toolOptions, onT
             <div className={styles.sectionLabel}>Pelaajat</div>
 
             {/* Maalivahti */}
-            <div className={styles.playerTypeLabel}>MV</div>
+            <div className={styles.playerTypeLabel}>Maalivahti</div>
             <div className={styles.playerRow}>
               <button
                 className={`${styles.playerBtn} ${activeTool === 'player' && toolOptions.playerTeam === 'gk' ? styles.itemActive : ''}`}
                 style={{ '--c': '#f59e0b' }}
-                onClick={() => pick('player', { playerTeam: 'gk', playerShape: 'att' })}
+                onClick={() => pick('player', { playerTeam: 'gk' })}
                 title="Maalivahti"
-              >
-                <PlayerSilhouette color="#f59e0b" type="att" />
-              </button>
+              />
             </div>
 
-            {/* Hyökkääjät */}
+            {/* Hyökkääjät – ympyrät */}
             <div className={styles.playerTypeLabel}>Hyökkääjät</div>
             <div className={styles.playerRow}>
               {[
@@ -259,31 +252,30 @@ export default function LeftToolbar({ activeTool, onToolChange, toolOptions, onT
               ].map(({ role, color }) => (
                 <button
                   key={role}
-                  className={`${styles.playerBtn} ${activeTool === 'player' && toolOptions.playerTeam === role && toolOptions.playerShape === 'att' ? styles.itemActive : ''}`}
+                  className={`${styles.playerBtn} ${activeTool === 'player' && toolOptions.playerTeam === role ? styles.itemActive : ''}`}
                   style={{ '--c': color }}
-                  onClick={() => pick('player', { playerTeam: role, playerShape: 'att' })}
-                >
-                  <PlayerSilhouette color={color} type="att" />
-                </button>
+                  onClick={() => pick('player', { playerTeam: role })}
+                />
               ))}
             </div>
 
-            {/* Puolustajat */}
+            {/* Puolustajat – kolmiot */}
             <div className={styles.playerTypeLabel}>Puolustajat</div>
             <div className={styles.playerRow}>
               {[
-                { role: 'blue',  color: '#2563eb' },
-                { role: 'red',   color: '#dc2626' },
-                { role: 'green', color: '#16a34a' },
-                { role: 'dark',  color: '#374151' },
+                { role: 'def_blue',  color: '#2563eb' },
+                { role: 'def_red',   color: '#dc2626' },
+                { role: 'def_green', color: '#16a34a' },
+                { role: 'def_dark',  color: '#374151' },
               ].map(({ role, color }) => (
                 <button
                   key={role}
-                  className={`${styles.playerBtn} ${activeTool === 'player' && toolOptions.playerTeam === role && toolOptions.playerShape === 'def' ? styles.itemActive : ''}`}
-                  style={{ '--c': color }}
-                  onClick={() => pick('player', { playerTeam: role, playerShape: 'def' })}
+                  className={`${styles.defBtn} ${activeTool === 'player' && toolOptions.playerTeam === role ? styles.itemActive : ''}`}
+                  onClick={() => pick('player', { playerTeam: role })}
                 >
-                  <PlayerSilhouette color={color} type="def" />
+                  <svg width="28" height="26" viewBox="0 0 28 26" style={{ display: 'block' }}>
+                    <polygon points="14,1 27,25 1,25" fill={color} stroke="white" strokeWidth="1.5" strokeLinejoin="round" />
+                  </svg>
                 </button>
               ))}
             </div>
@@ -402,6 +394,14 @@ export default function LeftToolbar({ activeTool, onToolChange, toolOptions, onT
                 <span className={styles.arrowLabel}>{at.label}</span>
               </button>
             ))}
+            {/* Vapaa nuoli – piirretään vapaasti, nuolenpää tulee loppuun */}
+            <button
+              className={`${styles.arrowBtn} ${activeTool === 'freearrow' ? styles.itemActive : ''}`}
+              onClick={() => pick('freearrow')}
+            >
+              <FreeArrowPreview />
+              <span className={styles.arrowLabel}>Vapaa nuoli</span>
+            </button>
           </div>
 
           {/* TEKSTI */}
