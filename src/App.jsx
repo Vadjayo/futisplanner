@@ -1,5 +1,7 @@
-// Sovelluksen reititys — määrittelee sivujen URL-rakenne
-// Etusivu → Kirjautuminen → Editori
+/**
+ * App.jsx
+ * Sovelluksen pääreititin. Määrittelee kaikki reitit ja autentikoinnin.
+ */
 
 import { Routes, Route, Navigate } from 'react-router-dom'
 import LandingPage from './components/landing/LandingPage'

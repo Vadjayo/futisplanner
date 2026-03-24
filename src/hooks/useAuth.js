@@ -1,5 +1,8 @@
-// Kirjautumislogiikka — React-hook joka hallitsee käyttäjän istuntoa
-// Kuuntelee Supabasen auth-tilaa reaaliajassa (esim. token-vanheneminen)
+/**
+ * useAuth.js
+ * Kirjautumislogiikka — React-hook joka hallitsee käyttäjän istuntoa.
+ * Kuuntelee Supabasen auth-tilaa reaaliajassa (esim. token-vanheneminen).
+ */
 
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
@@ -44,5 +47,14 @@ export function useAuth() {
     await supabase.auth.signOut()
   }
 
+  /**
+   * @returns {{
+   *   user: import('@supabase/supabase-js').User|null,
+   *   loading: boolean,
+   *   signIn: (email: string, password: string) => Promise<{error: object|null}>,
+   *   signUp: (email: string, password: string) => Promise<{error: object|null}>,
+   *   signOut: () => Promise<void>
+   * }}
+   */
   return { user, loading, signIn, signUp, signOut }
 }

@@ -1,4 +1,8 @@
-// Vasemman reunan työkalupalkki harjoituseditorille – sisältää välinevalinnat ja piirtotyökalut
+/**
+ * LeftToolbar.jsx
+ * Vasemman reunan työkalupalkki. Flyout-valikko kaikille kenttäelementeille.
+ */
+
 import { useState, useEffect } from 'react'
 import { CONE_COLORS } from '../../constants/colors'
 import styles from './LeftToolbar.module.css'

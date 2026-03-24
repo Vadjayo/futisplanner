@@ -1,4 +1,7 @@
-// Kausistatistiikat — neljä metriikkaa kalenterin tapahtumista
+/**
+ * SeasonStats.jsx
+ * Kauden tilastot. Harjoitusmäärät, pelit ja suunnitteluprosentti.
+ */
 
 import styles from './SeasonStats.module.css'
 

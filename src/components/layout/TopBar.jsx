@@ -1,5 +1,7 @@
-// Ylärivi — harjoituksen nimi, tallennustila ja toimintopainikkeet
-// PDF ja Jaa ovat Pro-ominaisuuksia, tällä hetkellä poissa käytöstä
+/**
+ * TopBar.jsx
+ * Editorin yläpalkki. Session nimi, tallennustila ja toimintopainikkeet.
+ */
 
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'

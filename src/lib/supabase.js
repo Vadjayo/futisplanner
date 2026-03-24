@@ -1,5 +1,8 @@
-// Supabase-asiakasohjelman alustus — käytetään kaikissa tietokantakutsuissa
-// URL ja anonyymi avain luetaan ympäristömuuttujista (.env-tiedostosta)
+/**
+ * supabase.js
+ * Supabase-asiakasinstanssi. Alustetaan ympäristömuuttujista.
+ * URL ja anonyymi avain luetaan .env-tiedostosta (VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY).
+ */
 
 import { createClient } from '@supabase/supabase-js'
 

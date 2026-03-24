@@ -1,5 +1,7 @@
-// Kentän taustapiirros — renderöi kenttätyypin mukaiset viivat ja maalit
-// Kaikki mitat loogisissa koordinaateissa (1000×650) ja skaalataan scale-propilla
+/**
+ * FieldBackground.jsx
+ * Kenttätaustan renderöinti Konva-layerille. Tukee useita kenttätyyppejä.
+ */
 
 import { Rect, Line, Circle, Text } from 'react-konva'
 

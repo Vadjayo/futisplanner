@@ -1,5 +1,7 @@
-// Harjoituskirjastopaneeli — oikean laidan overlay josta voi hakea
-// ja lisätä valmiita harjoitteita harjoitukseen. Suodattimet: ikäluokka + kategoria + haku.
+/**
+ * LibraryPanel.jsx
+ * Harjoitekirjaston sivupaneeli. Selaus, suodatus ja lisäys omaan sessioon.
+ */
 
 import { useState, useEffect } from 'react'
 import { loadLibrary } from '../../lib/db'

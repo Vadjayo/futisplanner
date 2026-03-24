@@ -1,5 +1,7 @@
-// Kirjautumissivu — näytetään kun käyttäjä ei ole kirjautunut sisään
-// Tukee sekä sisäänkirjautumista että uuden tilin luontia samassa lomakkeessa
+/**
+ * AuthPage.jsx
+ * Kirjautumis- ja rekisteröintisivu. Käyttää Supabase-autentikointia.
+ */
 
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'

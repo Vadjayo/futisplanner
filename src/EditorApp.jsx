@@ -1,5 +1,7 @@
-// Editori — kirjautuneen käyttäjän harjoitusten rakennustyökalu
-// Hallitsee koko editorin tilan ja koordinoi komponenttien välistä viestintää
+/**
+ * EditorApp.jsx
+ * Editorin pääkomponentti. Hallitsee sessiotilan, automaattitallennuksen ja komponenttien koordinoinnin.
+ */
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'

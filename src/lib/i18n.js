@@ -1,3 +1,9 @@
+/**
+ * i18n.js
+ * Kansainvälistämisasetukset (i18next + react-i18next).
+ * Sovellus käyttää pelkästään suomea — kaikki käyttöliittymätekstit on koottu tähän.
+ */
+
 import i18n from 'i18next'
 import { initReactI18next } from 'react-i18next'
 

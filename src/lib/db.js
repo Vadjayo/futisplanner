@@ -1,10 +1,17 @@
-// Tietokantafunktiot — kaikki Supabase-kyselyt on koottu tähän tiedostoon
-// jotta komponentin koodi pysyy siistinä eikä tietokantalogiikka hajaudu
+/**
+ * db.js
+ * Tietokantafunktiot — kaikki Supabase-kyselyt on koottu tähän tiedostoon
+ * jotta komponentin koodi pysyy siistinä eikä tietokantalogiikka hajaudu.
+ */
 
 import { supabase } from './supabase'
 
-// Lataa käyttäjän viimeisin sessio harjoitteineen.
-// Palauttaa session + siihen liittyvät drills järjestettynä position-kentän mukaan.
+/**
+ * Lataa käyttäjän viimeisin sessio harjoitteineen.
+ * Palauttaa session + siihen liittyvät drills järjestettynä position-kentän mukaan.
+ * @param {string} userId - Supabase-käyttäjän UUID
+ * @returns {Promise<{data: object|null, error: object|null}>}
+ */
 export async function loadRecentSession(userId) {
   const { data, error } = await supabase
     .from('sessions')
@@ -20,9 +27,18 @@ export async function loadRecentSession(userId) {
   return { data, error }
 }
 
-// Tallenna sessio + kaikki harjoitteet atomisesti.
-// Strategia: upsert sessio → poista vanhat harjoitteet → lisää uudet
-// (yksinkertaisempi kuin diff-pohjainen päivitys, riittää tähän käyttötarkoitukseen)
+/**
+ * Tallenna sessio + kaikki harjoitteet atomisesti.
+ * Strategia: upsert sessio → poista vanhat harjoitteet → lisää uudet
+ * (yksinkertaisempi kuin diff-pohjainen päivitys, riittää tähän käyttötarkoitukseen)
+ * @param {object} params
+ * @param {string} params.id - Session UUID
+ * @param {string} params.name - Session nimi
+ * @param {string} params.userId - Supabase-käyttäjän UUID
+ * @param {Array}  params.drills - Harjoite-olioiden lista
+ * @param {object} [params.meta={}] - Metatiedot (description, theme, focus-kentät)
+ * @returns {Promise<{data: object|null, error: object|null}>}
+ */
 export async function saveSession({ id, name, userId, drills, meta = {} }) {
   // Upsert sessio — luo uusi tai päivitä olemassa oleva id:n perusteella
   const { data: session, error: sessionError } = await supabase
@@ -71,8 +87,12 @@ export async function saveSession({ id, name, userId, drills, meta = {} }) {
   return { data: session }
 }
 
-// Lataa kaikki käyttäjän sessiot dashboard-näkymää varten.
-// Sisältää drill-määrän ja kokonaiskeston laskemista varten.
+/**
+ * Lataa kaikki käyttäjän sessiot dashboard-näkymää varten.
+ * Sisältää drill-määrän ja kokonaiskeston laskemista varten.
+ * @param {string} userId - Supabase-käyttäjän UUID
+ * @returns {Promise<{data: Array|null, error: object|null}>}
+ */
 export async function loadAllSessions(userId) {
   const { data, error } = await supabase
     .from('sessions')
@@ -86,7 +106,12 @@ export async function loadAllSessions(userId) {
   return { data, error }
 }
 
-// Lataa yksittäinen sessio id:n perusteella (dashboardilta avatessa)
+/**
+ * Lataa yksittäinen sessio id:n perusteella (dashboardilta avatessa).
+ * @param {string} userId - Supabase-käyttäjän UUID
+ * @param {string} sessionId - Haettavan session UUID
+ * @returns {Promise<{data: object|null, error: object|null}>}
+ */
 export async function loadSessionById(userId, sessionId) {
   const { data, error } = await supabase
     .from('sessions')
@@ -101,7 +126,11 @@ export async function loadSessionById(userId, sessionId) {
   return { data, error }
 }
 
-// Poista sessio ja kaikki sen harjoitteet (RLS varmistaa omistajuuden)
+/**
+ * Poista sessio ja kaikki sen harjoitteet (RLS varmistaa omistajuuden).
+ * @param {string} sessionId - Poistettavan session UUID
+ * @returns {Promise<{error: object|null}>}
+ */
 export async function deleteSession(sessionId) {
   const { error } = await supabase
     .from('sessions')
@@ -111,8 +140,15 @@ export async function deleteSession(sessionId) {
   return { error }
 }
 
-// Lataa harjoituskirjasto suodattimilla.
-// Kaikki suodattimet ovat valinnaisia — ilman suodattimia palautetaan kaikki.
+/**
+ * Lataa harjoituskirjasto suodattimilla.
+ * Kaikki suodattimet ovat valinnaisia — ilman suodattimia palautetaan kaikki.
+ * @param {object} [params={}]
+ * @param {string} [params.category] - Kategoria-suodatin (esim. 'hyökkäys')
+ * @param {string} [params.ageGroup] - Ikäluokkasuodatin (esim. 'U12')
+ * @param {string} [params.search] - Hakusana otsikkohaun (case-insensitive)
+ * @returns {Promise<{data: Array|null, error: object|null}>}
+ */
 export async function loadLibrary({ category, ageGroup, search } = {}) {
   let query = supabase
     .from('library')

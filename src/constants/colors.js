@@ -1,5 +1,25 @@
-// Värikonstantit tötsille, kepeille ja piirtotyökaluille
-// Käytetään sekä DrillCanvasissa että LeftToolbarissa
+/**
+ * colors.js
+ * Sovelluksen väripaletti vakioina.
+ * Käytetään sekä komponenteissa että CSS-muuttujien viitearvoina.
+ */
+
+// Päävärit
+export const COLOR_PRIMARY = '#1D9E75'
+export const COLOR_PRIMARY_HOVER = '#158560'
+export const COLOR_BG = '#0f1117'
+export const COLOR_SURFACE = '#1a2535'
+
+// Joukkuevärjit — vastaavat DrillCanvas ROLE_COLORS-mappauksen arvoja
+export const TEAM_COLORS = {
+  gk:    '#f59e0b',
+  blue:  '#2563eb',
+  red:   '#dc2626',
+  green: '#16a34a',
+  dark:  '#374151',
+  home:  '#2563eb',
+  away:  '#dc2626',
+}
 
 // Värivaihtoehdot tötsille ja kepeille – id vastaa CONE_HEX-avaimia
 export const CONE_COLORS = [

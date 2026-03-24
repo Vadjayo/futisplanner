@@ -1,5 +1,7 @@
-// Kausisuunnittelusivu — pääkomponentti
-// Vasemmalla joukkueiden sivupalkki, oikealla kaikki osiot
+/**
+ * SeasonPage.jsx
+ * Kausisuunnittelun pääsivu. Joukkue, faasiaikajana, tavoitteet ja kalenteri.
+ */
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'

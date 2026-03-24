@@ -1,5 +1,7 @@
-// Kauden jaksot — visuaalinen aikajana + muokattavat kortit
-// Kolme jaksoa: Pre-season, Kilpailukausi, Siirtymäkausi
+/**
+ * PhaseTimeline.jsx
+ * Kauden faasiaikajana. Harjoittelu-, kilpailu- ja taukojaksojen hallinta.
+ */
 
 import styles from './PhaseTimeline.module.css'
 

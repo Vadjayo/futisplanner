@@ -1,9 +1,16 @@
-// useInlineEdit — inline-muokkauksen tila yhdessä hookissa
-// Käytetään TopBarissa (session nimi) ja DrillCardissa (harjoitteen otsikko)
+/**
+ * useInlineEdit.js
+ * Inline-muokkauksen tila yhdessä hookissa.
+ * Käytetään TopBarissa (session nimi) ja DrillCardissa (harjoitteen otsikko).
+ */
 
 import { useState } from 'react'
 
-// value = nykyinen arvo ulkoapäin, onCommit = kutsutaan kun muokkaus vahvistetaan
+/**
+ * Hallitsee inline-muokkaustilaa: editing-lippu, draft-arvo ja näppäimistökäsittely.
+ * @param {string} value - Nykyinen arvo ulkoapäin
+ * @param {function(string): void} onCommit - Kutsutaan kun muokkaus vahvistetaan
+ */
 export function useInlineEdit(value, onCommit) {
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState(value)
@@ -26,5 +33,15 @@ export function useInlineEdit(value, onCommit) {
     }
   }
 
+  /**
+   * @returns {{
+   *   editing: boolean,
+   *   draft: string,
+   *   setDraft: function(string): void,
+   *   startEdit: function(): void,
+   *   commit: function(): void,
+   *   handleKeyDown: function(React.KeyboardEvent): void
+   * }}
+   */
   return { editing, draft, setDraft, startEdit, commit, handleKeyDown }
 }

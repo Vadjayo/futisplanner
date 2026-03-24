@@ -1,5 +1,7 @@
-// Kausitavoitteet — neljä kategoriaa valmiilla tageilla
-// Klikkaa tagia → valittu/poistettu valinta
+/**
+ * GoalTags.jsx
+ * Kauden tavoitetägit. Lisäys, poisto ja näyttö.
+ */
 
 import styles from './GoalTags.module.css'
 

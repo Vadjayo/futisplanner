@@ -1,5 +1,7 @@
-// Dashboard — kirjautuneen käyttäjän aloitussivu
-// Näyttää kaikki sessiot kortteina ja mahdollistaa uuden luomisen
+/**
+ * Dashboard.jsx
+ * Kirjautuneen käyttäjän aloitussivu. Näyttää kaikki harjoitussuunnitelmat kortteina.
+ */
 
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'

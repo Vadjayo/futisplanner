@@ -1,5 +1,9 @@
-// PDF-vienti — kompakti, tulostusystävällinen harjoitussuunnitelma
-// 2 harjoitetta vierekkäin, yhteenveto alussa, valkoinen tausta
+/**
+ * exportPdf.js
+ * PDF-vienti — kompakti, tulostusystävällinen harjoitussuunnitelma.
+ * 2 harjoitetta vierekkäin, yhteenveto alussa, valkoinen tausta.
+ * Käyttää jsPDF-kirjastoa suoraan (ei html2canvas) paremman laadun takaamiseksi.
+ */
 
 import jsPDF from 'jspdf'
 
@@ -22,6 +26,11 @@ const C_BORDER  = [220, 226, 234]
 const C_DRILLBG = [240, 243, 247]
 const C_ACCENT  = [29,  158, 117]
 
+/**
+ * Lisää uusi sivu PDF-dokumenttiin ja täytä se taustavärillä.
+ * @param {jsPDF} pdf - jsPDF-instanssi
+ * @returns {number} - Y-koordinaatti sivun ylämarginaalissa
+ */
 function newPage(pdf) {
   pdf.addPage()
   pdf.setFillColor(...C_BG)
@@ -29,6 +38,15 @@ function newPage(pdf) {
   return MARGIN
 }
 
+/**
+ * Generoi ja lataa PDF-harjoitussuunnitelman.
+ * Rakenne: otsikkopalkki → yhteenveto (teema, kuvaus, fokusalueet) → harjoitteet 2 per rivi.
+ * @param {Array<{getImageDataUrl: () => string|null}>} drillCardRefs - Viitteet DrillCard-komponentteihin kenttäkuvaa varten
+ * @param {Array<{title: string, duration: number}>} drills - Harjoitteiden lista
+ * @param {string} sessionName - Harjoituksen nimi (käytetään otsikossa ja tiedostonimessä)
+ * @param {object} [sessionMeta={}] - Valinnainen metatiedot (theme, description, focusTechnical jne.)
+ * @returns {Promise<void>}
+ */
 export async function exportSessionPdf(drillCardRefs, drills, sessionName, sessionMeta = {}) {
   const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
 

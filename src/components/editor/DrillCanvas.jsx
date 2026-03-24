@@ -1,4 +1,8 @@
-// Harjoituksen Konva-kanvas – piirtää kaikki kenttäelementit ja hallitsee käyttäjän vuorovaikutusta
+/**
+ * DrillCanvas.jsx
+ * Konva-pohjainen kenttäpiirtotyökalu. Hallitsee kaikki piirto-, valinta- ja animaatiotoiminnot.
+ */
+
 import { useRef, useState, useEffect, useCallback, forwardRef, useImperativeHandle } from 'react'
 import {
   Stage, Layer, Group,

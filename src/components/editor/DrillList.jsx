@@ -1,5 +1,7 @@
-// Harjoiteluettelo — renderöi kaikki harjoitteet peräkkäin ja
-// näyttää tyhjän tilan jos harjoitteita ei ole vielä lisätty
+/**
+ * DrillList.jsx
+ * Harjoitteiden lista editorissa. Hallitsee aktiivisen harjoitteen valinnan.
+ */
 
 import { useTranslation } from 'react-i18next'
 import DrillCard from './DrillCard'

@@ -1,5 +1,7 @@
-// Kuukausipohjainen kalenteri — treenit, ottelut, lepo
-// Klikkaa päivää → pieni modal ajan ja sijainnin lisäämiseen
+/**
+ * SeasonCalendar.jsx
+ * Kausikaienteri. Viikkonäkymä harjoituksista ja peleistä.
+ */
 
 import { useMemo, useState, useRef, useEffect } from 'react'
 import styles from './SeasonCalendar.module.css'

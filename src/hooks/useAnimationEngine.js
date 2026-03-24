@@ -1,12 +1,21 @@
-// useAnimationEngine — animaatiologiikka DrillCanvasille
-// Eristää RAF-silmukan, toiston tilan ja Konva-noden päivityksen omaan hookkiin
+/**
+ * useAnimationEngine.js
+ * Animaatiologiikka DrillCanvasille.
+ * Eristää RAF-silmukan, toiston tilan ja Konva-noden päivityksen omaan hookkiin.
+ * Konva-nodet päivitetään suoraan (ilman React re-renderöintiä) 60fps suorituskyvyn takaamiseksi.
+ */
 
 import { useState, useRef, useEffect } from 'react'
 
 const ANIM_DURATION = 5000 // toiston kesto millisekunteina
 
-// Laske elementin animoitu sijainti annetulla progress-arvolla (0–1)
-// Palauttaa null jos elementillä ei ole polkua
+/**
+ * Laske elementin animoitu sijainti annetulla progress-arvolla (0–1).
+ * Palauttaa null jos elementillä ei ole polkua.
+ * @param {{ x: number, y: number, animPath?: Array<{x: number, y: number}> }} el - Kenttäelementti
+ * @param {number} progress - Toiston edistyminen välillä 0–1
+ * @returns {{x: number, y: number}|null}
+ */
 export function getAnimatedPos(el, progress) {
   if (!el.animPath || el.animPath.length === 0) return null
   // Polku alkaa elementin nykyisestä sijainnista
@@ -25,7 +34,13 @@ export function getAnimatedPos(el, progress) {
   }
 }
 
-// stageRef = Konva Stage -viite, elements = kenttäelementit, scale = skaalauskerroin
+/**
+ * Hallitsee animaation toiston tilan, RAF-silmukan ja Konva-noden päivitykset.
+ * @param {{ stageRef: React.RefObject, elements: Array, scale: number }} params
+ * @param {React.RefObject} params.stageRef - Konva Stage -viite
+ * @param {Array} params.elements - Kenttäelementit
+ * @param {number} params.scale - Skaalauskerroin (kenttä px / normalisoitu yksikkö)
+ */
 export function useAnimationEngine({ stageRef, elements, scale }) {
   // animSelectedId = pelaaja jonka polkua muokataan animaatiotilassa
   const [animSelectedId, setAnimSelectedId] = useState(null)
@@ -136,6 +151,21 @@ export function useAnimationEngine({ stageRef, elements, scale }) {
     animProgressRef.current = 0
   }
 
+  /**
+   * @returns {{
+   *   animSelectedId: string|null,
+   *   setAnimSelectedId: function(string|null): void,
+   *   isPlaying: boolean,
+   *   animProgress: number,
+   *   animProgressRef: React.MutableRefObject<number>,
+   *   animActiveRef: React.MutableRefObject<boolean>,
+   *   playAnim: function(): void,
+   *   pauseAnim: function(): void,
+   *   resetAnim: function(): void,
+   *   resetAll: function(): void,
+   *   ANIM_DURATION: number
+   * }}
+   */
   return {
     animSelectedId,
     setAnimSelectedId,

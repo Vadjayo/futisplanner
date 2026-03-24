@@ -1,4 +1,7 @@
-// Joukkueen perustiedot — nimi, ikäluokka, taso, kausi, valmentajat, pelaajamäärä
+/**
+ * TeamInfo.jsx
+ * Joukkueen perustiedot -osio kausisuunnittelussa.
+ */
 
 import styles from './TeamInfo.module.css'
 

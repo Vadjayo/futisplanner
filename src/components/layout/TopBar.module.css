@@ -1,7 +1,7 @@
 .topbar {
   height: 52px;
-  background: #1a2535;
-  border-bottom: 1px solid #2d3f55;
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
   display: flex;
   align-items: center;
   padding: 0 16px;
@@ -16,7 +16,7 @@
 .appName {
   font-size: 16px;
   font-weight: 700;
-  color: #ffffff;
+  color: var(--color-text);
   white-space: nowrap;
 }
 
@@ -24,18 +24,18 @@
 .btnBack {
   background: none;
   border: none;
-  color: #8a9bb0;
+  color: var(--color-text-muted);
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
   padding: 6px 8px;
-  border-radius: 6px;
+  border-radius: var(--radius-md);
   white-space: nowrap;
   transition: color 0.15s, background 0.15s;
 }
 
 .btnBack:hover {
-  color: #ffffff;
+  color: var(--color-text);
   background: #0f1923;
 }
 
@@ -48,7 +48,7 @@
 .namePlaceholder {
   background: none;
   border: 1px solid transparent;
-  border-radius: 6px;
+  border-radius: var(--radius-md);
   color: #d0dce8;
   font-size: 15px;
   font-weight: 500;
@@ -62,7 +62,7 @@
 }
 
 .namePlaceholder:hover {
-  border-color: #2d3f55;
+  border-color: var(--color-border);
   background: #0f1923;
 }
 
@@ -74,8 +74,8 @@
 .nameInput {
   background: #0f1923;
   border: 1px solid #3b82f6;
-  border-radius: 6px;
-  color: #ffffff;
+  border-radius: var(--radius-md);
+  color: var(--color-text);
   font-size: 15px;
   font-weight: 500;
   padding: 4px 10px;
@@ -93,7 +93,7 @@
 
 .btn {
   padding: 6px 14px;
-  border-radius: 6px;
+  border-radius: var(--radius-md);
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
@@ -103,24 +103,24 @@
 
 .btnPrimary {
   background: #3b82f6;
-  color: #ffffff;
+  color: var(--color-text);
 }
 
 .btnPrimary:hover:not(:disabled) {
-  background: #2563eb;
+  background: var(--color-team-blue);
 }
 
 .btnSaved {
-  background: #16a34a !important;
+  background: var(--color-team-green) !important;
 }
 
 .btnError {
-  background: #dc2626 !important;
+  background: var(--color-team-red) !important;
 }
 
 .btnSecondary {
-  background: #2d3f55;
-  color: #8a9bb0;
+  background: var(--color-border);
+  color: var(--color-text-muted);
 }
 
 .btnSecondary:disabled {
@@ -135,11 +135,11 @@
   font-size: 13px;
   cursor: pointer;
   padding: 6px 8px;
-  border-radius: 6px;
+  border-radius: var(--radius-md);
 }
 
 .btnSignOut:hover {
-  color: #8a9bb0;
+  color: var(--color-text-muted);
   background: #0f1923;
 }
 

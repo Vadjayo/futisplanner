@@ -1,5 +1,7 @@
-// Yksittäinen harjoitekortti — otsikko, kesto, kenttätyyppi ja piirtoalue
-// Otsikko on klikkaamalla muokattava, kesto ja kenttätyyppi vaihdettavissa napista
+/**
+ * DrillCard.jsx
+ * Yksittäisen harjoitteen kortti editorissa. Otsikko, kesto, kentän tyyppi ja kanvas.
+ */
 
 import { useRef, forwardRef, useImperativeHandle } from 'react'
 import { useTranslation } from 'react-i18next'

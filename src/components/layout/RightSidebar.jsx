@@ -1,4 +1,7 @@
-// Oikea sivupalkki — harjoiteluettelo ja harjoituksen yhteenveto
+/**
+ * RightSidebar.jsx
+ * Oikean reunan sivupalkki. Harjoitelista, sessiodata ja metatieto.
+ */
 
 import { useTranslation } from 'react-i18next'
 import { totalDuration } from '../../utils/drillUtils'

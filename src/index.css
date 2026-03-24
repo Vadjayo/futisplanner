@@ -1,3 +1,46 @@
+/* ── CSS-MUUTTUJAT ── */
+:root {
+  /* Värit */
+  --color-primary: #1D9E75;
+  --color-primary-hover: #158560;
+  --color-primary-dim: rgba(29, 158, 117, 0.08);
+  --color-bg: #0f1117;
+  --color-surface: #1a2535;
+  --color-surface-alt: #161820;
+  --color-surface-deep: #0d1824;
+  --color-border: #2d3f55;
+  --color-border-subtle: #1e2d3e;
+  --color-text: #ffffff;
+  --color-text-muted: #8a9bb0;
+  --color-text-dim: #4a6080;
+
+  /* Joukkuevärit */
+  --color-team-blue: #2563eb;
+  --color-team-red: #dc2626;
+  --color-team-green: #16a34a;
+  --color-team-dark: #374151;
+  --color-team-gk: #f59e0b;
+
+  /* Pyöristykset */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+  --radius-full: 9999px;
+
+  /* Animaatiot */
+  --transition-fast: 0.12s ease;
+  --transition-base: 0.18s ease;
+
+  /* Typografia */
+  --font-size-xs: 10px;
+  --font-size-sm: 12px;
+  --font-size-base: 14px;
+  --font-size-md: 15px;
+  --font-size-lg: 18px;
+}
+
+/* ── RESET ── */
 *,
 *::before,
 *::after {
@@ -6,6 +49,7 @@
   padding: 0;
 }
 
+/* ── POHJA ── */
 html,
 body,
 #root {
@@ -20,6 +64,7 @@ body {
   color: #d0dce8;
 }
 
+/* ── VIERITYSPALKIT ── */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -30,7 +75,7 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #2d3f55;
+  background: var(--color-border);
   border-radius: 3px;
 }
 
