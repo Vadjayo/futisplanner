@@ -1,23 +1,29 @@
 /**
  * config.js
  * Sovelluksen globaalit konfiguraatioarvot.
+ *
+ * Käyttö: import { CONFIG } from '@/constants'
  */
 
-// Supabase — ladataan ympäristömuuttujista
-export const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL
-export const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY
+export const CONFIG = {
+  // AI-ominaisuudet
+  AI_MAX_REQUESTS_PER_DAY: 20,
 
-// Kanvas
-export const CANVAS_SCALE = 1
-export const CANVAS_FIELD_RATIO = 0.68  // kenttä on 68 % leveydestä
+  // Editori
+  MAX_ELEMENTS_PER_DRILL: 200,
+  ZOOM_MIN:  0.5,
+  ZOOM_MAX:  2.0,
+  ZOOM_STEP: 0.1,
 
-// Debounce-ajat (ms)
-export const AUTOSAVE_DELAY = 1000
-export const TOAST_DURATION = 2500
+  // Tilarajoitukset
+  FREE_TIER_MAX_TEAMS:    1,
+  FREE_TIER_MAX_SESSIONS: 10,
 
-// PDF-vienti
-export const PDF_PAGE_FORMAT = 'a4'
-export const PDF_ORIENTATION = 'landscape'
+  // Ajastimet (ms)
+  SESSION_AUTOSAVE_INTERVAL: 30000,   // 30 s
+  TOAST_DURATION:             2000,   // 2 s
 
-// App-versio
-export const APP_VERSION = '0.1.0'
+  // Supabase — ladataan ympäristömuuttujista
+  SUPABASE_URL:      import.meta.env.VITE_SUPABASE_URL,
+  SUPABASE_ANON_KEY: import.meta.env.VITE_SUPABASE_ANON_KEY,
+}

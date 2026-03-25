@@ -1,5 +1,8 @@
-// Autentikaatiotestit — kriittisin osa sovellusta
-// Testataan kirjautuminen, rekisteröinti ja uloskirjautuminen
+/**
+ * auth.test.jsx
+ * Yksikkötestit AuthPage-kirjautumissivulle.
+ * AuthPage on pelkkä kirjautumissivu — rekisteröinti on erillinen sivu (RegisterPage).
+ */
 
 import React from 'react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
@@ -8,17 +11,10 @@ import { MemoryRouter } from 'react-router-dom'
 import AuthPage from '../components/auth/AuthPage'
 import { useAuth } from '../hooks/useAuth'
 
-// Mockataan useAuth hook — emme tarvitse oikeaa Supabase-yhteyttä yksikkötesteissä
+// Mockataan useAuth — ei oikeaa Supabase-yhteyttä yksikkötesteissä
 vi.mock('../hooks/useAuth')
 
-// Mockataan react-i18next jotta lokalisaatio ei hankaloita testejä
-vi.mock('react-i18next', () => ({
-  useTranslation: () => ({
-    t: (key) => key, // palautetaan avain sellaisenaan
-  }),
-}))
-
-// Apufunktio: renderöi AuthPage React Routerin muistissa (ei URL-muutoksia)
+// Apufunktio: renderöi AuthPage React Routerin muistissa
 function renderAuthPage() {
   return render(
     <MemoryRouter>
@@ -32,59 +28,42 @@ describe('AuthPage', () => {
     vi.clearAllMocks()
   })
 
-  // Testataan että kirjautumislomake renderöityy oikein
+  // Kirjautumislomake renderöityy oikein
   it('näyttää kirjautumislomakkeen', () => {
-    useAuth.mockReturnValue({
-      signIn: vi.fn(),
-      signUp: vi.fn(),
-      user: null,
-    })
-
+    useAuth.mockReturnValue({ signIn: vi.fn(), user: null })
     renderAuthPage()
 
-    // Lomakkeen kentät löytyvät DOM:sta
     expect(screen.getByPlaceholderText('valmentaja@seura.fi')).toBeInTheDocument()
     expect(screen.getByPlaceholderText('••••••••')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Kirjaudu sisään' })).toBeInTheDocument()
   })
 
-  // Testataan että kirjautuminen kutsuu signIn:iä oikeilla arvoilla
+  // Kirjautuminen kutsuu signIn:iä oikeilla arvoilla
   it('kutsuu signIn:iä oikeilla tunnuksilla', async () => {
     const mockSignIn = vi.fn().mockResolvedValue({ error: null })
-    useAuth.mockReturnValue({
-      signIn: mockSignIn,
-      signUp: vi.fn(),
-      user: null,
-    })
+    useAuth.mockReturnValue({ signIn: mockSignIn, user: null })
 
     renderAuthPage()
 
-    // Täytä lomake
     fireEvent.change(screen.getByPlaceholderText('valmentaja@seura.fi'), {
       target: { value: 'testi@email.com' },
     })
     fireEvent.change(screen.getByPlaceholderText('••••••••'), {
       target: { value: 'salasana123' },
     })
+    fireEvent.click(screen.getByRole('button', { name: 'Kirjaudu sisään' }))
 
-    // Lähetä lomake
-    fireEvent.click(screen.getByRole('button', { name: 'auth.login' }))
-
-    // signIn kutsuttiin oikeilla arvoilla
     await waitFor(() => {
       expect(mockSignIn).toHaveBeenCalledWith('testi@email.com', 'salasana123')
     })
   })
 
-  // Testataan että virheviesti näytetään väärillä tunnuksilla
+  // Virheviesti näytetään väärillä tunnuksilla
   it('näyttää virheviestin epäonnistuneen kirjautumisen jälkeen', async () => {
     const mockSignIn = vi.fn().mockResolvedValue({
       error: { message: 'Invalid login credentials' },
     })
-    useAuth.mockReturnValue({
-      signIn: mockSignIn,
-      signUp: vi.fn(),
-      user: null,
-    })
+    useAuth.mockReturnValue({ signIn: mockSignIn, user: null })
 
     renderAuthPage()
 
@@ -94,57 +73,27 @@ describe('AuthPage', () => {
     fireEvent.change(screen.getByPlaceholderText('••••••••'), {
       target: { value: 'vaara' },
     })
-    fireEvent.click(screen.getByRole('button', { name: 'auth.login' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Kirjaudu sisään' }))
 
-    // Virheviesti ilmestyy
+    // Virheviesti on käännetty suomeksi mapError-funktiolla
     await waitFor(() => {
-      expect(screen.getByText('Invalid login credentials')).toBeInTheDocument()
+      expect(screen.getByText('Sähköposti tai salasana on väärin.')).toBeInTheDocument()
     })
   })
 
-  // Testataan lomakkeen vaihto rekisteröintitilaan
-  it('vaihtaa rekisteröintitilaan linkkiä klikatessa', () => {
-    useAuth.mockReturnValue({
-      signIn: vi.fn(),
-      signUp: vi.fn(),
-      user: null,
-    })
-
+  // Linkki rekisteröintisivulle löytyy
+  it('näyttää linkin rekisteröintisivulle', () => {
+    useAuth.mockReturnValue({ signIn: vi.fn(), user: null })
     renderAuthPage()
 
-    // Klikataan "vaihda tilaan rekisteröinti" -linkkiä
-    fireEvent.click(screen.getByText('auth.switchToRegister'))
-
-    // Rekisteröintitilan nappi näkyy
-    expect(screen.getByRole('button', { name: 'auth.register' })).toBeInTheDocument()
+    expect(screen.getByText('Ei vielä tiliä? Luo tili →')).toBeInTheDocument()
   })
 
-  // Testataan rekisteröinti — onnistunut rekisteröinti näyttää viestin
-  it('näyttää varmistusviestin onnistuneen rekisteröinnin jälkeen', async () => {
-    const mockSignUp = vi.fn().mockResolvedValue({ error: null })
-    useAuth.mockReturnValue({
-      signIn: vi.fn(),
-      signUp: mockSignUp,
-      user: null,
-    })
-
+  // Linkki unohtunut salasana -sivulle löytyy
+  it('näyttää linkin unohtunut salasana -sivulle', () => {
+    useAuth.mockReturnValue({ signIn: vi.fn(), user: null })
     renderAuthPage()
 
-    // Vaihda rekisteröintitilaan
-    fireEvent.click(screen.getByText('auth.switchToRegister'))
-
-    // Täytä ja lähetä
-    fireEvent.change(screen.getByPlaceholderText('valmentaja@seura.fi'), {
-      target: { value: 'uusi@email.com' },
-    })
-    fireEvent.change(screen.getByPlaceholderText('••••••••'), {
-      target: { value: 'uusiSalasana123' },
-    })
-    fireEvent.click(screen.getByRole('button', { name: 'auth.register' }))
-
-    // Vahvistusviesti näytetään
-    await waitFor(() => {
-      expect(screen.getByText('auth.checkEmail')).toBeInTheDocument()
-    })
+    expect(screen.getByText('Unohditko salasanan?')).toBeInTheDocument()
   })
 })

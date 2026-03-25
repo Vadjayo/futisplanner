@@ -1,27 +1,52 @@
 /**
  * colors.js
- * Sovelluksen väripaletti vakioina.
- * Käytetään sekä komponenteissa että CSS-muuttujien viitearvoina.
+ * Sovelluksen väripaletti. Kaikki värit haetaan täältä — ei kovakoodattuja
+ * hex-arvoja muualla koodissa.
+ *
+ * Käyttö: import { COLORS } from '@/constants'
  */
 
-// Päävärit
-export const COLOR_PRIMARY = '#1D9E75'
-export const COLOR_PRIMARY_HOVER = '#158560'
-export const COLOR_BG = '#0f1117'
-export const COLOR_SURFACE = '#1a2535'
-
-// Joukkuevärjit — vastaavat DrillCanvas ROLE_COLORS-mappauksen arvoja
-export const TEAM_COLORS = {
-  gk:    '#f59e0b',
-  blue:  '#2563eb',
-  red:   '#dc2626',
-  green: '#16a34a',
-  dark:  '#374151',
-  home:  '#2563eb',
-  away:  '#dc2626',
+export const COLORS = {
+  bg: {
+    primary:   '#0a0d12',
+    secondary: '#161820',
+    surface:   '#1a1d27',
+    border:    '#1e2230',
+  },
+  brand: {
+    primary:      '#1D9E75',
+    primaryHover: '#0F6E56',
+    primaryLight: '#0F6E5620',
+  },
+  team: {
+    blue:   '#2563EB',
+    red:    '#DC2626',
+    green:  '#16A34A',
+    orange: '#EF9F27',
+    gray:   '#374151',
+  },
+  event: {
+    drill:      '#1D9E75',
+    game:       '#378ADD',
+    tournament: '#7F77DD',
+    rest:       '#EF9F27',
+  },
+  status: {
+    success: '#1D9E75',
+    warning: '#EF9F27',
+    danger:  '#E24B4A',
+    info:    '#378ADD',
+  },
+  text: {
+    primary:   '#ffffff',
+    secondary: '#8b8d97',
+    muted:     '#2a2d35',
+  },
 }
 
-// Värivaihtoehdot tötsille ja kepeille – id vastaa CONE_HEX-avaimia
+// ── Tötsien ja keppien värivaihtoehdot ──
+// Käytössä LeftToolbar.jsx:ssä ja DrillCanvas.jsx:ssä — säilytetään yhteensopivana
+
 export const CONE_COLORS = [
   { id: 'orange', hex: '#f97316', label: 'Oranssi' },
   { id: 'red',    hex: '#ef4444', label: 'Punainen' },
@@ -31,7 +56,7 @@ export const CONE_COLORS = [
   { id: 'white',  hex: '#f1f5f9', label: 'Valkoinen' },
 ]
 
-// Tötsien ja keppien täyttö- ja reunusvärit värityypeittäin
+// Tötsien/keppien täyttö- ja reunusvärit värityypeittäin
 export const CONE_HEX = {
   orange: { fill: '#f97316', stroke: '#c2410c' },
   red:    { fill: '#ef4444', stroke: '#b91c1c' },
@@ -41,7 +66,7 @@ export const CONE_HEX = {
   white:  { fill: '#f1f5f9', stroke: '#94a3b8' },
 }
 
-// Piirtotyökalujen värit – avain vastaa CONE_COLORS id-arvoja
+// Piirtotyökalujen värit
 export const DRAW_HEX = {
   white:  '#f1f5f9',
   yellow: '#fbbf24',

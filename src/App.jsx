@@ -1,79 +1,83 @@
 /**
  * App.jsx
- * Sovelluksen pääreititin. Määrittelee kaikki reitit ja autentikoinnin.
+ * Sovelluksen pääreititin.
  *
- * ProtectedRoute  — vaatii kirjautumisen, muuten ohjaa /kirjaudu
- * PublicRoute     — kirjautunut käyttäjä ohjataan /dashboard (auth-sivut)
+ * ProtectedRoute  — vaatii kirjautumisen, muuten ohjaa ROUTES.LOGIN
+ * PublicRoute     — kirjautunut käyttäjä ohjataan ROUTES.DASHBOARD
+ *
+ * BrowserRouter on main.jsx:ssä — ei tarvita tässä uudelleen.
  */
 
 import { Routes, Route, Navigate } from 'react-router-dom'
-import { useAuth } from './hooks/useAuth'
-import LandingPage          from './components/landing/LandingPage'
-import AuthPage             from './components/auth/AuthPage'
-import RegisterPage         from './components/auth/RegisterPage'
-import ForgotPasswordPage   from './components/auth/ForgotPasswordPage'
-import ResetPasswordPage    from './components/auth/ResetPasswordPage'
-import Dashboard            from './components/dashboard/Dashboard'
-import EditorApp            from './EditorApp'
-import SeasonPage           from './components/season/SeasonPage'
+import { useAuth }          from './hooks/useAuth'
+import { ROUTES }           from './constants/routes'
+import LoadingSpinner       from './components/ui/LoadingSpinner'
 
-// Suojattu reitti — kirjautumaton käyttäjä ohjataan kirjautumissivulle
+// Sivut
+import Home           from './pages/Home'
+import Login          from './pages/Login'
+import Register       from './pages/Register'
+import Dashboard      from './pages/Dashboard'
+import Editor         from './pages/Editor'
+import SeasonPlanner  from './pages/SeasonPlanner'
+
+// Auth-sivut joilla ei vielä ole omaa pages/-tiedostoa
+import ForgotPasswordPage from './components/auth/ForgotPasswordPage'
+import ResetPasswordPage  from './components/auth/ResetPasswordPage'
+
+// ── REITTIVARTIJAT ──
+
+/** Suojattu reitti — ohjaa kirjautumattoman kirjautumissivulle */
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth()
-  if (loading) return null          // odotetaan istunnon tarkistusta
-  if (!user)   return <Navigate to="/kirjaudu" replace />
+  if (loading) return <LoadingSpinner fullPage />
+  if (!user)   return <Navigate to={ROUTES.LOGIN} replace />
   return children
 }
 
-// Julkinen auth-reitti — kirjautunut käyttäjä ohjataan dashboardille
+/** Julkinen auth-reitti — ohjaa kirjautuneen dashboardille */
 function PublicRoute({ children }) {
   const { user, loading } = useAuth()
-  if (loading) return null
-  if (user)    return <Navigate to="/dashboard" replace />
+  if (loading) return <LoadingSpinner fullPage />
+  if (user)    return <Navigate to={ROUTES.DASHBOARD} replace />
   return children
 }
+
+// ── REITITIN ──
 
 export default function App() {
   return (
     <Routes>
-      {/* Etusivu — julkinen landing page */}
-      <Route path="/" element={<LandingPage />} />
+      {/* Julkinen etusivu */}
+      <Route path={ROUTES.HOME} element={<Home />} />
 
-      {/* Kirjautuminen — kirjautunut käyttäjä ohjataan pois */}
-      <Route path="/kirjaudu" element={
-        <PublicRoute><AuthPage /></PublicRoute>
+      {/* Auth-sivut — kirjautunut ohjataan dashboardille */}
+      <Route path={ROUTES.LOGIN} element={
+        <PublicRoute><Login /></PublicRoute>
       } />
-
-      {/* Rekisteröinti */}
-      <Route path="/rekisteroidy" element={
-        <PublicRoute><RegisterPage /></PublicRoute>
+      <Route path={ROUTES.REGISTER} element={
+        <PublicRoute><Register /></PublicRoute>
       } />
-
-      {/* Salasanan palautus */}
-      <Route path="/unohdin-salasanan" element={
+      <Route path={ROUTES.FORGOT_PASSWORD} element={
         <PublicRoute><ForgotPasswordPage /></PublicRoute>
       } />
 
-      {/* Salasanan vaihto (Supabase ohjaa tänne palautuslinkin kautta) */}
-      <Route path="/vaihda-salasana" element={<ResetPasswordPage />} />
+      {/* Salasanan vaihto — Supabase ohjaa tänne; ei PublicRoute-vaatimusta */}
+      <Route path={ROUTES.RESET_PASSWORD} element={<ResetPasswordPage />} />
 
-      {/* Dashboard — kirjautuneen käyttäjän aloitussivu */}
-      <Route path="/dashboard" element={
+      {/* Suojatut sivut — vaatii kirjautumisen */}
+      <Route path={ROUTES.DASHBOARD} element={
         <ProtectedRoute><Dashboard /></ProtectedRoute>
       } />
-
-      {/* Editori — suojattu, vaatii kirjautumisen */}
-      <Route path="/sovellus" element={
-        <ProtectedRoute><EditorApp /></ProtectedRoute>
+      <Route path={ROUTES.EDITOR} element={
+        <ProtectedRoute><Editor /></ProtectedRoute>
       } />
-
-      {/* Kausisuunnittelu — suojattu */}
-      <Route path="/kausi" element={
-        <ProtectedRoute><SeasonPage /></ProtectedRoute>
+      <Route path={ROUTES.SEASON} element={
+        <ProtectedRoute><SeasonPlanner /></ProtectedRoute>
       } />
 
       {/* Tuntematon polku — ohjaa etusivulle */}
-      <Route path="*" element={<Navigate to="/" replace />} />
+      <Route path="*" element={<Navigate to={ROUTES.HOME} replace />} />
     </Routes>
   )
 }

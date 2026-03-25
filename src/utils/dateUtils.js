@@ -4,28 +4,27 @@
  */
 
 /**
- * Palauttaa päivämäärän muodossa 'YYYY-MM-DD' (sv-SE-lokaali käyttää ISO-formaattia)
- * @param {Date} date
+ * Muotoilee päivämäärän suomalaiseen muotoon.
+ * Esim: "ti 25.3.2026"
+ * @param {string|Date} date
  * @returns {string}
  */
-export function toDateKey(date) {
-  return date.toLocaleDateString('sv-SE')
+export const formatDate = (date) => {
+  return new Intl.DateTimeFormat('fi-FI', {
+    weekday: 'short',
+    day:     'numeric',
+    month:   'numeric',
+    year:    'numeric',
+  }).format(new Date(date))
 }
 
 /**
- * Palauttaa tämän päivän muodossa 'YYYY-MM-DD'
+ * Muotoilee päivämäärän lyhyesti ilman vuotta.
+ * Esim: "ti 3.6."
+ * @param {string} iso  - 'YYYY-MM-DD'
  * @returns {string}
  */
-export function today() {
-  return toDateKey(new Date())
-}
-
-/**
- * Formatoi 'YYYY-MM-DD' suomeksi lyhyesti, esim. "ti 3.6."
- * @param {string} iso
- * @returns {string}
- */
-export function fmtDateShort(iso) {
+export const formatDateShort = (iso) => {
   if (!iso) return ''
   return new Date(iso + 'T00:00:00').toLocaleDateString('fi-FI', {
     weekday: 'short', day: 'numeric', month: 'numeric',
@@ -33,49 +32,78 @@ export function fmtDateShort(iso) {
 }
 
 /**
- * Formatoi 'YYYY-MM-DD' suomeksi pitkästi, esim. "tiistai 3.6.2025"
- * @param {string} iso
+ * Palauttaa päivämäärän muodossa 'YYYY-MM-DD'.
+ * @param {Date} date
  * @returns {string}
  */
-export function fmtDateLong(iso) {
-  if (!iso) return ''
-  return new Date(iso + 'T00:00:00').toLocaleDateString('fi-FI', {
-    weekday: 'long', day: 'numeric', month: 'numeric', year: 'numeric',
-  })
+export const toDateKey = (date) => date.toLocaleDateString('sv-SE')
+
+/**
+ * Palauttaa tämän päivän muodossa 'YYYY-MM-DD'.
+ * @returns {string}
+ */
+export const today = () => toDateKey(new Date())
+
+/**
+ * Tarkistaa onko päivämäärä tänään.
+ * @param {string|Date} date
+ * @returns {boolean}
+ */
+export const isToday = (date) => {
+  const t = new Date()
+  const d = new Date(date)
+  return (
+    d.getDate()     === t.getDate()     &&
+    d.getMonth()    === t.getMonth()    &&
+    d.getFullYear() === t.getFullYear()
+  )
 }
 
 /**
- * Palauttaa kahden ISO-päivämäärän välisen eron päivinä
+ * Laskee kokonaisten viikkojen määrän kahden päivämäärän välillä (vähintään 1).
+ * @param {Date|number} start
+ * @param {Date|number} end
+ * @returns {number}
+ */
+export const getWeeksBetween = (start, end) => {
+  const msPerWeek = 7 * 24 * 60 * 60 * 1000
+  return Math.max(1, Math.floor((Number(end) - Number(start)) / msPerWeek))
+}
+
+/**
+ * Laskee päivien määrän kahden ISO-päivämäärän välillä.
  * @param {string} startIso
  * @param {string} endIso
  * @returns {number}
  */
-export function daysBetween(startIso, endIso) {
-  const ms = new Date(endIso).getTime() - new Date(startIso).getTime()
-  return Math.ceil(ms / 86400000)
+export const daysBetween = (startIso, endIso) => {
+  return Math.ceil((new Date(endIso) - new Date(startIso)) / 86400000)
 }
 
 /**
- * Palauttaa viikon maanantain Date-objektina annetusta päivämäärästä
- * @param {Date} date
- * @returns {Date}
+ * Laskee kausisuunnitelman täyttöprosentin.
+ * Prosentti = uniikit tapahtumapaivat / kauden päivien kokonaismäärä.
+ * @param {Array<{ date: string }>} events
+ * @param {string} seasonStart  - 'YYYY-MM-DD'
+ * @param {string} seasonEnd    - 'YYYY-MM-DD'
+ * @returns {number}  0–100
  */
-export function getMondayOf(date) {
-  const d = new Date(date)
-  const dow = (d.getDay() + 6) % 7 // 0 = maanantai
-  d.setDate(d.getDate() - dow)
-  d.setHours(0, 0, 0, 0)
-  return d
+export const getSeasonProgress = (events, seasonStart, seasonEnd) => {
+  const totalDays = Math.max(1, Math.floor(
+    (new Date(seasonEnd) - new Date(seasonStart)) / 86400000
+  ))
+  const uniqueDays = new Set(events.map((e) => e.date)).size
+  return Math.min(100, Math.round((uniqueDays / totalDays) * 100))
 }
 
 /**
- * Generoi viikkoittaiset toistuvat päivämäärät alusta loppuun (sama viikonpäivä)
+ * Generoi viikoittaiset toistuvat päivämäärät alusta loppuun (sama viikonpäivä).
  * @param {string} startIso
  * @param {string} untilIso
  * @returns {string[]}
  */
-export function generateWeeklyDates(startIso, untilIso) {
-  const dates = []
+export const generateWeeklyDates = (startIso, untilIso) => {
+  const dates   = []
   const current = new Date(startIso + 'T00:00:00')
   const until   = new Date(untilIso + 'T00:00:00')
   while (current <= until) {

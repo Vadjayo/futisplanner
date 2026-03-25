@@ -6,6 +6,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
+import { ROUTES } from '../../constants/routes'
 import styles from './AuthPage.module.css'
 
 export default function ForgotPasswordPage() {
@@ -45,7 +46,7 @@ export default function ForgotPasswordPage() {
             Palautuslinkki lähetetty sähköpostiisi. Tarkista myös roskapostikansio.
           </p>
           <div className={styles.divider}>
-            <Link to="/kirjaudu" className={styles.link}>
+            <Link to={ROUTES.LOGIN} className={styles.link}>
               Takaisin kirjautumiseen →
             </Link>
           </div>
@@ -85,7 +86,7 @@ export default function ForgotPasswordPage() {
         </form>
 
         <div className={styles.divider}>
-          <Link to="/kirjaudu" className={styles.linkSmall}>
+          <Link to={ROUTES.LOGIN} className={styles.linkSmall}>
             ← Takaisin kirjautumiseen
           </Link>
         </div>

@@ -7,6 +7,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import './lib/i18n'
 import { useAuth } from './hooks/useAuth'
+import { ROUTES } from './constants/routes'
 import { loadRecentSession, loadSessionById, saveSession, saveToLibrary } from './lib/db'
 import TopBar from './components/layout/TopBar'
 import LeftToolbar from './components/layout/LeftToolbar'
@@ -107,7 +108,7 @@ export default function EditorApp() {
 
   // Ohjaa kirjautumissivulle jos ei ole kirjautunut (auth tarkistettu)
   useEffect(() => {
-    if (!loading && !user) navigate('/kirjaudu', { replace: true })
+    if (!loading && !user) navigate(ROUTES.LOGIN, { replace: true })
   }, [user, loading, navigate])
 
   // Lataa sessio kirjautumisen jälkeen

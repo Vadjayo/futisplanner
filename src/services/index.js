@@ -1,9 +1,10 @@
 /**
  * Serviceiden barrel-tiedosto.
- * Käyttö: import { teamService } from '@/services'
+ * Käyttö: import { getSessions, getTeams, addEvent } from '@/services'
  */
 
-export * as sessionService from './sessionService'
-export * as teamService    from './teamService'
-export * as seasonService  from './seasonService'
-export * as pdfService     from './pdfService'
+export * from './sessionService'
+export * from './teamService'
+export * from './seasonService'
+export * from './pdfService'
+export { supabase } from './supabase'

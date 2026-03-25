@@ -6,6 +6,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
+import { ROUTES } from '../../constants/routes'
 import { loadAllSessions, deleteSession } from '../../lib/db'
 import { formatDate, totalDuration } from '../../utils/drillUtils'
 import styles from './Dashboard.module.css'
@@ -21,7 +22,7 @@ export default function Dashboard() {
 
   // Ohjaa kirjautumissivulle jos ei ole kirjautunut (auth tarkistettu)
   useEffect(() => {
-    if (!authLoading && !user) navigate('/kirjaudu', { replace: true })
+    if (!authLoading && !user) navigate(ROUTES.LOGIN, { replace: true })
   }, [user, authLoading, navigate])
 
   // Lataa sessiot kun komponentti mountataan
@@ -36,12 +37,12 @@ export default function Dashboard() {
   // Luo uusi sessio — generoi UUID:n ja siirtyy editoriin
   function handleNewSession() {
     const newSessionId = crypto.randomUUID()
-    navigate('/sovellus', { state: { sessionId: newSessionId, isNew: true } })
+    navigate(ROUTES.EDITOR, { state: { sessionId: newSessionId, isNew: true } })
   }
 
   // Avaa olemassa oleva sessio editorissa
   function handleOpen(sessionId) {
-    navigate('/sovellus', { state: { sessionId } })
+    navigate(ROUTES.EDITOR, { state: { sessionId } })
   }
 
   // Poista sessio vahvistuksen jälkeen
@@ -64,7 +65,7 @@ export default function Dashboard() {
       {/* ── NAVIGAATIO ── */}
       <nav className={styles.nav}>
         <div className={styles.navInner}>
-          <button className={styles.logo} onClick={() => navigate('/')}>⚽ FutisPlanner</button>
+          <button className={styles.logo} onClick={() => navigate(ROUTES.HOME)}>⚽ FutisPlanner</button>
           <div className={styles.navRight}>
             <span className={styles.userEmail}>{user?.email}</span>
             <button className={styles.btnSignOut} onClick={signOut}>
@@ -87,7 +88,7 @@ export default function Dashboard() {
             )}
           </div>
           <div className={styles.headerActions}>
-            <button className={styles.btnSeason} onClick={() => navigate('/kausi')}>
+            <button className={styles.btnSeason} onClick={() => navigate(ROUTES.SEASON)}>
               📅 Kausisuunnittelu
             </button>
             <button className={styles.btnNew} onClick={handleNewSession}>

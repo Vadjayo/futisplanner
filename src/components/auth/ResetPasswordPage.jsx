@@ -6,7 +6,8 @@
 
 import { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { supabase } from '../../lib/supabase'
+import { supabase } from '../../services/supabase'
+import { ROUTES } from '../../constants/routes'
 import styles from './AuthPage.module.css'
 
 export default function ResetPasswordPage() {
@@ -55,7 +56,7 @@ export default function ResetPasswordPage() {
 
     setSuccess(true)
     // Ohjaa dashboardille muutaman sekunnin kuluttua
-    setTimeout(() => navigate('/dashboard', { replace: true }), 2500)
+    setTimeout(() => navigate(ROUTES.DASHBOARD, { replace: true }), 2500)
   }
 
   // Onnistumistila
@@ -82,7 +83,7 @@ export default function ResetPasswordPage() {
             Jos tämä kestää kauan, pyydä uusi palautuslinkki.
           </p>
           <div className={styles.divider}>
-            <Link to="/unohdin-salasanan" className={styles.link}>
+            <Link to={ROUTES.FORGOT_PASSWORD} className={styles.link}>
               Pyydä uusi linkki →
             </Link>
           </div>

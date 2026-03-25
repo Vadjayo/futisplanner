@@ -1,42 +1,38 @@
 /**
  * fieldElements.js
- * Kentän elementtityyppien vakiot. Aiemmin hajallaan DrillCanvas.jsx:ssä ja
- * LeftToolbar.jsx:ssä.
+ * Kentän elementtityyppien ja nuolityyppien määritykset.
+ * Käytetään LeftToolbar.jsx:ssä ja DrillCanvas.jsx:ssä.
  *
- * Tyypit: player, gk, defender, ball, cone, pole, coach, text, arrow
+ * Käyttö: import { FIELD_ELEMENTS } from '@/constants'
  */
 
-// Kaikki tuetut elementtityypit
-export const ELEMENT_TYPES = {
-  PLAYER:   'player',
-  GK:       'gk',
-  DEFENDER: 'defender',
-  BALL:     'ball',
-  CONE:     'cone',
-  POLE:     'pole',
-  COACH:    'coach',
-  TEXT:     'text',
-  ARROW:    'arrow',
-}
-
-// Pelaajien roolivärit (vastaa DrillCanvas.jsx ROLE_COLORS -mappauksen arvoja)
-export const ROLE_COLORS = {
-  blue:  '#2563eb',
-  red:   '#dc2626',
-  green: '#16a34a',
-  dark:  '#374151',
-  gk:    '#f59e0b',
-  home:  '#2563eb',
-  away:  '#dc2626',
-}
-
-// Oletuskoot (skaalamattomat, kerrotaan canvasScale:lla renderöinnissä)
-export const ELEMENT_DEFAULTS = {
-  player:   { radius: 14 },
-  gk:       { radius: 14 },
-  defender: { radius: 14, sides: 3 },
-  ball:     { radius: 10 },
-  cone:     { radius: 8, sides: 3 },
-  pole:     { width: 5, height: 24 },
-  coach:    { radius: 14 },
+export const FIELD_ELEMENTS = {
+  PLAYERS: {
+    GOALKEEPER:     { color: '#EF9F27', label: 'Maalivahti' },
+    ATTACKER_BLUE:  { color: '#2563EB', label: 'Hyökkääjä (sin)' },
+    ATTACKER_RED:   { color: '#DC2626', label: 'Hyökkääjä (pun)' },
+    ATTACKER_GREEN: { color: '#16A34A', label: 'Hyökkääjä (vih)' },
+    DEFENDER_BLUE:  { color: '#2563EB', shape: 'triangle', label: 'Puolustaja (sin)' },
+    DEFENDER_RED:   { color: '#DC2626', shape: 'triangle', label: 'Puolustaja (pun)' },
+  },
+  EQUIPMENT: {
+    CONE:       { color: '#F97316', label: 'Tötsä' },
+    POLE:       { color: '#EAB308', label: 'Keppi' },
+    GOAL:       { label: 'Maali' },
+    SMALL_GOAL: { label: 'Pienmaali' },
+    BALL:       { label: 'Pallo' },
+    RING:       { color: '#F97316', label: 'Rengas' },
+    LADDER:     { color: '#EAB308', label: 'Tikkaat' },
+    MANNEQUIN:  { color: '#94A3B8', label: 'Mannekiini' },
+    MINI_FIELD: { label: 'Pienkenttä' },
+  },
+  ARROWS: {
+    PASS:         { dash: null,   color: 'white',    label: 'Syöttö' },
+    MOVE:         { dash: [6, 4], color: 'white',    label: 'Liike' },
+    SHOT:         { color: '#E24B4A',                label: 'Laukaus' },
+    DRIBBLE:      { color: '#E24B4A', curve: true,   label: 'Kuljetus' },
+    CURVE:        { color: '#EF9F27',                label: 'Kaareva' },
+    BOTH_WAYS:    { color: '#378ADD', bothEnds: true, label: 'Edestakaisin' },
+    WITHOUT_BALL: { dash: [4, 4], color: '#7F77DD',  label: 'Ilman palloa' },
+  },
 }

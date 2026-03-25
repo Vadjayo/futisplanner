@@ -6,6 +6,7 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
+import { ROUTES } from '../../constants/routes'
 import styles from './AuthPage.module.css'
 
 // Muuntaa Supabasen englanninkieliset virheviestit suomeksi
@@ -37,7 +38,7 @@ export default function AuthPage() {
       setError(mapError(error.message))
     } else {
       // Onnistunut kirjautuminen — ohjaa dashboardille
-      navigate('/dashboard', { replace: true })
+      navigate(ROUTES.DASHBOARD, { replace: true })
     }
 
     setSubmitting(false)
@@ -85,10 +86,10 @@ export default function AuthPage() {
         </form>
 
         <div className={styles.divider}>
-          <Link to="/rekisteroidy" className={styles.link}>
+          <Link to={ROUTES.REGISTER} className={styles.link}>
             Ei vielä tiliä? Luo tili →
           </Link>
-          <Link to="/unohdin-salasanan" className={styles.linkSmall}>
+          <Link to={ROUTES.FORGOT_PASSWORD} className={styles.linkSmall}>
             Unohditko salasanan?
           </Link>
         </div>

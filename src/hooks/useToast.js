@@ -1,23 +1,20 @@
 /**
  * useToast.js
- * Toast-ilmoitusten hallinta-hook.
+ * Toast-ilmoitusten hallinta.
  *
  * Käyttö:
- *   const { toasts, toast } = useToast()
- *   toast.success('Tallennettu!')
- *   toast.error('Tallennus epäonnistui.')
- *   toast.info('Muista tallentaa.')
- *   toast.warning('Yhteys heikko.')
+ *   const { toasts, showToast } = useToast()
+ *   showToast('Tallennettu!', 'success')
+ *   showToast('Virhe tallennuksessa.', 'error')
  *
- *   // Renderöinti:
+ *   // Renderöinti (yhdistä ToastContainer-komponenttiin):
  *   <ToastContainer toasts={toasts} />
  */
 
 import { useState, useCallback, useRef } from 'react'
+import { CONFIG } from '../constants/config'
 
-let nextId = 1
-
-export function useToast(duration = 2500) {
+export function useToast(duration = CONFIG.TOAST_DURATION) {
   const [toasts, setToasts] = useState([])
   const timers = useRef({})
 
@@ -27,19 +24,13 @@ export function useToast(duration = 2500) {
     setToasts((prev) => prev.filter((t) => t.id !== id))
   }, [])
 
-  const add = useCallback((message, type = 'success') => {
-    const id = nextId++
-    setToasts((prev) => [...prev, { id, message, type, onDismiss: () => dismiss(id) }])
+  /** Näytä toast-ilmoitus. Poistuu automaattisesti `duration` ms jälkeen. */
+  const showToast = useCallback((message, type = 'success') => {
+    const id = Date.now()
+    setToasts((prev) => [...prev, { id, message, type }])
     timers.current[id] = setTimeout(() => dismiss(id), duration)
     return id
   }, [dismiss, duration])
 
-  const toast = {
-    success: (msg) => add(msg, 'success'),
-    error:   (msg) => add(msg, 'error'),
-    info:    (msg) => add(msg, 'info'),
-    warning: (msg) => add(msg, 'warning'),
-  }
-
-  return { toasts, toast }
+  return { toasts, showToast }
 }

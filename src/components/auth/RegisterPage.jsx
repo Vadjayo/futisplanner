@@ -7,6 +7,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
+import { ROUTES } from '../../constants/routes'
 import styles from './AuthPage.module.css'
 
 // Tarkistaa että sähköposti on oikeassa muodossa
@@ -90,7 +91,7 @@ export default function RegisterPage() {
             Lähetimme sinulle vahvistuslinkin. Vahvista tilisi ennen kirjautumista.
           </p>
           <div className={styles.divider}>
-            <Link to="/kirjaudu" className={styles.link}>
+            <Link to={ROUTES.LOGIN} className={styles.link}>
               Kirjaudu sisään →
             </Link>
           </div>
@@ -167,7 +168,7 @@ export default function RegisterPage() {
         </form>
 
         <div className={styles.divider}>
-          <Link to="/kirjaudu" className={styles.link}>
+          <Link to={ROUTES.LOGIN} className={styles.link}>
             Onko sinulla jo tili? Kirjaudu →
           </Link>
         </div>

@@ -1,51 +1,80 @@
 /**
  * validators.js
  * Lomakkeiden ja syöttökenttien validointifunktiot.
+ * Palauttavat aina joko virheviestin (string) tai null jos ok.
  */
 
 /**
- * Tarkistaa sähköpostiosoitteen muodon
+ * Validoi sähköpostiosoitteen muodon.
  * @param {string} email
  * @returns {boolean}
  */
-export function isValidEmail(email) {
+export const isValidEmail = (email) => {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
 }
 
 /**
- * Tarkistaa salasanan vahvuuden (vähintään 8 merkkiä)
+ * Validoi salasanan vahvuuden (vähintään 8 merkkiä).
  * @param {string} password
- * @returns {{ valid: boolean, message: string | null }}
+ * @returns {string|null}  Virheviesti tai null jos ok
  */
-export function validatePassword(password) {
+export const validatePassword = (password) => {
   if (!password || password.length < 8) {
-    return { valid: false, message: 'Salasanan täytyy olla vähintään 8 merkkiä.' }
+    return 'Salasanan täytyy olla vähintään 8 merkkiä'
   }
-  return { valid: true, message: null }
+  return null
 }
 
 /**
- * Tarkistaa että salasanat täsmäävät
+ * Tarkistaa että salasanat täsmäävät.
  * @param {string} password
  * @param {string} confirm
- * @returns {{ valid: boolean, message: string | null }}
+ * @returns {string|null}  Virheviesti tai null jos ok
  */
-export function passwordsMatch(password, confirm) {
-  if (password !== confirm) {
-    return { valid: false, message: 'Salasanat eivät täsmää.' }
-  }
-  return { valid: true, message: null }
+export const passwordsMatch = (password, confirm) => {
+  return password !== confirm ? 'Salasanat eivät täsmää' : null
 }
 
 /**
- * Tarkistaa että kenttä ei ole tyhjä
+ * Tarkistaa että kenttä ei ole tyhjä.
  * @param {string} value
  * @param {string} fieldName
- * @returns {{ valid: boolean, message: string | null }}
+ * @returns {string|null}  Virheviesti tai null jos ok
  */
-export function required(value, fieldName = 'Kenttä') {
-  if (!value || !value.trim()) {
-    return { valid: false, message: `${fieldName} on pakollinen.` }
-  }
-  return { valid: true, message: null }
+export const required = (value, fieldName = 'Kenttä') => {
+  return !value?.trim() ? `${fieldName} on pakollinen` : null
+}
+
+/**
+ * Validoi rekisteröintilomakkeen kaikki kentät kerralla.
+ * @param {{ name: string, email: string, password: string, confirm: string }} fields
+ * @returns {Record<string, string>}  Kenttä → virheviesti. Tyhjä objekti = ei virheitä.
+ */
+export const validateRegisterForm = ({ name, email, password, confirm }) => {
+  const errors = {}
+
+  const nameErr = required(name, 'Nimi')
+  if (nameErr) errors.name = nameErr
+
+  if (!isValidEmail(email)) errors.email = 'Tarkista sähköpostiosoite'
+
+  const pwErr = validatePassword(password)
+  if (pwErr) errors.password = pwErr
+
+  const matchErr = passwordsMatch(password, confirm)
+  if (matchErr) errors.confirm = matchErr
+
+  return errors
+}
+
+/**
+ * Validoi kirjautumislomakkeen kentät.
+ * @param {{ email: string, password: string }} fields
+ * @returns {Record<string, string>}
+ */
+export const validateLoginForm = ({ email, password }) => {
+  const errors = {}
+  if (!isValidEmail(email))   errors.email    = 'Tarkista sähköpostiosoite'
+  if (!password?.trim())      errors.password = 'Salasana on pakollinen'
+  return errors
 }
