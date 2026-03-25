@@ -5,6 +5,14 @@
 
 import styles from './GoalTags.module.css'
 
+// Per-kategoria värit valitulle tagille
+const ACTIVE_STYLE = {
+  pelilliset:   { background: 'rgba(15,110,86,0.12)',  color: '#1D9E75', border: '0.5px solid rgba(29,158,117,0.25)' },
+  fyysiset:     { background: 'rgba(24,95,165,0.12)',  color: '#378ADD', border: '0.5px solid rgba(55,138,221,0.25)' },
+  taktiset:     { background: 'rgba(83,74,183,0.12)',  color: '#7F77DD', border: '0.5px solid rgba(127,119,221,0.25)' },
+  yksilolliset: { background: 'rgba(133,79,11,0.12)',  color: '#EF9F27', border: '0.5px solid rgba(239,159,39,0.25)' },
+}
+
 const CATEGORIES = [
   {
     id: 'pelilliset',
@@ -65,7 +73,8 @@ export default function GoalTags({ goals, onUpdate }) {
                 {cat.tags.map((tag) => (
                   <button
                     key={tag}
-                    className={`${styles.tag} ${selected.includes(tag) ? styles.tagActive : ''}`}
+                    className={styles.tag}
+                    style={selected.includes(tag) ? ACTIVE_STYLE[cat.id] : {}}
                     onClick={() => toggle(cat.id, tag)}
                   >
                     {tag}

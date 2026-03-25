@@ -1,0 +1,84 @@
+{
+  "app": {
+    "name": "FutisPlanner",
+    "tagline": "Jalkapallon harjoitussuunnittelija"
+  },
+  "nav": {
+    "dashboard":  "Etusivu",
+    "editor":     "Editori",
+    "season":     "Kausisuunnittelu",
+    "teams":      "Joukkueet",
+    "settings":   "Asetukset",
+    "signOut":    "Kirjaudu ulos"
+  },
+  "auth": {
+    "signIn":           "Kirjaudu sisään",
+    "signOut":          "Kirjaudu ulos",
+    "register":         "Luo tili",
+    "forgotPassword":   "Unohditko salasanan?",
+    "resetPassword":    "Vaihda salasana",
+    "email":            "Sähköposti",
+    "password":         "Salasana",
+    "confirmPassword":  "Salasana uudelleen",
+    "name":             "Nimi",
+    "noAccount":        "Ei vielä tiliä? Luo tili →",
+    "hasAccount":       "Onko sinulla jo tili? Kirjaudu →",
+    "errors": {
+      "invalidCredentials":  "Sähköposti tai salasana on väärin.",
+      "emailNotConfirmed":   "Vahvista sähköpostiosoitteesi ensin.",
+      "tooManyRequests":     "Liian monta yritystä. Yritä hetken kuluttua.",
+      "passwordTooShort":    "Salasanan täytyy olla vähintään 8 merkkiä.",
+      "passwordsMismatch":   "Salasanat eivät täsmää.",
+      "requiredField":       "Tämä kenttä on pakollinen.",
+      "invalidEmail":        "Syötä kelvollinen sähköpostiosoite."
+    }
+  },
+  "editor": {
+    "tools": {
+      "select":   "Valitse",
+      "draw":     "Piirrä",
+      "text":     "Teksti",
+      "arrow":    "Nuoli",
+      "erase":    "Poista"
+    },
+    "elements": {
+      "player":   "Pelaaja",
+      "gk":       "MV",
+      "defender": "Puolustaja",
+      "ball":     "Pallo",
+      "cone":     "Tötsä",
+      "pole":     "Keppi",
+      "coach":    "Valmentaja"
+    },
+    "displayMode": {
+      "number": "Numero",
+      "jersey": "Paita"
+    }
+  },
+  "season": {
+    "drill":      "Treeni",
+    "game":       "Ottelu",
+    "tournament": "Turnaus",
+    "rest":       "Lepo",
+    "stats": {
+      "drillsDone":    "Treeniä tehty",
+      "gamesDone":     "Ottelua pelattu",
+      "seasonPct":     "Kausi suunniteltu",
+      "drillsPerWeek": "Treeniä / vk"
+    }
+  },
+  "common": {
+    "save":     "Tallenna",
+    "saving":   "Tallennetaan...",
+    "saved":    "Tallennettu ✓",
+    "cancel":   "Peruuta",
+    "delete":   "Poista",
+    "edit":     "Muokkaa",
+    "add":      "Lisää",
+    "create":   "Luo",
+    "close":    "Sulje",
+    "loading":  "Ladataan...",
+    "error":    "Virhe",
+    "success":  "Onnistui"
+  }
+}

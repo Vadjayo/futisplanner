@@ -5,9 +5,14 @@
  */
 
 export const ROUTES = {
-  home:      '/',
-  auth:      '/kirjaudu',
-  dashboard: '/dashboard',
-  editor:    '/sovellus',
-  season:    '/kausi',
+  home:           '/',
+  auth:           '/kirjaudu',
+  register:       '/rekisteroidy',
+  forgotPassword: '/unohdin-salasanan',
+  resetPassword:  '/vaihda-salasana',
+  dashboard:      '/dashboard',
+  editor:         '/sovellus',
+  season:         '/kausi',
+  teams:          '/joukkueet',
+  settings:       '/asetukset',
 }

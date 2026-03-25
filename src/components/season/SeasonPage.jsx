@@ -19,6 +19,7 @@ import TeamInfo from './TeamInfo'
 import PhaseTimeline from './PhaseTimeline'
 import GoalTags from './GoalTags'
 import SeasonCalendar from './SeasonCalendar'
+import TodayBanner from './TodayBanner'
 import styles from './SeasonPage.module.css'
 
 // ── HARJOITUSOHJELMAPOHJAT ──
@@ -79,6 +80,9 @@ export default function SeasonPage() {
   const [events, setEvents]     = useState([])
   const [loading, setLoading]   = useState(true)
   const [saving, setSaving]     = useState(false)
+  const [isDirty, setIsDirty]   = useState(false)
+  const [toast, setToast]       = useState(null)
+  const toastTimer = useRef(null)
 
   // Pohjan vahvistusmodaali: null | { template: object }
   const [templateConfirm, setTemplateConfirm] = useState(null)
@@ -113,38 +117,62 @@ export default function SeasonPage() {
     loadEvents(selectedId).then(({ data }) => setEvents(data ?? []))
   }, [selectedId])
 
+  // Näytä toast-ilmoitus 2 sekunniksi
+  const showToast = useCallback((msg) => {
+    clearTimeout(toastTimer.current)
+    setToast(msg)
+    toastTimer.current = setTimeout(() => setToast(null), 2000)
+  }, [])
+
+  // Tallentaa joukkueen tiedot tietokantaan
+  const saveTeam = useCallback(async (teamData, teamId) => {
+    setSaving(true)
+    await updateTeam(teamId, {
+      name:         teamData.name,
+      age_group:    teamData.age_group,
+      level:        teamData.level,
+      season:       teamData.season,
+      coaches:      teamData.coaches,
+      player_count: teamData.player_count,
+      phases:       teamData.phases,
+      goals:        teamData.goals,
+    })
+    setSaving(false)
+    setIsDirty(false)
+    showToast('Tallennettu ✓')
+    setTeams((prev) =>
+      prev.map((t) => t.id === teamId ? { ...t, name: teamData.name, season: teamData.season } : t)
+    )
+  }, [showToast])
+
   // Autogesäys 1 sekunnin debounssilla kun team-tila muuttuu
   useEffect(() => {
     if (isFirstLoad.current || !team || !selectedId) return
     clearTimeout(saveTimer.current)
-    saveTimer.current = setTimeout(async () => {
-      setSaving(true)
-      await updateTeam(selectedId, {
-        name:         team.name,
-        age_group:    team.age_group,
-        level:        team.level,
-        season:       team.season,
-        coaches:      team.coaches,
-        player_count: team.player_count,
-        phases:       team.phases,
-        goals:        team.goals,
-      })
-      setSaving(false)
-      // Päivitä myös teams-listaan uusi nimi
-      setTeams((prev) =>
-        prev.map((t) => t.id === selectedId ? { ...t, name: team.name, season: team.season } : t)
-      )
-    }, 1000)
+    saveTimer.current = setTimeout(() => saveTeam(team, selectedId), 1000)
     return () => clearTimeout(saveTimer.current)
-  }, [team, selectedId])
+  }, [team, selectedId, saveTeam])
+
+  // Välitön tallennus kelluvasta painikkeesta
+  async function handleSaveNow() {
+    if (!team || !selectedId || saving) return
+    clearTimeout(saveTimer.current)
+    await saveTeam(team, selectedId)
+  }
 
   // Päivitä yksittäinen kenttä paikalliseen tilaan
   const handleTeamUpdate = useCallback((field, value) => {
     setTeam((prev) => ({ ...prev, [field]: value }))
+    setIsDirty(true)
   }, [])
 
+  const [creatingTeam, setCreatingTeam] = useState(false)
+
   async function handleCreateTeam() {
+    if (creatingTeam) return
+    setCreatingTeam(true)
     const { data } = await createTeam(user.id)
+    setCreatingTeam(false)
     if (!data) return
     isFirstLoad.current = false
     setTeams((prev) => [...prev, data])
@@ -156,6 +184,7 @@ export default function SeasonPage() {
     isFirstLoad.current = true // estä gesäys joukkueen vaihdon aikana
     setSelectedId(t.id)
     setTeam(t)
+    setIsDirty(false)
     setTimeout(() => { isFirstLoad.current = false }, 100)
   }
 
@@ -329,6 +358,7 @@ export default function SeasonPage() {
             </div>
           ) : (
             <>
+              <TodayBanner team={team} events={events} />
               <TeamInfo team={team} onUpdate={handleTeamUpdate} />
               <PhaseTimeline
                 phases={team.phases ?? []}
@@ -349,6 +379,16 @@ export default function SeasonPage() {
           )}
         </main>
       </div>
+
+      {/* ── TOAST ── */}
+      {toast && <div className={styles.toast}>{toast}</div>}
+
+      {/* ── KELLUVA TALLENNAPAINIKE ── */}
+      {isDirty && (
+        <button className={styles.floatSave} onClick={handleSaveNow} disabled={saving}>
+          {saving ? 'Tallennetaan...' : 'Tallenna'}
+        </button>
+      )}
 
       {/* ── POHJAN VAHVISTUSMODAALI ── */}
       {templateConfirm && (

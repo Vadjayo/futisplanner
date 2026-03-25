@@ -425,6 +425,56 @@
   cursor: not-allowed;
 }
 
+/* ── TOAST-ILMOITUS ── */
+.toast {
+  position: fixed;
+  top: 64px;
+  right: 20px;
+  background: #1D9E75;
+  color: white;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 10px 18px;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  z-index: 1000;
+  pointer-events: none;
+  animation: toastIn 0.2s ease;
+}
+
+@keyframes toastIn {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── KELLUVA TALLENNAPAINIKE ── */
+.floatSave {
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
+  background: #1D9E75;
+  border: none;
+  border-radius: 10px;
+  color: white;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 10px 20px;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(29,158,117,0.4);
+  transition: background 0.15s, box-shadow 0.15s;
+  z-index: 500;
+}
+
+.floatSave:hover {
+  background: #158560;
+  box-shadow: 0 6px 24px rgba(29,158,117,0.5);
+}
+
+.floatSave:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 /* ── RESPONSIIVISUUS ── */
 @media (max-width: 640px) {
   .sidebar { display: none; }

@@ -1,0 +1,23 @@
+.spinner {
+  border-radius: 50%;
+  border-style: solid;
+  border-color: rgba(255,255,255,0.15);
+  border-top-color: #1D9E75;
+  animation: spin 0.7s linear infinite;
+}
+
+.sm { width: 18px; height: 18px; border-width: 2px; }
+.md { width: 32px; height: 32px; border-width: 3px; }
+.lg { width: 48px; height: 48px; border-width: 4px; }
+
+.fullPage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background: #0a0d12;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}

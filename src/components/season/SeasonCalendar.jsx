@@ -303,35 +303,43 @@ function PhaseBar({ phases, activePhase, onPhaseClick }) {
 
 // StatsBar: tilastopalkki kalenterin alapuolella
 function StatsBar({ events, phases }) {
-  const drills      = events.filter((e) => e.type === 'drill').length
-  const games       = events.filter((e) => e.type === 'game').length
-  const tournaments = events.filter((e) => e.type === 'tournament').length
+  const today = new Date().toLocaleDateString('sv-SE')
+
+  // Lasketaan vain menneet tapahtumat
+  const past        = events.filter((e) => e.date < today)
+  const drills      = past.filter((e) => e.type === 'drill').length
+  const games       = past.filter((e) => e.type === 'game').length
+  const tournaments = past.filter((e) => e.type === 'tournament').length
 
   // Laske kaudenviikkojen ja -päivien määrä faasiaikajanasta
-  const { weekCount, seasonDays } = useMemo(() => {
+  const { weeksSinceStart, seasonDays } = useMemo(() => {
     const valid = phases.filter((p) => p.start && p.end)
-    if (valid.length === 0) return { weekCount: 52, seasonDays: 365 }
+    if (valid.length === 0) return { weeksSinceStart: 1, seasonDays: 365 }
     const startMs = Math.min(...valid.map((p) => new Date(p.start).getTime()))
     const endMs   = Math.max(...valid.map((p) => new Date(p.end).getTime()))
-    const diffMs  = endMs - startMs
     return {
-      weekCount:  Math.max(1, Math.ceil(diffMs / (7 * 86400000))),
-      seasonDays: Math.max(1, Math.ceil(diffMs / 86400000)),
+      weeksSinceStart: Math.max(1, Math.floor((Date.now() - startMs) / (7 * 86400000))),
+      seasonDays:      Math.max(1, Math.ceil((endMs - startMs) / 86400000)),
     }
   }, [phases])
 
-  const drillsPerWeek = weekCount > 0 ? (drills / weekCount).toFixed(1) : '0.0'
+  // drillsPerWeek: pyöristetty, "×"-suffiksilla
+  const dpw = drills / weeksSinceStart
+  const drillsPerWeek = dpw >= 1 ? `${Math.round(dpw)}×` : `${dpw.toFixed(1)}×`
 
   // Kausi suunniteltu % = uniikit tapahtumapaivat / kauden pituus paivina
   const eventDays = new Set(events.map((e) => e.date)).size
-  const seasonPct = `${Math.min(100, Math.round((eventDays / seasonDays) * 100))}%`
+  const pct = Math.min(100, Math.round((eventDays / seasonDays) * 100))
+  const seasonPct = `${pct}%`
+  // Väri: < 25% oranssi, ≥ 75% vihreä, muuten valkoinen
+  const pctColor = pct < 25 ? '#EF9F27' : pct >= 75 ? '#1D9E75' : '#d0dce8'
 
   const stats = [
     { label: 'Treenejä',          value: drills,        color: '#1D9E75' },
     { label: 'Otteluita',         value: games,         color: '#378ADD' },
     { label: 'Turnauksia',        value: tournaments,   color: '#7F77DD' },
     { label: 'Treenejä/vk',       value: drillsPerWeek, color: '#1D9E75' },
-    { label: 'Kausi suunniteltu', value: seasonPct,     color: '#EF9F27' },
+    { label: 'Kausi suunniteltu', value: seasonPct,     color: pctColor  },
   ]
 
   return (
@@ -589,45 +597,58 @@ export default function SeasonCalendar({ phases, events, teamId, userId, onEvent
     const month = currentDate.getMonth()
     const weeks = buildMonthGrid(year, month)
 
-    return (
-      <div className={styles.monthGrid}>
-        {/* Viikonpäivien otsikot */}
-        {DAY_LABELS.map((d) => (
-          <div key={d} className={styles.dayHeader}>{d}</div>
-        ))}
-        {/* Päiväsolut */}
-        {weeks.flat().map((day, idx) => {
-          if (!day) return <div key={`empty-${idx}`} className={styles.dayCellOutside} />
-          const key       = dateKey(day)
-          const dayEvents = eventMap[key] ?? []
-          const isToday   = key === todayKey
-          const isWeekend = idx % 7 >= 5
+    // Tarkista onko kuukaudessa yhtään tapahtumaa
+    const hasEventsThisMonth = weeks.flat().some((day) => {
+      if (!day) return false
+      return (eventMap[dateKey(day)] ?? []).length > 0
+    })
 
-          return (
-            <div
-              key={key}
-              className={[
-                styles.dayCell,
-                isToday   ? styles.dayCellToday   : '',
-                isWeekend ? styles.dayCellWeekend : '',
-              ].filter(Boolean).join(' ')}
-              onClick={() => setModal({ mode: 'add', date: key })}
-              onDragOver={handleDragOver}
-              onDrop={(e) => handleDrop(e, key)}
-            >
-              <span className={styles.dayNum}>{day.getDate()}</span>
-              {dayEvents.map((ev) => (
-                <EventChip
-                  key={ev.id}
-                  event={ev}
-                  onDragStart={handleDragStart}
-                  onClick={(e) => { e.stopPropagation(); setModal({ mode: 'view', event: ev }) }}
-                />
-              ))}
-            </div>
-          )
-        })}
-      </div>
+    return (
+      <>
+        <div className={styles.monthGrid}>
+          {/* Viikonpäivien otsikot */}
+          {DAY_LABELS.map((d) => (
+            <div key={d} className={styles.dayHeader}>{d}</div>
+          ))}
+          {/* Päiväsolut */}
+          {weeks.flat().map((day, idx) => {
+            if (!day) return <div key={`empty-${idx}`} className={styles.dayCellOutside} />
+            const key       = dateKey(day)
+            const dayEvents = eventMap[key] ?? []
+            const isToday   = key === todayKey
+            const isWeekend = idx % 7 >= 5
+
+            return (
+              <div
+                key={key}
+                className={[
+                  styles.dayCell,
+                  isToday   ? styles.dayCellToday   : '',
+                  isWeekend ? styles.dayCellWeekend : '',
+                ].filter(Boolean).join(' ')}
+                onClick={() => setModal({ mode: 'add', date: key })}
+                onDragOver={handleDragOver}
+                onDrop={(e) => handleDrop(e, key)}
+              >
+                <span className={styles.dayNum}>{day.getDate()}</span>
+                {dayEvents.map((ev) => (
+                  <EventChip
+                    key={ev.id}
+                    event={ev}
+                    onDragStart={handleDragStart}
+                    onClick={(e) => { e.stopPropagation(); setModal({ mode: 'view', event: ev }) }}
+                  />
+                ))}
+              </div>
+            )
+          })}
+        </div>
+        {!hasEventsThisMonth && (
+          <div className={styles.monthEmpty}>
+            Ei tapahtumia tässä kuussa — klikkaa päivää lisätäksesi.
+          </div>
+        )}
+      </>
     )
   }
 

@@ -1,0 +1,10 @@
+.card {
+  background: #161820;
+  border: 1px solid #1e2230;
+  border-radius: 12px;
+}
+
+.pad_sm  { padding: 12px; }
+.pad_md  { padding: 20px 24px; }
+.pad_lg  { padding: 28px 32px; }
+.pad_none { padding: 0; }

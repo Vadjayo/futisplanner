@@ -1,0 +1,122 @@
+/* Bannerin kolmen paneelin ruudukko */
+.banner {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin: 0 0 24px;
+}
+
+@media (max-width: 900px) {
+  .banner { grid-template-columns: 1fr; }
+}
+
+/* Yksittäinen paneeli */
+.panel {
+  background: #161820;
+  border: 1px solid #1e2230;
+  border-radius: 10px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 110px;
+}
+
+/* Paneelin otsikkori */
+.panelHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 2px;
+}
+
+.panelIcon {
+  font-size: 16px;
+  line-height: 1;
+}
+
+.panelTitle {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #5a7a9a;
+}
+
+/* Tapahtuman päivämäärä */
+.eventDate {
+  font-size: 15px;
+  font-weight: 600;
+  color: #d0dce8;
+}
+
+.eventTime {
+  color: #8a9bb0;
+  font-weight: 400;
+}
+
+/* Teema tai vastustaja */
+.eventTheme {
+  font-size: 12px;
+  color: #8a9bb0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Nappi — vihreä päänappi */
+.panelBtn {
+  margin-top: auto;
+  background: #1D9E75;
+  border: none;
+  border-radius: 6px;
+  color: white;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 7px 12px;
+  cursor: pointer;
+  transition: background 0.15s;
+  text-align: left;
+}
+
+.panelBtn:hover {
+  background: #0F6E56;
+}
+
+/* Tyhjä tila */
+.emptyText {
+  font-size: 13px;
+  color: #3d5068;
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+/* Tilastoruudukko — 2×2 */
+.statsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  flex: 1;
+}
+
+.statBox {
+  background: #0f1318;
+  border-radius: 8px;
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.statVal {
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.statLbl {
+  font-size: 10px;
+  color: #5a7a9a;
+  white-space: nowrap;
+}

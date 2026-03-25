@@ -177,6 +177,14 @@
   overflow: hidden;
 }
 
+/* Tyhjä kuukausi -vihje */
+.monthEmpty {
+  text-align: center;
+  color: #3d5068;
+  font-size: 13px;
+  padding: 16px 0 4px;
+}
+
 /* Viikonpäivien otsikot */
 .dayHeader {
   background: #0f1218;
