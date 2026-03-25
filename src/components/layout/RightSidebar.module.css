@@ -33,12 +33,37 @@
   overflow-y: auto;
 }
 
+.drillListItem {
+  display: flex;
+  align-items: stretch;
+}
+
+.dragHandle {
+  display: flex;
+  align-items: center;
+  padding: 0 4px 0 8px;
+  cursor: grab;
+  color: #3d5068;
+  font-size: 12px;
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.dragHandle:active { cursor: grabbing; }
+
+.drillListItem.dragOver {
+  border-top: 2px solid #3b82f6;
+}
+
 .drillItem {
   display: flex;
   align-items: center;
-  gap: 8px;
-  width: 100%;
-  padding: 8px 12px;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  flex: 1;
+  min-width: 0;
+  padding: 8px 8px 6px 0;
+  position: relative;
   background: none;
   border: none;
   cursor: pointer;
@@ -81,6 +106,20 @@
   font-size: 11px;
   color: #3d5068;
   flex-shrink: 0;
+}
+
+/* Ohut suhteellinen kestopalkki harjoitteen alla */
+.durationBar {
+  display: block;
+  height: 2px;
+  background: #2a3f58;
+  border-radius: 2px;
+  flex-basis: 100%;
+  transition: width 0.3s ease;
+}
+
+.drillItem.active .durationBar {
+  background: #3b82f6;
 }
 
 .addBtn {
@@ -218,7 +257,7 @@
   color: #d0dce8;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 640px) {
   .sidebar {
     display: none;
   }

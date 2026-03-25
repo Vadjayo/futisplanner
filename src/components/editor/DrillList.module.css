@@ -9,7 +9,7 @@
 }
 
 .addBtn {
-  padding: 12px;
+  padding: 14px;
   background: none;
   border: 1px dashed #2d3f55;
   border-radius: 8px;
@@ -24,39 +24,62 @@
   border-color: #3b82f6;
 }
 
+/* Tyhjä tila */
 .empty {
   flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 16px;
+  gap: 10px;
+  padding: 60px 24px;
 }
 
-.emptyText {
-  font-size: 16px;
+.emptyIcon {
+  font-size: 48px;
+  opacity: 0.25;
+  line-height: 1;
+}
+
+.emptyTitle {
+  font-size: 18px;
+  font-weight: 600;
   color: #3d5068;
   margin: 0;
 }
 
-.addFirstBtn {
-  padding: 12px 24px;
-  background: #3b82f6;
-  color: #ffffff;
-  border: none;
-  border-radius: 8px;
-  font-size: 15px;
-  font-weight: 600;
-  cursor: pointer;
+.emptyText {
+  font-size: 13px;
+  color: #2d4055;
+  margin: 0 0 8px;
 }
 
-.addFirstBtn:hover {
-  background: #2563eb;
+.addFirstBtn {
+  padding: 10px 28px;
+  background: #3b82f6;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
 }
+
+.addFirstBtn:hover { background: #2563eb; }
 
 @media (max-width: 640px) {
   .list {
     padding: 12px;
     gap: 14px;
+  }
+
+  /* Mobiilissa "Lisää harjoite" -nappi isompi ja helpommin saavutettavissa */
+  .addBtn {
+    padding: 18px;
+    font-size: 15px;
+    font-weight: 600;
+    border-color: #3b82f6;
+    color: #3b82f6;
   }
 }

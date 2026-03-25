@@ -14,10 +14,12 @@ const ARROW_TYPES = [
   { id: 'liike',    label: 'Liike' },
   { id: 'laukaus',  label: 'Laukaus' },
   { id: 'kuljetus', label: 'Kuljetus' },
+  { id: 'bidir',    label: 'Edestakaisin' },
+  { id: 'offball',  label: 'Ilman palloa' },
 ]
 
 // Kaikki välinetyökalut – käytetään tarkistamaan, onko jokin väline aktiivisena
-const EQUIPMENT_TOOLS = ['player', 'coach', 'ball', 'cone', 'pole', 'smallgoal', 'goal', 'ladder', 'hurdle', 'arrow', 'freearrow', 'text', 'line', 'circle', 'freehand']
+const EQUIPMENT_TOOLS = ['player', 'coach', 'ball', 'cone', 'pole', 'smallgoal', 'goal', 'ladder', 'hurdle', 'mannequin', 'hoop', 'minifield', 'arrow', 'freearrow', 'text', 'line', 'circle', 'freehand', 'zone', 'triangle']
 
 // Piirtää pienen SVG-esikatselun nuolityypille flyout-valikkoon
 function ArrowPreview({ type }) {
@@ -62,6 +64,21 @@ function ArrowPreview({ type }) {
       return <svg width={W} height={H} style={{ display: 'block', flexShrink: 0 }}>
         <path d={waveD} stroke="#fbbf24" strokeWidth={2} fill="none" strokeDasharray="4,2.5" />
         <polygon points={`40,${cy-5} ${W},${cy} 40,${cy+5}`} fill="#fbbf24" />
+      </svg>
+    }
+    case 'bidir': {
+      // Kaksisuuntainen nuoli molemmissa päissä
+      return <svg width={W} height={H} style={{ display: 'block', flexShrink: 0 }}>
+        <line x1={8} y1={y} x2={lineEnd} y2={y} stroke="white" strokeWidth={2.5} />
+        <polygon points={head} fill="white" />
+        <polygon points={`${8},${y-5} ${0},${y} ${8},${y+5}`} fill="white" />
+      </svg>
+    }
+    case 'offball': {
+      // Violetti katkoviiva nuolenpäällä – ilman palloa -liike
+      return <svg width={W} height={H} style={{ display: 'block', flexShrink: 0 }}>
+        <line x1={3} y1={y} x2={lineEnd} y2={y} stroke="#a78bfa" strokeWidth={2} strokeDasharray="5,4" />
+        <polygon points={head} fill="#a78bfa" />
       </svg>
     }
     default: return null
@@ -116,6 +133,22 @@ function FreehandIcon() {
   )
 }
 
+function ZoneIcon() {
+  return (
+    <svg width="36" height="24" viewBox="0 0 36 24" style={{ display: 'block' }}>
+      <rect x="3" y="4" width="30" height="16" rx="2" fill="rgba(59,130,246,0.35)" stroke="#3b82f6" strokeWidth="2" />
+    </svg>
+  )
+}
+
+function TriangleIcon() {
+  return (
+    <svg width="28" height="26" viewBox="0 0 28 26" style={{ display: 'block' }}>
+      <polygon points="14,2 26,24 2,24" stroke="white" strokeWidth="2.5" fill="transparent" strokeLinejoin="round" />
+    </svg>
+  )
+}
+
 // Pieni SVG-ikoni pienelle maalille (harjoitusmaalityyppi)
 function SmallGoalIcon() {
   return (
@@ -165,10 +198,135 @@ function HurdleIcon() {
   )
 }
 
+// Pieni SVG-ikoni mannekiinille – ihmissilhuetti
+function DummyIcon() {
+  return (
+    <svg width="24" height="36" viewBox="0 0 24 36" style={{ display: 'block' }}>
+      <circle cx="12" cy="5" r="4" fill="white" opacity="0.8" />
+      <rect x="9" y="10" width="6" height="12" rx="2" fill="white" opacity="0.8" />
+      <rect x="2" y="11" width="20" height="4" rx="2" fill="white" opacity="0.8" />
+      <rect x="7" y="22" width="4" height="12" rx="2" fill="white" opacity="0.8" />
+      <rect x="13" y="22" width="4" height="12" rx="2" fill="white" opacity="0.8" />
+    </svg>
+  )
+}
+
+// Pieni SVG-ikoni koordinaatiorenkaille
+function HoopIcon() {
+  return (
+    <svg width="36" height="36" viewBox="0 0 36 36" style={{ display: 'block' }}>
+      <circle cx="18" cy="18" r="14" stroke="#fbbf24" strokeWidth="5" fill="rgba(251,191,36,0.15)" />
+    </svg>
+  )
+}
+
+// Pieni SVG-ikoni pienelle kentälle
+function MinifieldIcon() {
+  return (
+    <svg width="46" height="30" viewBox="0 0 46 30" style={{ display: 'block' }}>
+      <rect x="1" y="1" width="44" height="28" fill="#2d5a27" rx="2" />
+      <rect x="1" y="1" width="44" height="28" stroke="rgba(255,255,255,0.8)" strokeWidth="2" fill="transparent" rx="2" />
+      <line x1="23" y1="1" x2="23" y2="29" stroke="rgba(255,255,255,0.8)" strokeWidth="1.5" />
+      <line x1="1" y1="10" x2="1" y2="20" stroke="#fbbf24" strokeWidth="3" strokeLinecap="round" />
+      <line x1="45" y1="10" x2="45" y2="20" stroke="#fbbf24" strokeWidth="3" strokeLinecap="round" />
+    </svg>
+  )
+}
+
+// Muodostelmamallipohjat — pelaajien aloitussijainnit loogisissa koordinaateissa (kenttä 1000×650)
+const TEMPLATES = {
+  '4v4': [
+    // Maalit
+    { type: 'smallgoal', x:  12, y: 325, rotation:  90 },
+    { type: 'smallgoal', x: 988, y: 325, rotation: 270 },
+    // Maalivahdit
+    { type: 'player', x:  55, y: 325, team: 'gk',  number: 1, shape: 'att', rotation: 0 },
+    { type: 'player', x: 945, y: 325, team: 'gk',  number: 1, shape: 'att', rotation: 0 },
+    // Sininen joukkue
+    { type: 'player', x: 200, y: 215, team: 'blue', number: 2, shape: 'att', rotation: 0 },
+    { type: 'player', x: 200, y: 435, team: 'blue', number: 3, shape: 'att', rotation: 0 },
+    { type: 'player', x: 340, y: 155, team: 'blue', number: 4, shape: 'att', rotation: 0 },
+    { type: 'player', x: 340, y: 495, team: 'blue', number: 5, shape: 'att', rotation: 0 },
+    // Punainen joukkue
+    { type: 'player', x: 800, y: 215, team: 'red',  number: 2, shape: 'att', rotation: 0 },
+    { type: 'player', x: 800, y: 435, team: 'red',  number: 3, shape: 'att', rotation: 0 },
+    { type: 'player', x: 660, y: 155, team: 'red',  number: 4, shape: 'att', rotation: 0 },
+    { type: 'player', x: 660, y: 495, team: 'red',  number: 5, shape: 'att', rotation: 0 },
+  ],
+  '5v5': [
+    // Maalit
+    { type: 'smallgoal', x:  12, y: 325, rotation:  90 },
+    { type: 'smallgoal', x: 988, y: 325, rotation: 270 },
+    // Sininen joukkue (MV + 2-2)
+    { type: 'player', x:  55, y: 325, team: 'gk',   number: 1, shape: 'att', rotation: 0 },
+    { type: 'player', x: 190, y: 210, team: 'blue',  number: 2, shape: 'att', rotation: 0 },
+    { type: 'player', x: 190, y: 440, team: 'blue',  number: 3, shape: 'att', rotation: 0 },
+    { type: 'player', x: 350, y: 210, team: 'blue',  number: 4, shape: 'att', rotation: 0 },
+    { type: 'player', x: 350, y: 440, team: 'blue',  number: 5, shape: 'att', rotation: 0 },
+    // Punainen joukkue (MV + 2-2)
+    { type: 'player', x: 945, y: 325, team: 'gk',   number: 1, shape: 'att', rotation: 0 },
+    { type: 'player', x: 810, y: 210, team: 'red',   number: 2, shape: 'att', rotation: 0 },
+    { type: 'player', x: 810, y: 440, team: 'red',   number: 3, shape: 'att', rotation: 0 },
+    { type: 'player', x: 650, y: 210, team: 'red',   number: 4, shape: 'att', rotation: 0 },
+    { type: 'player', x: 650, y: 440, team: 'red',   number: 5, shape: 'att', rotation: 0 },
+  ],
+  '7v7': [
+    // Maalit
+    { type: 'smallgoal', x:  12, y: 325, rotation:  90 },
+    { type: 'smallgoal', x: 988, y: 325, rotation: 270 },
+    // Sininen joukkue (MV + 2-3-1)
+    { type: 'player', x:  55, y: 325, team: 'gk',   number: 1, shape: 'att', rotation: 0 },
+    { type: 'player', x: 165, y: 220, team: 'blue',  number: 2, shape: 'att', rotation: 0 },
+    { type: 'player', x: 165, y: 430, team: 'blue',  number: 3, shape: 'att', rotation: 0 },
+    { type: 'player', x: 280, y: 140, team: 'blue',  number: 4, shape: 'att', rotation: 0 },
+    { type: 'player', x: 280, y: 325, team: 'blue',  number: 5, shape: 'att', rotation: 0 },
+    { type: 'player', x: 280, y: 510, team: 'blue',  number: 6, shape: 'att', rotation: 0 },
+    { type: 'player', x: 400, y: 325, team: 'blue',  number: 7, shape: 'att', rotation: 0 },
+    // Punainen joukkue (MV + 1-3-2)
+    { type: 'player', x: 945, y: 325, team: 'gk',   number: 1, shape: 'att', rotation: 0 },
+    { type: 'player', x: 835, y: 220, team: 'red',   number: 2, shape: 'att', rotation: 0 },
+    { type: 'player', x: 835, y: 430, team: 'red',   number: 3, shape: 'att', rotation: 0 },
+    { type: 'player', x: 720, y: 140, team: 'red',   number: 4, shape: 'att', rotation: 0 },
+    { type: 'player', x: 720, y: 325, team: 'red',   number: 5, shape: 'att', rotation: 0 },
+    { type: 'player', x: 720, y: 510, team: 'red',   number: 6, shape: 'att', rotation: 0 },
+    { type: 'player', x: 600, y: 325, team: 'red',   number: 7, shape: 'att', rotation: 0 },
+  ],
+  '11v11': [
+    // Maalit
+    { type: 'goal', x:  12, y: 325, rotation:  90 },
+    { type: 'goal', x: 988, y: 325, rotation: 270 },
+    // Sininen joukkue (MV + 4-4-2)
+    { type: 'player', x:  55, y: 325, team: 'gk',   number:  1, shape: 'att', rotation: 0 },
+    { type: 'player', x: 175, y: 130, team: 'blue',  number:  2, shape: 'att', rotation: 0 },
+    { type: 'player', x: 175, y: 248, team: 'blue',  number:  3, shape: 'att', rotation: 0 },
+    { type: 'player', x: 175, y: 402, team: 'blue',  number:  4, shape: 'att', rotation: 0 },
+    { type: 'player', x: 175, y: 520, team: 'blue',  number:  5, shape: 'att', rotation: 0 },
+    { type: 'player', x: 330, y: 130, team: 'blue',  number:  6, shape: 'att', rotation: 0 },
+    { type: 'player', x: 330, y: 248, team: 'blue',  number:  7, shape: 'att', rotation: 0 },
+    { type: 'player', x: 330, y: 402, team: 'blue',  number:  8, shape: 'att', rotation: 0 },
+    { type: 'player', x: 330, y: 520, team: 'blue',  number:  9, shape: 'att', rotation: 0 },
+    { type: 'player', x: 450, y: 235, team: 'blue',  number: 10, shape: 'att', rotation: 0 },
+    { type: 'player', x: 450, y: 415, team: 'blue',  number: 11, shape: 'att', rotation: 0 },
+    // Punainen joukkue (MV + 2-4-4)
+    { type: 'player', x: 945, y: 325, team: 'gk',   number:  1, shape: 'att', rotation: 0 },
+    { type: 'player', x: 825, y: 130, team: 'red',   number:  2, shape: 'att', rotation: 0 },
+    { type: 'player', x: 825, y: 248, team: 'red',   number:  3, shape: 'att', rotation: 0 },
+    { type: 'player', x: 825, y: 402, team: 'red',   number:  4, shape: 'att', rotation: 0 },
+    { type: 'player', x: 825, y: 520, team: 'red',   number:  5, shape: 'att', rotation: 0 },
+    { type: 'player', x: 670, y: 130, team: 'red',   number:  6, shape: 'att', rotation: 0 },
+    { type: 'player', x: 670, y: 248, team: 'red',   number:  7, shape: 'att', rotation: 0 },
+    { type: 'player', x: 670, y: 402, team: 'red',   number:  8, shape: 'att', rotation: 0 },
+    { type: 'player', x: 670, y: 520, team: 'red',   number:  9, shape: 'att', rotation: 0 },
+    { type: 'player', x: 550, y: 235, team: 'red',   number: 10, shape: 'att', rotation: 0 },
+    { type: 'player', x: 550, y: 415, team: 'red',   number: 11, shape: 'att', rotation: 0 },
+  ],
+}
+
 // Pääkomponentti: vasemman reunan työkalupalkki
 // Props: activeTool – valittu työkalu, onToolChange – työkalu vaihtuu,
-//        toolOptions – lisäasetukset (väri, joukkue jne.), onToolOptionChange – asetus vaihtuu
-export default function LeftToolbar({ activeTool, onToolChange, toolOptions, onToolOptionChange }) {
+//        toolOptions – lisäasetukset (väri, joukkue jne.), onToolOptionChange – asetus vaihtuu,
+//        onAddTemplate – lisää mallipohjapelaajat aktiiviseen harjoitteeseen
+export default function LeftToolbar({ activeTool, onToolChange, toolOptions, onToolOptionChange, onAddTemplate }) {
   // Flyout-valikon avaus/sulkeminen
   const [toolsOpen, setToolsOpen] = useState(false)
 
@@ -195,33 +353,36 @@ export default function LeftToolbar({ activeTool, onToolChange, toolOptions, onT
   return (
     <>
       <aside className={styles.toolbar}>
-        {/* Valinta-työkalu – siirrä ja valitse elementtejä */}
         <button
-          className={`${styles.toolBtn} ${activeTool === 'select' ? styles.active : ''}`}
-          onClick={handleSelect}
-          title="Valitse"
+          className={`${styles.toolBtn} ${activeTool === 'select' && !toolsOpen ? styles.active : ''}`}
+          onClick={handleSelect} title="Valitse (välilyönti)"
         >
-          <span className={styles.icon}>▣</span>
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+            <path d="M4 3l12 7-6 1.5L7 18 4 3z" fill="currentColor" />
+          </svg>
           <span className={styles.label}>Valitse</span>
         </button>
 
-        {/* Välineet-painike – avaa/sulkee flyout-valikon */}
         <button
           className={`${styles.toolBtn} ${isEquip || toolsOpen ? styles.active : ''}`}
-          onClick={() => setToolsOpen((o) => !o)}
-          title="Välineet"
+          onClick={() => setToolsOpen((o) => !o)} title="Välineet"
         >
-          <span className={styles.icon}>⚙</span>
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+            <rect x="2" y="2" width="7" height="7" rx="1.5" fill="currentColor" opacity=".85"/>
+            <rect x="11" y="2" width="7" height="7" rx="1.5" fill="currentColor" opacity=".85"/>
+            <rect x="2" y="11" width="7" height="7" rx="1.5" fill="currentColor" opacity=".85"/>
+            <rect x="11" y="11" width="7" height="7" rx="1.5" fill="currentColor" opacity=".85"/>
+          </svg>
           <span className={styles.label}>Välineet</span>
         </button>
 
-        {/* Animaatiotila – piirtää pelaajien polut ja toistaa ne */}
         <button
-          className={`${styles.toolBtn} ${activeTool === 'animate' ? styles.active : ''}`}
-          title="Animoi"
-          onClick={() => onToolChange(activeTool === 'animate' ? 'select' : 'animate')}
+          className={`${styles.toolBtn} ${activeTool === 'animate' && !toolsOpen ? styles.active : ''}`}
+          onClick={() => { setToolsOpen(false); onToolChange(activeTool === 'animate' ? 'select' : 'animate') }} title="Animoi"
         >
-          <span className={styles.icon}>▶</span>
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+            <path d="M5 3.5l12 6.5-12 6.5V3.5z" fill="currentColor" />
+          </svg>
           <span className={styles.label}>Animoi</span>
         </button>
       </aside>
@@ -230,11 +391,23 @@ export default function LeftToolbar({ activeTool, onToolChange, toolOptions, onT
       {toolsOpen && (
         <div className={styles.flyout}>
 
-          {/* PELAAJAT */}
+          {/* MUODOSTELMAT – lisää valmiit pelaajapaikat kentälle */}
+          {/* 1 — MUODOSTELMAT */}
+          <div className={styles.section}>
+            <div className={styles.sectionLabel}>Muodostelmat</div>
+            <div className={styles.templateRow}>
+              {Object.entries(TEMPLATES).map(([key, players]) => (
+                <button key={key} className={styles.templateBtn}
+                  onClick={() => onAddTemplate?.(players)} title={`${key} muodostelma`}>
+                  {key}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* 2 — PELAAJAT */}
           <div className={styles.section}>
             <div className={styles.sectionLabel}>Pelaajat</div>
-
-            {/* Maalivahti */}
             <div className={styles.playerTypeLabel}>Maalivahti</div>
             <div className={styles.playerRow}>
               <button
@@ -244,40 +417,21 @@ export default function LeftToolbar({ activeTool, onToolChange, toolOptions, onT
                 title="Maalivahti"
               />
             </div>
-
-            {/* Hyökkääjät – ympyrät */}
             <div className={styles.playerTypeLabel}>Hyökkääjät</div>
             <div className={styles.playerRow}>
-              {[
-                { role: 'blue',  color: '#2563eb' },
-                { role: 'red',   color: '#dc2626' },
-                { role: 'green', color: '#16a34a' },
-                { role: 'dark',  color: '#374151' },
-              ].map(({ role, color }) => (
-                <button
-                  key={role}
+              {[['blue','#2563eb'],['red','#dc2626'],['green','#16a34a'],['dark','#374151']].map(([role, color]) => (
+                <button key={role}
                   className={`${styles.playerBtn} ${activeTool === 'player' && toolOptions.playerTeam === role ? styles.itemActive : ''}`}
-                  style={{ '--c': color }}
-                  onClick={() => pick('player', { playerTeam: role })}
-                />
+                  style={{ '--c': color }} onClick={() => pick('player', { playerTeam: role })} />
               ))}
             </div>
-
-            {/* Puolustajat – kolmiot */}
             <div className={styles.playerTypeLabel}>Puolustajat</div>
             <div className={styles.playerRow}>
-              {[
-                { role: 'def_blue',  color: '#2563eb' },
-                { role: 'def_red',   color: '#dc2626' },
-                { role: 'def_green', color: '#16a34a' },
-                { role: 'def_dark',  color: '#374151' },
-              ].map(({ role, color }) => (
-                <button
-                  key={role}
+              {[['def_blue','#2563eb'],['def_red','#dc2626'],['def_green','#16a34a'],['def_dark','#374151']].map(([role, color]) => (
+                <button key={role}
                   className={`${styles.defBtn} ${activeTool === 'player' && toolOptions.playerTeam === role ? styles.itemActive : ''}`}
-                  onClick={() => pick('player', { playerTeam: role })}
-                >
-                  <svg width="28" height="26" viewBox="0 0 28 26" style={{ display: 'block' }}>
+                  onClick={() => pick('player', { playerTeam: role })}>
+                  <svg width="28" height="26" viewBox="0 0 28 26">
                     <polygon points="14,1 27,25 1,25" fill={color} stroke="white" strokeWidth="1.5" strokeLinejoin="round" />
                   </svg>
                 </button>
@@ -285,180 +439,110 @@ export default function LeftToolbar({ activeTool, onToolChange, toolOptions, onT
             </div>
           </div>
 
-          {/* MUUT */}
+          {/* 3 — KENTTÄVÄLINEET: pallo, valmentaja, maalit, tikkaat, aita */}
           <div className={styles.section}>
-            <div className={styles.sectionLabel}>Muut</div>
-            <div className={styles.iconRow}>
-              <button
-                className={`${styles.iconBtn} ${activeTool === 'coach' ? styles.itemActive : ''}`}
-                onClick={() => pick('coach')}
-              >
-                <span className={styles.bigIcon}>📋</span>
-                <span className={styles.iconLabel}>Valmentaja</span>
-              </button>
-              <button
-                className={`${styles.iconBtn} ${activeTool === 'ball' ? styles.itemActive : ''}`}
-                onClick={() => pick('ball')}
-              >
-                <span className={styles.bigIcon}>⚽</span>
-                <span className={styles.iconLabel}>Pallo</span>
-              </button>
-            </div>
-          </div>
-
-          {/* TÖTSÄT – värit CONE_COLORS-listasta */}
-          <div className={styles.section}>
-            <div className={styles.sectionLabel}>Tötsät</div>
-            <div className={styles.colorGrid}>
-              {CONE_COLORS.map((c) => (
-                <button
-                  key={c.id}
-                  className={`${styles.swatch} ${activeTool === 'cone' && toolOptions.coneColor === c.id ? styles.swatchActive : ''}`}
-                  // Valkoisen tötsän reunus harmaa, muiden oma väri
-                  style={{ background: c.hex, borderColor: c.id === 'white' ? '#94a3b8' : c.hex }}
-                  onClick={() => pick('cone', { coneColor: c.id })}
-                  title={c.label}
-                />
+            <div className={styles.sectionLabel}>Kenttävälineet</div>
+            <div className={styles.equipGrid}>
+              {[
+                { tool: 'ball',      label: 'Pallo',      icon: <span className={styles.bigIcon}>⚽</span> },
+                { tool: 'coach',     label: 'Valmentaja', icon: <span className={styles.bigIcon}>📋</span> },
+                { tool: 'smallgoal', label: 'Pieni maali',icon: <SmallGoalIcon /> },
+                { tool: 'goal',      label: 'Maali',      icon: <GoalIcon /> },
+                { tool: 'ladder',    label: 'Tikkaat',    icon: <LadderIcon /> },
+                { tool: 'hurdle',    label: 'Aita',       icon: <HurdleIcon /> },
+                { tool: 'mannequin', label: 'Mannekiini', icon: <DummyIcon /> },
+                { tool: 'hoop',      label: 'Rengas',     icon: <HoopIcon /> },
+                { tool: 'minifield', label: 'Pienkenttä', icon: <MinifieldIcon /> },
+              ].map(({ tool, label, icon }) => (
+                <button key={tool}
+                  className={`${styles.equipBtn} ${activeTool === tool ? styles.itemActive : ''}`}
+                  onClick={() => pick(tool)}
+                  draggable
+                  onDragStart={(e) => { e.dataTransfer.setData('futisplanner/tool', tool); e.dataTransfer.effectAllowed = 'copy' }}
+                  title={label}
+                >
+                  {icon}
+                  <span className={styles.equipLabel}>{label}</span>
+                </button>
               ))}
             </div>
           </div>
 
-          {/* KEPIT – samat värit kuin tötsillä */}
+          {/* 4 — MERKKAAJAT: tötsät + kepit samassa sektiossa */}
           <div className={styles.section}>
-            <div className={styles.sectionLabel}>Kepit</div>
+            <div className={styles.sectionLabel}>Merkkaajat</div>
+            <div className={styles.playerTypeLabel}>Tötsät</div>
             <div className={styles.colorGrid}>
               {CONE_COLORS.map((c) => (
-                <button
-                  key={c.id}
+                <button key={c.id}
+                  className={`${styles.swatch} ${activeTool === 'cone' && toolOptions.coneColor === c.id ? styles.swatchActive : ''}`}
+                  style={{ background: c.hex, borderColor: c.id === 'white' ? '#94a3b8' : c.hex }}
+                  onClick={() => pick('cone', { coneColor: c.id })} title={c.label}
+                  draggable
+                  onDragStart={(e) => { e.dataTransfer.setData('futisplanner/tool', 'cone'); e.dataTransfer.setData('futisplanner/options', JSON.stringify({ coneColor: c.id })); e.dataTransfer.effectAllowed = 'copy' }}
+                />
+              ))}
+            </div>
+            <div className={styles.playerTypeLabel} style={{ marginTop: 8 }}>Kepit</div>
+            <div className={styles.colorGrid}>
+              {CONE_COLORS.map((c) => (
+                <button key={c.id}
                   className={`${styles.swatch} ${activeTool === 'pole' && toolOptions.poleColor === c.id ? styles.swatchActive : ''}`}
                   style={{ background: c.hex, borderColor: c.id === 'white' ? '#94a3b8' : c.hex }}
-                  onClick={() => pick('pole', { poleColor: c.id })}
-                  title={c.label}
+                  onClick={() => pick('pole', { poleColor: c.id })} title={c.label}
+                  draggable
+                  onDragStart={(e) => { e.dataTransfer.setData('futisplanner/tool', 'pole'); e.dataTransfer.setData('futisplanner/options', JSON.stringify({ poleColor: c.id })); e.dataTransfer.effectAllowed = 'copy' }}
                 />
               ))}
             </div>
           </div>
 
-          {/* MAALIT */}
-          <div className={styles.section}>
-            <div className={styles.sectionLabel}>Maalit</div>
-            <div className={styles.iconRow}>
-              <button
-                className={`${styles.iconBtn} ${activeTool === 'smallgoal' ? styles.itemActive : ''}`}
-                onClick={() => pick('smallgoal')}
-                title="Pieni maali"
-              >
-                <SmallGoalIcon />
-                <span className={styles.iconLabel}>Pieni</span>
-              </button>
-              <button
-                className={`${styles.iconBtn} ${activeTool === 'goal' ? styles.itemActive : ''}`}
-                onClick={() => pick('goal')}
-                title="Maali"
-              >
-                <GoalIcon />
-                <span className={styles.iconLabel}>Maali</span>
-              </button>
-            </div>
-          </div>
-
-          {/* VÄLINEET – tikkaat ja aita */}
-          <div className={styles.section}>
-            <div className={styles.sectionLabel}>Välineet</div>
-            <div className={styles.iconRow}>
-              <button
-                className={`${styles.iconBtn} ${activeTool === 'ladder' ? styles.itemActive : ''}`}
-                onClick={() => pick('ladder')}
-                title="Tikkaat"
-              >
-                <LadderIcon />
-                <span className={styles.iconLabel}>Tikkaat</span>
-              </button>
-              <button
-                className={`${styles.iconBtn} ${activeTool === 'hurdle' ? styles.itemActive : ''}`}
-                onClick={() => pick('hurdle')}
-                title="Aita"
-              >
-                <HurdleIcon />
-                <span className={styles.iconLabel}>Aita</span>
-              </button>
-            </div>
-          </div>
-
-          {/* LIIKE – nuolityypit, jokainen omalla visuaalisella esikatselulla */}
+          {/* 5 — LIIKE */}
           <div className={styles.section}>
             <div className={styles.sectionLabel}>Liike</div>
             {ARROW_TYPES.map((at) => (
-              <button
-                key={at.id}
+              <button key={at.id}
                 className={`${styles.arrowBtn} ${activeTool === 'arrow' && toolOptions.arrowType === at.id ? styles.itemActive : ''}`}
-                onClick={() => pick('arrow', { arrowType: at.id })}
-              >
+                onClick={() => pick('arrow', { arrowType: at.id })}>
                 <ArrowPreview type={at.id} />
                 <span className={styles.arrowLabel}>{at.label}</span>
               </button>
             ))}
-            {/* Vapaa nuoli – piirretään vapaasti, nuolenpää tulee loppuun */}
             <button
               className={`${styles.arrowBtn} ${activeTool === 'freearrow' ? styles.itemActive : ''}`}
-              onClick={() => pick('freearrow')}
-            >
+              onClick={() => pick('freearrow')}>
               <FreeArrowPreview />
               <span className={styles.arrowLabel}>Vapaa nuoli</span>
             </button>
           </div>
 
-          {/* TEKSTI */}
-          <div className={styles.section}>
-            <div className={styles.sectionLabel}>Teksti</div>
-            <button
-              className={`${styles.textBtn} ${activeTool === 'text' ? styles.itemActive : ''}`}
-              onClick={() => pick('text')}
-            >
-              <span className={styles.textIcon}>T</span>
-              <span className={styles.iconLabel}>Lisää teksti</span>
-            </button>
-          </div>
-
-          {/* PIIRUSTUS – viiva, ympyrä ja vapaapiirto */}
+          {/* 6 — PIIRUSTUS + TEKSTI */}
           <div className={styles.section}>
             <div className={styles.sectionLabel}>Piirustus</div>
-            <div className={styles.iconRow}>
-              <button
-                className={`${styles.iconBtn} ${activeTool === 'line' ? styles.itemActive : ''}`}
-                onClick={() => pick('line')}
-                title="Viiva"
-              >
-                <LineIcon />
-                <span className={styles.iconLabel}>Viiva</span>
-              </button>
-              <button
-                className={`${styles.iconBtn} ${activeTool === 'circle' ? styles.itemActive : ''}`}
-                onClick={() => pick('circle')}
-                title="Ympyrä"
-              >
-                <CircleIcon />
-                <span className={styles.iconLabel}>Ympyrä</span>
-              </button>
-              <button
-                className={`${styles.iconBtn} ${activeTool === 'freehand' ? styles.itemActive : ''}`}
-                onClick={() => pick('freehand')}
-                title="Piirto"
-              >
-                <FreehandIcon />
-                <span className={styles.iconLabel}>Piirto</span>
-              </button>
+            <div className={styles.iconRow} style={{ flexWrap: 'wrap', gap: 4 }}>
+              {[
+                { tool: 'line',     label: 'Viiva',    icon: <LineIcon /> },
+                { tool: 'circle',   label: 'Ympyrä',   icon: <CircleIcon /> },
+                { tool: 'triangle', label: 'Kolmio',   icon: <TriangleIcon /> },
+                { tool: 'freehand', label: 'Piirto',   icon: <FreehandIcon /> },
+                { tool: 'zone',     label: 'Vyöhyke',  icon: <ZoneIcon /> },
+                { tool: 'text',     label: 'Teksti',   icon: <span style={{ fontSize: 20, fontWeight: 700, color: 'white', lineHeight: 1 }}>T</span> },
+              ].map(({ tool, label, icon }) => (
+                <button key={tool}
+                  className={`${styles.iconBtn} ${activeTool === tool ? styles.itemActive : ''}`}
+                  onClick={() => pick(tool)} title={label}>
+                  {icon}
+                  <span className={styles.iconLabel}>{label}</span>
+                </button>
+              ))}
             </div>
-            {/* Väripaletti näytetään vain, kun jokin piirtotyökalu on aktiivinen */}
-            {['line', 'circle', 'freehand'].includes(activeTool) && (
+            {['line', 'circle', 'triangle', 'freehand', 'zone'].includes(activeTool) && (
               <div className={styles.colorGrid} style={{ marginTop: 8 }}>
                 {CONE_COLORS.map((c) => (
-                  <button
-                    key={c.id}
+                  <button key={c.id}
                     className={`${styles.swatch} ${toolOptions.drawColor === c.id ? styles.swatchActive : ''}`}
                     style={{ background: c.hex, borderColor: c.id === 'white' ? '#94a3b8' : c.hex }}
-                    onClick={() => onToolOptionChange('drawColor', c.id)}
-                    title={c.label}
+                    onClick={() => onToolOptionChange('drawColor', c.id)} title={c.label}
                   />
                 ))}
               </div>

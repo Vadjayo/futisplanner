@@ -64,7 +64,7 @@
 
 /* Flyout panel — normaali flex-elementti, ei fixed */
 .flyout {
-  width: 190px;
+  width: 220px;
   flex-shrink: 0;
   background: var(--color-surface);
   border-right: 1px solid var(--color-border);
@@ -72,7 +72,7 @@
 }
 
 .section {
-  padding: 10px 10px 8px;
+  padding: 10px 10px 10px;
   border-bottom: 1px solid var(--color-border-subtle);
 }
 
@@ -83,10 +83,23 @@
 .sectionLabel {
   font-size: 9px;
   font-weight: 700;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--color-text-dim);
+  color: #5a7a9a;
   margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sectionLabel::before {
+  content: '';
+  display: inline-block;
+  width: 2px;
+  height: 10px;
+  background: #3b82f6;
+  border-radius: 2px;
+  flex-shrink: 0;
 }
 
 /* Pelaajatyypin alaotsikko (MV / Hyökkääjät / Puolustajat) */
@@ -109,8 +122,8 @@
 }
 
 .playerBtn {
-  width: 34px;
-  height: 34px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   border: 2px solid transparent;
   background: var(--c);
@@ -154,6 +167,42 @@
   transform: scale(1.15);
 }
 
+/* Kenttävälineet-grid (pallo, valmentaja, maalit, tikkaat, aita) */
+.equipGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 5px;
+}
+
+.equipBtn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 6px 4px;
+  background: var(--color-surface-deep);
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  opacity: 0.65;
+  transition: opacity 0.15s, border-color 0.15s;
+  min-height: 54px;
+}
+
+.equipBtn:hover {
+  opacity: 0.9;
+  border-color: var(--color-border);
+}
+
+.equipLabel {
+  font-size: 9px;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  text-align: center;
+}
+
 /* Icon-napit (muut, maalit, välineet) */
 .iconRow {
   display: flex;
@@ -190,6 +239,31 @@
   font-weight: 500;
   color: var(--color-text-muted);
   white-space: nowrap;
+}
+
+/* Muodostelmamallipohjat */
+.templateRow {
+  display: flex;
+  gap: 6px;
+}
+
+.templateBtn {
+  flex: 1;
+  padding: 6px 4px;
+  background: var(--color-surface-deep);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text);
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.templateBtn:hover {
+  background: #131f2e;
+  border-color: #3b82f6;
+  color: #3b82f6;
 }
 
 /* Nuolityypit */
@@ -250,8 +324,8 @@
 
 /* Puolustaja-kolmionapit */
 .defBtn {
-  width: 34px;
-  height: 34px;
+  width: 44px;
+  height: 44px;
   border: 2px solid transparent;
   background: transparent;
   cursor: pointer;
@@ -276,8 +350,45 @@
 }
 
 @media (max-width: 640px) {
-  .toolbar,
+  /* Toolbar kiinteästi alareunaan vaakasuuntaisena */
+  .toolbar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    height: 56px;
+    flex-direction: row;
+    border-right: none;
+    border-top: 1px solid var(--color-border);
+    padding: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    z-index: 50;
+  }
+
+  .toolBtn {
+    min-width: 52px;
+    height: 100%;
+    padding: 4px 6px;
+    flex-shrink: 0;
+  }
+
+  .label {
+    font-size: 8px;
+  }
+
+  /* Flyout avautuu toolbarin yläpuolelle koko leveyteen */
   .flyout {
-    display: none;
+    position: fixed;
+    bottom: 56px;
+    left: 0;
+    right: 0;
+    width: 100%;
+    max-height: 45vh;
+    overflow-y: auto;
+    border-right: none;
+    border-top: 1px solid var(--color-border);
+    z-index: 49;
   }
 }

@@ -7,28 +7,24 @@
   cursor: pointer;
 }
 
-.card:hover {
-  border-color: #3d5068;
-}
-
-.card.active {
-  border-color: #3b82f6;
-}
+.card:hover { border-color: #3d5068; }
+.card.active { border-color: #3b82f6; }
 
 .header {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 10px 14px;
+  padding: 8px 12px;
   border-bottom: 1px solid #2d3f55;
-  flex-wrap: wrap;
 }
 
 .index {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
   color: #3d5068;
   flex-shrink: 0;
+  width: 18px;
+  text-align: center;
 }
 
 .titleBtn {
@@ -39,15 +35,15 @@
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-  padding: 3px 8px;
+  padding: 3px 6px;
   display: flex;
   align-items: center;
   gap: 5px;
   transition: border-color 0.2s;
-  min-width: 100px;
   flex: 1;
-  max-width: 240px;
+  min-width: 0;
   text-align: left;
+  overflow: hidden;
 }
 
 .titleBtn:hover {
@@ -65,8 +61,7 @@
   padding: 3px 8px;
   outline: none;
   flex: 1;
-  max-width: 240px;
-  min-width: 100px;
+  min-width: 0;
 }
 
 .placeholder {
@@ -78,37 +73,30 @@
 .editHint {
   font-size: 11px;
   color: #3d5068;
-}
-
-.fieldTypes {
-  display: flex;
-  gap: 3px;
   flex-shrink: 0;
 }
 
-.ftBtn {
-  padding: 3px 7px;
+/* Kenttätyyppi dropdown */
+.ftSelect {
   background: #0f1923;
   border: 1px solid #2d3f55;
-  border-radius: 4px;
-  color: #3d5068;
+  border-radius: 5px;
+  color: #8a9bb0;
   font-size: 11px;
   font-weight: 600;
+  padding: 4px 6px;
   cursor: pointer;
-  transition: all 0.15s;
+  outline: none;
+  flex-shrink: 0;
+  transition: border-color 0.15s, color 0.15s;
 }
 
-.ftBtn:hover {
-  border-color: #3d5068;
-  color: #8a9bb0;
-}
-
-.ftBtn.ftActive {
-  background: #1e3a5f;
+.ftSelect:hover, .ftSelect:focus {
   border-color: #3b82f6;
   color: #60a5fa;
 }
 
+/* Kesto */
 .durationWrapper {
   display: flex;
   align-items: center;
@@ -117,8 +105,8 @@
 }
 
 .durationInput {
-  width: 44px;
-  padding: 3px 6px;
+  width: 40px;
+  padding: 3px 5px;
   background: #0f1923;
   border: 1px solid #2d3f55;
   border-radius: 4px;
@@ -129,42 +117,169 @@
   outline: none;
 }
 
-.durationInput:focus {
-  border-color: #3b82f6;
-}
+.durationInput:focus { border-color: #3b82f6; }
 
-/* Remove number input arrows */
 .durationInput::-webkit-outer-spin-button,
-.durationInput::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-}
+.durationInput::-webkit-inner-spin-button { -webkit-appearance: none; }
 
 .durationUnit {
-  font-size: 12px;
+  font-size: 11px;
   color: #3d5068;
 }
 
-.deleteBtn {
+/* ⋯ Toimintovalikkonappi */
+.menuBtn {
   background: none;
   border: none;
   color: #3d5068;
-  cursor: pointer;
-  font-size: 13px;
-  padding: 4px 6px;
-  border-radius: 4px;
+  font-size: 18px;
   line-height: 1;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
   flex-shrink: 0;
-  margin-left: auto;
   transition: color 0.15s, background 0.15s;
+  letter-spacing: 1px;
 }
 
-.deleteBtn:hover {
-  color: #ef4444;
-  background: rgba(239, 68, 68, 0.1);
+.menuBtn:hover {
+  color: #8a9bb0;
+  background: #0f1923;
 }
+
+/* Kiinnitetty dropdown-valikko */
+.menu {
+  position: fixed;
+  z-index: 200;
+  background: #1a2535;
+  border: 1px solid #2d3f55;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.45);
+  min-width: 190px;
+  padding: 4px 0;
+}
+
+.menuItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 14px;
+  background: none;
+  border: none;
+  color: #d0dce8;
+  font-size: 13px;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.12s;
+}
+
+.menuItem:hover { background: #0f1923; }
+
+.menuIcon {
+  font-size: 14px;
+  width: 18px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.menuItemDanger { color: #ef4444; }
+.menuItemDanger:hover { background: rgba(239,68,68,0.08); }
+
+.menuDivider {
+  height: 1px;
+  background: #2d3f55;
+  margin: 4px 0;
+}
+
+/* Tallenna kirjastoon -dialogi */
+.saveDialog {
+  padding: 12px 14px;
+  border-bottom: 1px solid #2d3f55;
+  background: #0f1923;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.saveRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.saveLabel {
+  font-size: 11px;
+  font-weight: 600;
+  color: #3d5068;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  width: 68px;
+  flex-shrink: 0;
+}
+
+.saveSelect {
+  flex: 1;
+  background: #1a2535;
+  border: 1px solid #2d3f55;
+  border-radius: 4px;
+  color: #d0dce8;
+  font-size: 12px;
+  padding: 4px 8px;
+  outline: none;
+}
+
+.saveSelect:focus { border-color: #3b82f6; }
+
+.saveTextarea {
+  flex: 1;
+  background: #1a2535;
+  border: 1px solid #2d3f55;
+  border-radius: 4px;
+  color: #d0dce8;
+  font-size: 12px;
+  padding: 4px 8px;
+  outline: none;
+  resize: none;
+  font-family: inherit;
+}
+
+.saveTextarea:focus { border-color: #3b82f6; }
+
+.saveActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.saveCancelBtn {
+  padding: 5px 12px;
+  background: none;
+  border: 1px solid #2d3f55;
+  border-radius: 4px;
+  color: #3d5068;
+  font-size: 12px;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.saveCancelBtn:hover { border-color: #3d5068; color: #8a9bb0; }
+
+.saveConfirmBtn {
+  padding: 5px 14px;
+  background: #1e3a5f;
+  border: 1px solid #3b82f6;
+  border-radius: 4px;
+  color: #60a5fa;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.saveConfirmBtn:hover:not(:disabled) { background: #2a4a7f; }
+.saveConfirmBtn:disabled { opacity: 0.5; cursor: not-allowed; }
 
 @media (max-width: 480px) {
-  .fieldTypes {
-    display: none;
-  }
+  .ftSelect { display: none; }
 }

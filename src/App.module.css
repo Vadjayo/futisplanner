@@ -34,3 +34,10 @@
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
 }
+
+@media (max-width: 640px) {
+  /* Tilaa kiinteälle toolbar-palkille alareunassa */
+  .main {
+    padding-bottom: 56px;
+  }
+}

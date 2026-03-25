@@ -7,8 +7,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import './lib/i18n'
 import { useAuth } from './hooks/useAuth'
-import { loadRecentSession, loadSessionById, saveSession } from './lib/db'
-import { exportSessionPdf } from './lib/exportPdf'
+import { loadRecentSession, loadSessionById, saveSession, saveToLibrary } from './lib/db'
 import TopBar from './components/layout/TopBar'
 import LeftToolbar from './components/layout/LeftToolbar'
 import RightSidebar from './components/layout/RightSidebar'
@@ -56,13 +55,21 @@ export default function EditorApp() {
 
   // activeTool = aktiivinen työkalu (select/player/cone/arrow jne.)
   const [activeTool, setActiveTool] = useState('select')
+  const [shortcutsOpen, setShortcutsOpen] = useState(false)
 
-  // Spacebar vaihtaa valinta-työkaluun (paitsi kun kirjoitetaan tekstikenttään)
+  // Spacebar → valintakalu, ? → näppäinohjeet
   useEffect(() => {
     function handleKeyDown(e) {
-      if (e.code === 'Space' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+      const inInput = e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA'
+      if (e.code === 'Space' && !inInput) {
         e.preventDefault()
         setActiveTool('select')
+      }
+      if (e.key === '?' && !inInput) {
+        setShortcutsOpen((v) => !v)
+      }
+      if (e.key === 'Escape') {
+        setShortcutsOpen(false)
       }
     }
     window.addEventListener('keydown', handleKeyDown)
@@ -170,8 +177,9 @@ export default function EditorApp() {
     doSave(sessionId, sessionName, drills, user.id, sessionMeta)
   }
 
-  // Vie harjoitussuunnitelma PDF:ksi — kuvakaappaus jokaisesta kanvaksesta
-  function handleExportPdf() {
+  // Vie harjoitussuunnitelma PDF:ksi — ladataan jsPDF vasta tarvittaessa (lazy)
+  async function handleExportPdf() {
+    const { exportSessionPdf } = await import('./lib/exportPdf')
     exportSessionPdf(drillRefs.current, drills, sessionName, sessionMeta)
   }
 
@@ -186,9 +194,35 @@ export default function EditorApp() {
     }, 50)
   }
 
+  // Lisää mallipohjapelaajat aktiiviseen harjoitteeseen
+  function handleAddTemplate(players) {
+    const activeDrill = drills[activeDrillIndex]
+    if (!activeDrill) return
+    const newPlayers = players.map((p) => ({ ...p, id: crypto.randomUUID() }))
+    updateDrill(activeDrill.id, { elements: [...activeDrill.elements, ...newPlayers] })
+  }
+
   // Päivitä yksittäisen harjoitteen kenttiä id:n perusteella
   function updateDrill(id, updates) {
     setDrills((prev) => prev.map((d) => (d.id === id ? { ...d, ...updates } : d)))
+  }
+
+  // Tallenna harjoite omaan kirjastoon — palauttaa virheen jos epäonnistuu
+  async function handleSaveToLibrary(drill, meta) {
+    const { error } = await saveToLibrary({
+      userId: user.id,
+      title: drill.title || 'Nimetön harjoite',
+      duration: drill.duration,
+      fieldType: drill.fieldType,
+      elements: drill.elements,
+      category: meta.category,
+      ageGroup: meta.ageGroup,
+      description: meta.description,
+    })
+    if (error) {
+      console.error('Kirjastoon tallennus epäonnistui:', error)
+      throw error
+    }
   }
 
   // Lisää kirjastosta valittu harjoite kopioimalla sen sisältö
@@ -202,6 +236,30 @@ export default function EditorApp() {
     }
     setDrills((prev) => [...prev, newDrill])
     setActiveDrillIndex(drills.length)
+  }
+
+  // Kopioi harjoite — lisää identtinen kopio välittömästi alkuperäisen jälkeen
+  function duplicateDrill(id) {
+    setDrills((prev) => {
+      const idx = prev.findIndex((d) => d.id === id)
+      if (idx === -1) return prev
+      const copy = { ...prev[idx], id: crypto.randomUUID() }
+      const next = [...prev]
+      next.splice(idx + 1, 0, copy)
+      return next
+    })
+    setActiveDrillIndex((prev) => prev + 1)
+  }
+
+  // Järjestä harjoitelista uudelleen vetämällä (from → to)
+  function reorderDrills(from, to) {
+    setDrills((prev) => {
+      const next = [...prev]
+      const [moved] = next.splice(from, 1)
+      next.splice(to, 0, moved)
+      return next
+    })
+    setActiveDrillIndex(to)
   }
 
   // Poista harjoite — varmistaa että listassa on aina vähintään yksi harjoite
@@ -240,8 +298,8 @@ export default function EditorApp() {
           activeTool={activeTool}
           onToolChange={setActiveTool}
           toolOptions={toolOptions}
-          // Päivitä yksittäinen toolOption-avain muiden säilyessä
           onToolOptionChange={(key, value) => setToolOptions((prev) => ({ ...prev, [key]: value }))}
+          onAddTemplate={handleAddTemplate}
         />
         <main className={styles.main}>
           <DrillList
@@ -253,6 +311,9 @@ export default function EditorApp() {
             onDrillUpdate={updateDrill}
             onDrillDelete={deleteDrill}
             onAddDrill={addDrill}
+            onToolChange={setActiveTool}
+            onSaveToLibrary={handleSaveToLibrary}
+            onDuplicateDrill={duplicateDrill}
             getCardRef={(i, el) => { drillRefs.current[i] = el }}
           />
         </main>
@@ -260,6 +321,7 @@ export default function EditorApp() {
           drills={drills}
           activeDrillIndex={activeDrillIndex}
           onDrillSelect={setActiveDrillIndex}
+          onReorderDrill={reorderDrills}
           onAddDrill={addDrill}
           onOpenLibrary={() => setLibraryOpen(true)}
           sessionMeta={sessionMeta}
@@ -270,10 +332,68 @@ export default function EditorApp() {
       {/* Harjoituskirjasto — renderöidään vain kun auki */}
       {libraryOpen && (
         <LibraryPanel
+          userId={user.id}
           onClose={() => setLibraryOpen(false)}
           onAddDrill={addDrillFromLibrary}
         />
       )}
+
+      {/* Näppäinohjeet — ? avaa, Esc sulkee */}
+      {shortcutsOpen && (
+        <div style={overlayStyle} onClick={() => setShortcutsOpen(false)}>
+          <div style={modalStyle} onClick={(e) => e.stopPropagation()}>
+            <div style={modalHeaderStyle}>
+              <span style={{ fontWeight: 700, fontSize: 15 }}>Näppäinohjeet</span>
+              <button onClick={() => setShortcutsOpen(false)} style={closeBtnStyle}>✕</button>
+            </div>
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <tbody>
+                {SHORTCUTS.map(({ key, desc }) => (
+                  <tr key={key}>
+                    <td style={tdKeyStyle}><kbd style={kbdStyle}>{key}</kbd></td>
+                    <td style={tdDescStyle}>{desc}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
     </div>
   )
+}
+
+const SHORTCUTS = [
+  { key: 'Välilyönti',   desc: 'Valintatyökalu' },
+  { key: 'Ctrl+Z',       desc: 'Kumoa' },
+  { key: 'Ctrl+Y',       desc: 'Tee uudelleen' },
+  { key: 'Ctrl+C',       desc: 'Kopioi valitut' },
+  { key: 'Ctrl+V',       desc: 'Liitä' },
+  { key: 'Ctrl+D',       desc: 'Monista valitut' },
+  { key: 'Delete',       desc: 'Poista valitut' },
+  { key: '?',            desc: 'Näppäinohjeet' },
+  { key: 'Esc',          desc: 'Sulje dialogi' },
+]
+
+const overlayStyle = {
+  position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)',
+  zIndex: 300, display: 'flex', alignItems: 'center', justifyContent: 'center',
+}
+const modalStyle = {
+  background: '#1a2535', border: '1px solid #2d3f55', borderRadius: 10,
+  padding: '20px 24px', width: 340, boxShadow: '0 12px 32px rgba(0,0,0,0.5)',
+}
+const modalHeaderStyle = {
+  display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16,
+}
+const closeBtnStyle = {
+  background: 'none', border: 'none', color: '#3d5068', fontSize: 16,
+  cursor: 'pointer', padding: '2px 6px', borderRadius: 4,
+}
+const tdKeyStyle = { padding: '5px 12px 5px 0', width: 130, verticalAlign: 'middle' }
+const tdDescStyle = { padding: '5px 0', color: '#8a9bb0', fontSize: 13 }
+const kbdStyle = {
+  display: 'inline-block', background: '#0f1923', border: '1px solid #3d5068',
+  borderRadius: 4, padding: '2px 7px', fontSize: 12, fontFamily: 'monospace',
+  color: '#d0dce8', letterSpacing: '0.02em',
 }

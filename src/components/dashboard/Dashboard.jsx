@@ -11,13 +11,18 @@ import { formatDate, totalDuration } from '../../utils/drillUtils'
 import styles from './Dashboard.module.css'
 
 export default function Dashboard() {
-  const { user, signOut } = useAuth()
+  const { user, loading: authLoading, signOut } = useAuth()
   const navigate = useNavigate()
 
   const [sessions, setSessions] = useState([])
   const [loading, setLoading] = useState(true)
   // deletingId = juuri poistettavan session id — näyttää lataustilan kortissa
   const [deletingId, setDeletingId] = useState(null)
+
+  // Ohjaa kirjautumissivulle jos ei ole kirjautunut (auth tarkistettu)
+  useEffect(() => {
+    if (!authLoading && !user) navigate('/kirjaudu', { replace: true })
+  }, [user, authLoading, navigate])
 
   // Lataa sessiot kun komponentti mountataan
   useEffect(() => {

@@ -226,6 +226,30 @@
   background: rgba(59, 130, 246, 0.12);
 }
 
+.cardActions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-top: 4px;
+}
+
+.deleteBtn {
+  padding: 5px 12px;
+  background: none;
+  border: 1px solid #3d5068;
+  border-radius: 6px;
+  color: #3d5068;
+  font-size: 12px;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+
+.deleteBtn:hover {
+  border-color: #ef4444;
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.08);
+}
+
 @media (max-width: 520px) {
   .panel {
     width: 100vw;

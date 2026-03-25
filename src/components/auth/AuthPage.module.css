@@ -124,3 +124,9 @@
 .switchMode:hover {
   text-decoration: underline;
 }
+
+@media (max-width: 480px) {
+  .card {
+    padding: 24px 20px;
+  }
+}

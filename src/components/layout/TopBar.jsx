@@ -1,20 +1,12 @@
 /**
  * TopBar.jsx
- * Editorin yläpalkki. Session nimi, tallennustila ja toimintopainikkeet.
+ * Editorin yläpalkki. Session nimi, auto-tallennus-indikaattori ja toimintopainikkeet.
  */
 
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useInlineEdit } from '../../hooks/useInlineEdit'
 import styles from './TopBar.module.css'
-
-// Tallennuspainikkeen tekstit eri tiloissa
-const SAVE_LABEL = {
-  idle:   'Tallenna',
-  saving: 'Tallennetaan...',
-  saved:  '✓ Tallennettu',
-  error:  '⚠ Virhe',
-}
 
 export default function TopBar({ sessionName, onSessionNameChange, onSignOut, saveStatus = 'idle', onSave, onExportPdf }) {
   const { t } = useTranslation()
@@ -28,7 +20,6 @@ export default function TopBar({ sessionName, onSessionNameChange, onSignOut, sa
   return (
     <header className={styles.topbar}>
       <div className={styles.left}>
-        {/* Takaisin dashboardille — tallentaa ensin */}
         <button
           className={styles.btnBack}
           onClick={() => { onSave(); navigate('/dashboard') }}
@@ -38,7 +29,6 @@ export default function TopBar({ sessionName, onSessionNameChange, onSignOut, sa
         </button>
       </div>
 
-      {/* Harjoituksen nimi — klikattava, muuttuu muokkauskentäksi */}
       <div className={styles.center}>
         {editing ? (
           <input
@@ -55,30 +45,32 @@ export default function TopBar({ sessionName, onSessionNameChange, onSignOut, sa
             <span className={styles.editHint}>✎</span>
           </button>
         )}
+
+        {/* Auto-tallennus indikaattori nimen vieressä */}
+        <span className={`${styles.saveIndicator} ${styles[`save_${saveStatus}`]}`}>
+          {saveStatus === 'saving' && <span className={styles.saveDot} />}
+          {saveStatus === 'saved'  && '✓'}
+          {saveStatus === 'error'  && '⚠'}
+        </span>
       </div>
 
       <div className={styles.right}>
         <button
-          className={`${styles.btn} ${styles.btnSecondary}`}
+          className={`${styles.btn} ${styles.btnGhost}`}
           onClick={onExportPdf}
           title="Vie PDF:ksi"
         >
-          {t('topbar.pdf')}
+          ↓ PDF
         </button>
-        {/* TODO: Jakaminen Pro-ominaisuutena */}
-        <button className={`${styles.btn} ${styles.btnSecondary}`} disabled title="Pro">
-          {t('topbar.share')}
-        </button>
-        {/* Tallennuspainike — väri muuttuu tilan mukaan (saved=vihreä, error=punainen) */}
         <button
           className={`${styles.btn} ${styles.btnPrimary} ${saveStatus === 'saved' ? styles.btnSaved : ''} ${saveStatus === 'error' ? styles.btnError : ''}`}
           onClick={onSave}
           disabled={saveStatus === 'saving'}
         >
-          {SAVE_LABEL[saveStatus]}
+          {saveStatus === 'saving' ? '…' : saveStatus === 'saved' ? '✓ Tallennettu' : 'Tallenna'}
         </button>
-        <button className={styles.btnSignOut} onClick={onSignOut}>
-          {t('topbar.signOut')}
+        <button className={styles.btnSignOut} onClick={onSignOut} title={t('topbar.signOut')}>
+          ⎋
         </button>
       </div>
     </header>

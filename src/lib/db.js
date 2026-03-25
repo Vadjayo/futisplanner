@@ -141,6 +141,47 @@ export async function deleteSession(sessionId) {
 }
 
 /**
+ * Tallenna harjoite omaan kirjastoon.
+ */
+export async function saveToLibrary({ userId, title, duration, fieldType, elements, category, ageGroup, description }) {
+  const { data, error } = await supabase
+    .from('library')
+    .insert({
+      user_id: userId,
+      title,
+      duration,
+      field_type: fieldType,
+      elements,
+      category,
+      age_group: ageGroup,
+      description: description || null,
+    })
+    .select('id')
+    .single()
+  return { data, error }
+}
+
+/**
+ * Lataa käyttäjän omat kirjastoon tallennetut harjoitteet.
+ */
+export async function loadUserLibrary(userId) {
+  const { data, error } = await supabase
+    .from('library')
+    .select('id, title, description, category, age_group, duration, field_type, elements')
+    .eq('user_id', userId)
+    .order('title')
+  return { data, error }
+}
+
+/**
+ * Poista kirjastoharjoite (vain omat).
+ */
+export async function deleteFromLibrary(id) {
+  const { error } = await supabase.from('library').delete().eq('id', id)
+  return { error }
+}
+
+/**
  * Lataa harjoituskirjasto suodattimilla.
  * Kaikki suodattimet ovat valinnaisia — ilman suodattimia palautetaan kaikki.
  * @param {object} [params={}]

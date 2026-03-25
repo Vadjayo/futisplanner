@@ -4,7 +4,7 @@
  */
 
 import { useState, useEffect } from 'react'
-import { loadLibrary } from '../../lib/db'
+import { loadLibrary, loadUserLibrary, deleteFromLibrary } from '../../lib/db'
 import styles from './LibraryPanel.module.css'
 
 // Harjoitekategoriat — vastaavat tietokannan category-kentän arvoja
@@ -35,21 +35,31 @@ const CATEGORY_COLORS = {
   maalivahti: '#10b981',
 }
 
-export default function LibraryPanel({ onClose, onAddDrill }) {
+export default function LibraryPanel({ userId, onClose, onAddDrill }) {
   const [drills, setDrills] = useState([])
   const [loading, setLoading] = useState(true)
+  const [source, setSource] = useState('julkiset') // 'julkiset' | 'omat'
   const [category, setCategory] = useState('kaikki')
   const [ageGroup, setAgeGroup] = useState('kaikki')
   const [search, setSearch] = useState('')
 
-  // Hae harjoitteet aina kun suodattimet muuttuvat
-  useEffect(() => {
+  function reload() {
     setLoading(true)
-    loadLibrary({ category, ageGroup, search }).then(({ data }) => {
+    const fetcher = source === 'omat'
+      ? loadUserLibrary(userId)
+      : loadLibrary({ category, ageGroup, search })
+    fetcher.then(({ data }) => {
       setDrills(data ?? [])
       setLoading(false)
     })
-  }, [category, ageGroup, search])
+  }
+
+  useEffect(() => { reload() }, [source, category, ageGroup, search]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  async function handleDelete(id) {
+    await deleteFromLibrary(id)
+    setDrills((prev) => prev.filter((d) => d.id !== id))
+  }
 
   return (
     // Klikkaamalla taustaa paneeli sulkeutuu
@@ -63,6 +73,18 @@ export default function LibraryPanel({ onClose, onAddDrill }) {
           <button className={styles.closeBtn} onClick={onClose}>✕</button>
         </div>
 
+        {/* Lähdevalinta: julkinen kirjasto / omat tallennetut */}
+        <div className={styles.filterRow}>
+          <button
+            className={`${styles.filterBtn} ${source === 'julkiset' ? styles.filterActive : ''}`}
+            onClick={() => setSource('julkiset')}
+          >Kirjasto</button>
+          <button
+            className={`${styles.filterBtn} ${source === 'omat' ? styles.filterActive : ''}`}
+            onClick={() => setSource('omat')}
+          >Omat</button>
+        </div>
+
         {/* Hakukenttä — hakee harjoitteen nimestä */}
         <div className={styles.searchRow}>
           <input
@@ -74,8 +96,8 @@ export default function LibraryPanel({ onClose, onAddDrill }) {
           />
         </div>
 
-        {/* Ikäluokkasuodatin */}
-        <div className={styles.filterRow}>
+        {/* Ikäluokka- ja kategoriasuodattimet vain julkisessa kirjastossa */}
+        {source === 'julkiset' && <div className={styles.filterRow}>
           {AGE_GROUPS.map((ag) => (
             <button
               key={ag.id}
@@ -85,10 +107,10 @@ export default function LibraryPanel({ onClose, onAddDrill }) {
               {ag.label}
             </button>
           ))}
-        </div>
+        </div>}
 
         {/* Kategoriasuodatin — aktiivinen korostetaan kategorian omalla värillä */}
-        <div className={styles.filterRow}>
+        {source === 'julkiset' && <div className={styles.filterRow}>
           {CATEGORIES.map((cat) => (
             <button
               key={cat.id}
@@ -102,7 +124,7 @@ export default function LibraryPanel({ onClose, onAddDrill }) {
               {cat.label}
             </button>
           ))}
-        </div>
+        </div>}
 
         {/* Hakutulokset */}
         <div className={styles.results}>
@@ -128,6 +150,7 @@ export default function LibraryPanel({ onClose, onAddDrill }) {
               {drill.description && (
                 <p className={styles.drillDesc}>{drill.description}</p>
               )}
+              <div className={styles.cardActions}>
               {/* Lisää harjoite harjoitukseen ja sulje paneeli */}
               <button
                 className={styles.addBtn}
@@ -138,6 +161,13 @@ export default function LibraryPanel({ onClose, onAddDrill }) {
               >
                 + Lisää harjoitukseen
               </button>
+              {/* Poista oma harjoite kirjastosta */}
+              {source === 'omat' && (
+                <button className={styles.deleteBtn} onClick={() => handleDelete(drill.id)}>
+                  Poista
+                </button>
+              )}
+              </div>
             </div>
           ))}
         </div>

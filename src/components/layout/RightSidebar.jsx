@@ -3,6 +3,7 @@
  * Oikean reunan sivupalkki. Harjoitelista, sessiodata ja metatieto.
  */
 
+import { useState, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { totalDuration } from '../../utils/drillUtils'
 import styles from './RightSidebar.module.css'
@@ -14,9 +15,34 @@ const FOCUS_FIELDS = [
   { key: 'focusMental',    label: 'Henkinen' },
 ]
 
-export default function RightSidebar({ drills, activeDrillIndex, onDrillSelect, onAddDrill, onOpenLibrary, sessionMeta, onSessionMetaChange }) {
+export default function RightSidebar({ drills, activeDrillIndex, onDrillSelect, onReorderDrill, onAddDrill, onOpenLibrary, sessionMeta, onSessionMetaChange }) {
   const { t } = useTranslation()
   const totalMinutes = totalDuration(drills)
+  const dragFromRef = useRef(null)
+  const [dragOverIndex, setDragOverIndex] = useState(null)
+
+  function handleDragStart(i) {
+    dragFromRef.current = i
+  }
+
+  function handleDragOver(e, i) {
+    e.preventDefault()
+    setDragOverIndex(i)
+  }
+
+  function handleDrop(e, i) {
+    e.preventDefault()
+    if (dragFromRef.current !== null && dragFromRef.current !== i) {
+      onReorderDrill(dragFromRef.current, i)
+    }
+    dragFromRef.current = null
+    setDragOverIndex(null)
+  }
+
+  function handleDragEnd() {
+    dragFromRef.current = null
+    setDragOverIndex(null)
+  }
 
   return (
     <aside className={styles.sidebar}>
@@ -27,7 +53,16 @@ export default function RightSidebar({ drills, activeDrillIndex, onDrillSelect, 
 
         <ul className={styles.drillList}>
           {drills.map((drill, i) => (
-            <li key={drill.id}>
+            <li
+              key={drill.id}
+              className={`${styles.drillListItem} ${dragOverIndex === i ? styles.dragOver : ''}`}
+              draggable
+              onDragStart={() => handleDragStart(i)}
+              onDragOver={(e) => handleDragOver(e, i)}
+              onDrop={(e) => handleDrop(e, i)}
+              onDragEnd={handleDragEnd}
+            >
+              <span className={styles.dragHandle}>⠿</span>
               <button
                 className={`${styles.drillItem} ${i === activeDrillIndex ? styles.active : ''}`}
                 onClick={() => onDrillSelect(i)}
@@ -39,6 +74,13 @@ export default function RightSidebar({ drills, activeDrillIndex, onDrillSelect, 
                 <span className={styles.drillDuration}>
                   {drill.duration || 0} {t('sidebar.minutes')}
                 </span>
+                {/* Suhteellinen kestopalkki */}
+                {totalMinutes > 0 && (
+                  <span
+                    className={styles.durationBar}
+                    style={{ width: `${Math.round((drill.duration / totalMinutes) * 100)}%` }}
+                  />
+                )}
               </button>
             </li>
           ))}

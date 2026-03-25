@@ -4,23 +4,13 @@
   border-bottom: 1px solid var(--color-border);
   display: flex;
   align-items: center;
-  padding: 0 16px;
-  gap: 16px;
+  padding: 0 12px;
+  gap: 12px;
   flex-shrink: 0;
 }
 
-.left {
-  flex: 0 0 auto;
-}
+.left { flex: 0 0 auto; }
 
-.appName {
-  font-size: 16px;
-  font-weight: 700;
-  color: var(--color-text);
-  white-space: nowrap;
-}
-
-/* Takaisin dashboardille -nappi */
 .btnBack {
   background: none;
   border: none;
@@ -43,6 +33,9 @@
   flex: 1;
   display: flex;
   justify-content: center;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
 }
 
 .namePlaceholder {
@@ -57,8 +50,11 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  transition: border-color 0.2s;
-  max-width: 320px;
+  transition: border-color 0.2s, background 0.2s;
+  max-width: 300px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .namePlaceholder:hover {
@@ -69,6 +65,7 @@
 .editHint {
   font-size: 12px;
   color: #3d5068;
+  flex-shrink: 0;
 }
 
 .nameInput {
@@ -80,15 +77,43 @@
   font-weight: 500;
   padding: 4px 10px;
   outline: none;
-  width: 280px;
+  width: 260px;
   max-width: 100%;
+}
+
+/* Auto-tallennus indikaattori */
+.saveIndicator {
+  font-size: 12px;
+  font-weight: 600;
+  flex-shrink: 0;
+  width: 16px;
+  text-align: center;
+}
+
+.save_idle   { color: transparent; }
+.save_saving { color: #3b82f6; }
+.save_saved  { color: #22c55e; }
+.save_error  { color: #ef4444; }
+
+.saveDot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #3b82f6;
+  animation: pulse 1s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
 }
 
 .right {
   flex: 0 0 auto;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
 
 .btn {
@@ -98,44 +123,39 @@
   font-weight: 600;
   cursor: pointer;
   border: none;
-  transition: background 0.2s, opacity 0.2s;
+  transition: background 0.15s, opacity 0.15s;
+  white-space: nowrap;
 }
 
 .btnPrimary {
   background: #3b82f6;
-  color: var(--color-text);
+  color: #fff;
 }
 
-.btnPrimary:hover:not(:disabled) {
-  background: var(--color-team-blue);
-}
+.btnPrimary:hover:not(:disabled) { background: #2563eb; }
+.btnPrimary:disabled { opacity: 0.6; cursor: not-allowed; }
 
-.btnSaved {
-  background: var(--color-team-green) !important;
-}
+.btnSaved { background: #16a34a !important; }
+.btnError { background: #dc2626 !important; }
 
-.btnError {
-  background: var(--color-team-red) !important;
-}
-
-.btnSecondary {
-  background: var(--color-border);
+.btnGhost {
+  background: none;
+  border: 1px solid var(--color-border);
   color: var(--color-text-muted);
 }
 
-.btnSecondary:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
+.btnGhost:hover { background: #0f1923; color: var(--color-text); }
 
 .btnSignOut {
   background: none;
   border: none;
   color: #3d5068;
-  font-size: 13px;
+  font-size: 16px;
   cursor: pointer;
   padding: 6px 8px;
   border-radius: var(--radius-md);
+  transition: color 0.15s, background 0.15s;
+  line-height: 1;
 }
 
 .btnSignOut:hover {
@@ -144,11 +164,6 @@
 }
 
 @media (max-width: 640px) {
-  .center {
-    display: none;
-  }
-
-  .btnSecondary {
-    display: none;
-  }
+  .center { display: none; }
+  .btnGhost { display: none; }
 }
