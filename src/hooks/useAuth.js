@@ -8,7 +8,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 
 export function useAuth() {
-  const [user, setUser] = useState(null)
+  const [user, setUser]       = useState(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -18,11 +18,9 @@ export function useAuth() {
       setLoading(false)
     })
 
-    // Kuuntele kirjautumis/uloskirjautumistapahtumat reaaliajassa
+    // Kuuntele kirjautumis- ja uloskirjautumistapahtumat reaaliajassa
     // Tämä päivittää tilan automaattisesti myös toisessa välilehdessä
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null)
     })
 
@@ -36,10 +34,14 @@ export function useAuth() {
     return { error }
   }
 
-  // Luo uusi tili — Supabase lähettää vahvistuslinkin sähköpostiin
-  async function signUp(email, password) {
-    const { error } = await supabase.auth.signUp({ email, password })
-    return { error }
+  // Luo uusi tili — tallentaa myös nimen käyttäjän metadataan
+  async function signUp(email, password, name = '') {
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { data: { full_name: name } },
+    })
+    return { data, error }
   }
 
   // Kirjaudu ulos — Supabase poistaa istunnon automaattisesti
@@ -47,14 +49,19 @@ export function useAuth() {
     await supabase.auth.signOut()
   }
 
-  /**
-   * @returns {{
-   *   user: import('@supabase/supabase-js').User|null,
-   *   loading: boolean,
-   *   signIn: (email: string, password: string) => Promise<{error: object|null}>,
-   *   signUp: (email: string, password: string) => Promise<{error: object|null}>,
-   *   signOut: () => Promise<void>
-   * }}
-   */
-  return { user, loading, signIn, signUp, signOut }
+  // Lähetä salasanan palautuslinkki sähköpostiin
+  async function resetPassword(email) {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/vaihda-salasana`,
+    })
+    return { error }
+  }
+
+  // Vaihda uusi salasana — kutsutaan /vaihda-salasana sivulta
+  async function updatePassword(newPassword) {
+    const { error } = await supabase.auth.updateUser({ password: newPassword })
+    return { error }
+  }
+
+  return { user, loading, signIn, signUp, signOut, resetPassword, updatePassword }
 }

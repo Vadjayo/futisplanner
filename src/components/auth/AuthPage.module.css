@@ -1,16 +1,21 @@
+/**
+ * Yhteinen tyyli kaikille kirjautumissivuille.
+ * Käytetään AuthPage, RegisterPage, ForgotPasswordPage ja ResetPasswordPage -komponenteissa.
+ */
+
 .page {
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #0f1923;
+  background: #0a0d12;
   padding: 16px;
 }
 
 .card {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-xl);
+  background: #161820;
+  border: 1px solid #1e2230;
+  border-radius: 16px;
   padding: 40px 36px;
   width: 100%;
   max-width: 400px;
@@ -26,24 +31,26 @@
 }
 
 .title {
-  font-size: 28px;
+  font-size: 26px;
   font-weight: 700;
-  color: var(--color-text);
+  color: #f0f4f8;
   margin: 0;
+  text-align: center;
 }
 
 .subtitle {
   font-size: 14px;
-  color: var(--color-text-muted);
-  margin: 0 0 16px;
+  color: #6a80a0;
+  margin: 0 0 12px;
   text-align: center;
+  line-height: 1.5;
 }
 
 .form {
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
   margin-top: 8px;
 }
 
@@ -53,80 +60,124 @@
   gap: 6px;
   font-size: 13px;
   font-weight: 500;
-  color: var(--color-text-muted);
+  color: #8a9bb0;
 }
 
 .input {
   padding: 10px 14px;
-  background: #0f1923;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  color: var(--color-text);
+  background: #0f1318;
+  border: 1px solid #1e2230;
+  border-radius: 8px;
+  color: #f0f4f8;
   font-size: 15px;
   outline: none;
   transition: border-color 0.2s;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .input:focus {
-  border-color: #3b82f6;
+  border-color: #1D9E75;
 }
 
 .input::placeholder {
-  color: var(--color-text-dim);
+  color: #3d4f63;
 }
 
+/* Virheteksti lomakkeen alla */
 .error {
-  color: #f87171;
+  color: #E24B4A;
   font-size: 13px;
   margin: 0;
   text-align: center;
+  line-height: 1.4;
 }
 
+/* Onnistumisviesti */
 .success {
-  color: #4ade80;
+  color: #1D9E75;
   font-size: 13px;
   margin: 0;
   text-align: center;
+  line-height: 1.5;
+  padding: 10px 12px;
+  background: rgba(29, 158, 117, 0.1);
+  border: 1px solid rgba(29, 158, 117, 0.25);
+  border-radius: 8px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
+/* Päänappi */
 .button {
   padding: 12px;
-  background: #3b82f6;
-  color: var(--color-text);
+  background: #1D9E75;
+  color: #ffffff;
   border: none;
-  border-radius: var(--radius-lg);
+  border-radius: 8px;
   font-size: 15px;
   font-weight: 600;
   cursor: pointer;
   transition: background 0.2s;
-  margin-top: 4px;
+  margin-top: 2px;
+  width: 100%;
 }
 
 .button:hover:not(:disabled) {
-  background: var(--color-team-blue);
+  background: #0F6E56;
 }
 
 .button:disabled {
-  opacity: 0.6;
+  opacity: 0.55;
   cursor: not-allowed;
 }
 
-.switchMode {
-  background: none;
-  border: none;
-  color: #3b82f6;
-  font-size: 13px;
-  cursor: pointer;
-  padding: 4px;
+/* Erotusviiva linkeille */
+.divider {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
   margin-top: 8px;
 }
 
-.switchMode:hover {
+/* Tekstilinkki (esim. "Luo tili →") */
+.link {
+  background: none;
+  border: none;
+  color: #1D9E75;
+  font-size: 13px;
+  cursor: pointer;
+  padding: 4px;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.link:hover {
+  text-decoration: underline;
+}
+
+/* Pienempi linkki (esim. "Unohditko salasanan?") */
+.linkSmall {
+  background: none;
+  border: none;
+  color: #6a80a0;
+  font-size: 12px;
+  cursor: pointer;
+  padding: 2px 4px;
+  text-decoration: none;
+  display: inline-block;
+  margin-top: 2px;
+}
+
+.linkSmall:hover {
+  color: #8a9bb0;
   text-decoration: underline;
 }
 
 @media (max-width: 480px) {
   .card {
-    padding: 24px 20px;
+    padding: 28px 20px;
   }
 }

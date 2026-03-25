@@ -1,47 +1,43 @@
 /**
  * AuthPage.jsx
- * Kirjautumis- ja rekisteröintisivu. Käyttää Supabase-autentikointia.
+ * Kirjautumissivu. Ohjaa rekisteröintiin ja salasanan palautukseen.
  */
 
-import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { useTranslation } from 'react-i18next'
+import { useState } from 'react'
+import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 import styles from './AuthPage.module.css'
 
+// Muuntaa Supabasen englanninkieliset virheviestit suomeksi
+function mapError(msg) {
+  if (!msg) return 'Tapahtui virhe. Yritä uudelleen.'
+  if (msg.includes('Invalid login credentials'))  return 'Sähköposti tai salasana on väärin.'
+  if (msg.includes('Email not confirmed'))         return 'Vahvista ensin sähköpostiosoitteesi.'
+  if (msg.includes('Too many requests'))           return 'Liian monta yritystä. Odota hetki.'
+  return msg
+}
+
 export default function AuthPage() {
-  const { t } = useTranslation()
-  const { signIn, signUp, user } = useAuth()
-  const navigate = useNavigate()
+  const { signIn } = useAuth()
+  const navigate   = useNavigate()
 
-  // Ohjaa dashboardille jos käyttäjä on jo kirjautunut
-  useEffect(() => {
-    if (user) navigate('/dashboard', { replace: true })
-  }, [user, navigate])
-
-  // 'login' = kirjaudu sisään, 'register' = luo uusi tili
-  const [mode, setMode] = useState('login')
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [error, setError] = useState(null)
-  const [message, setMessage] = useState(null)
+  const [email,      setEmail]      = useState('')
+  const [password,   setPassword]   = useState('')
+  const [error,      setError]      = useState(null)
   const [submitting, setSubmitting] = useState(false)
 
-  // Käsittele lomakkeen lähetys — toimii sekä kirjautumiseen että rekisteröintiin
+  // Käsittele kirjautumislomakkeen lähetys
   async function handleSubmit(e) {
     e.preventDefault()
     setError(null)
-    setMessage(null)
     setSubmitting(true)
 
-    if (mode === 'login') {
-      const { error } = await signIn(email, password)
-      if (error) setError(error.message)
-      // Onnistunut kirjautuminen ohjaa App.jsx:ssä automaattisesti pääsivulle
+    const { error } = await signIn(email, password)
+    if (error) {
+      setError(mapError(error.message))
     } else {
-      const { error } = await signUp(email, password)
-      if (error) setError(error.message)
-      else setMessage(t('auth.checkEmail')) // pyydä vahvistamaan sähköposti
+      // Onnistunut kirjautuminen — ohjaa dashboardille
+      navigate('/dashboard', { replace: true })
     }
 
     setSubmitting(false)
@@ -51,12 +47,12 @@ export default function AuthPage() {
     <div className={styles.page}>
       <div className={styles.card}>
         <div className={styles.logo}>⚽</div>
-        <h1 className={styles.title}>{t('auth.title')}</h1>
-        <p className={styles.subtitle}>{t('auth.subtitle')}</p>
+        <h1 className={styles.title}>FutisPlanner</h1>
+        <p className={styles.subtitle}>Kirjaudu sisään jatkaaksesi</p>
 
         <form onSubmit={handleSubmit} className={styles.form}>
           <label className={styles.label}>
-            {t('auth.email')}
+            Sähköposti
             <input
               className={styles.input}
               type="email"
@@ -69,41 +65,33 @@ export default function AuthPage() {
           </label>
 
           <label className={styles.label}>
-            {t('auth.password')}
+            Salasana
             <input
               className={styles.input}
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+              autoComplete="current-password"
               placeholder="••••••••"
             />
           </label>
 
           {error && <p className={styles.error}>{error}</p>}
-          {message && <p className={styles.success}>{message}</p>}
 
           <button className={styles.button} type="submit" disabled={submitting}>
-            {submitting
-              ? t('auth.loading')
-              : mode === 'login'
-              ? t('auth.login')
-              : t('auth.register')}
+            {submitting ? 'Kirjaudutaan...' : 'Kirjaudu sisään'}
           </button>
         </form>
 
-        {/* Vaihda kirjautumisen ja rekisteröinnin välillä */}
-        <button
-          className={styles.switchMode}
-          onClick={() => {
-            setMode(mode === 'login' ? 'register' : 'login')
-            setError(null)
-            setMessage(null)
-          }}
-        >
-          {mode === 'login' ? t('auth.switchToRegister') : t('auth.switchToLogin')}
-        </button>
+        <div className={styles.divider}>
+          <Link to="/rekisteroidy" className={styles.link}>
+            Ei vielä tiliä? Luo tili →
+          </Link>
+          <Link to="/unohdin-salasanan" className={styles.linkSmall}>
+            Unohditko salasanan?
+          </Link>
+        </div>
       </div>
     </div>
   )
