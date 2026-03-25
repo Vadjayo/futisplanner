@@ -84,6 +84,7 @@ export default function EditorApp() {
     playerShape: 'att',
     arrowType: 'syotto',
     drawColor: 'white',
+    playerDisplayMode: 'number',
   })
 
   const [drills, setDrills] = useState([createDrill()])

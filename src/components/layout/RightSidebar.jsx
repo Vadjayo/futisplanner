@@ -98,50 +98,63 @@ export default function RightSidebar({ drills, activeDrillIndex, onDrillSelect, 
       {/* ── YHTEENVETO ── */}
       <div className={styles.summarySection}>
         <h3 className={styles.sectionTitle}>Yhteenveto</h3>
+        <div className={styles.summaryCard}>
 
-        <div className={styles.summaryFields}>
-          <label className={styles.fieldLabel}>
-            Teema
+          {/* Teema */}
+          <div className={styles.summaryRow}>
+            <span className={styles.summaryLabel}>Teema</span>
             <input
-              className={styles.fieldInput}
+              className={styles.summaryInput}
               type="text"
               value={sessionMeta?.theme ?? ''}
               onChange={(e) => onSessionMetaChange('theme', e.target.value)}
               placeholder="esim. Prässääminen"
               maxLength={80}
             />
-          </label>
+          </div>
 
-          <label className={styles.fieldLabel}>
-            Kuvaus
+          {/* Kokonaiskesto + edistymispalkki */}
+          <div className={styles.summaryRow}>
+            <span className={styles.summaryLabel}>Kesto</span>
+            <span className={styles.summaryValue}>{totalMinutes} min</span>
+          </div>
+          {totalMinutes > 0 && (
+            <div className={styles.sessionProgressWrap}>
+              <div
+                className={styles.sessionProgressBar}
+                style={{ width: `${Math.min(100, Math.round((totalMinutes / 90) * 100))}%` }}
+              />
+              <span className={styles.sessionProgressLabel}>{totalMinutes}/90 min</span>
+            </div>
+          )}
+
+          {/* Tekninen, taktinen, fyysinen, henkinen */}
+          {FOCUS_FIELDS.map(({ key, label }) => (
+            <div key={key} className={styles.summaryRow}>
+              <span className={styles.summaryLabel}>{label}</span>
+              <input
+                className={styles.summaryInput}
+                type="text"
+                value={sessionMeta?.[key] ?? ''}
+                onChange={(e) => onSessionMetaChange(key, e.target.value)}
+                placeholder={`${label} tavoite...`}
+                maxLength={80}
+              />
+            </div>
+          ))}
+
+          {/* Kuvaus */}
+          <div className={styles.summaryRow}>
+            <span className={styles.summaryLabel}>Kuvaus</span>
             <textarea
-              className={styles.fieldTextarea}
+              className={styles.summaryTextarea}
               value={sessionMeta?.description ?? ''}
               onChange={(e) => onSessionMetaChange('description', e.target.value)}
-              placeholder="Lyhyt kuvaus harjoituksesta..."
-              rows={3}
+              placeholder="Lyhyt kuvaus..."
+              rows={2}
             />
-          </label>
-
-          <div className={styles.durationRow}>
-            <span className={styles.durationLabel}>Kesto</span>
-            <span className={styles.durationValue}>{totalMinutes} min</span>
           </div>
 
-          <div className={styles.focusFields}>
-            {FOCUS_FIELDS.map(({ key, label }) => (
-              <label key={key} className={styles.fieldLabel}>
-                {label}
-                <textarea
-                  className={styles.fieldTextarea}
-                  value={sessionMeta?.[key] ?? ''}
-                  onChange={(e) => onSessionMetaChange(key, e.target.value)}
-                  placeholder={`${label} tavoitteet...`}
-                  rows={2}
-                />
-              </label>
-            ))}
-          </div>
         </div>
       </div>
 

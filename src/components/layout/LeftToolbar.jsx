@@ -3,7 +3,7 @@
  * Vasemman reunan työkalupalkki. Flyout-valikko kaikille kenttäelementeille.
  */
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { CONE_COLORS } from '../../constants/colors'
 import styles from './LeftToolbar.module.css'
 
@@ -14,6 +14,7 @@ const ARROW_TYPES = [
   { id: 'liike',    label: 'Liike' },
   { id: 'laukaus',  label: 'Laukaus' },
   { id: 'kuljetus', label: 'Kuljetus' },
+  { id: 'kaareva',  label: 'Kaareva' },
   { id: 'bidir',    label: 'Edestakaisin' },
   { id: 'offball',  label: 'Ilman palloa' },
 ]
@@ -64,6 +65,14 @@ function ArrowPreview({ type }) {
       return <svg width={W} height={H} style={{ display: 'block', flexShrink: 0 }}>
         <path d={waveD} stroke="#fbbf24" strokeWidth={2} fill="none" strokeDasharray="4,2.5" />
         <polygon points={`40,${cy-5} ${W},${cy} 40,${cy+5}`} fill="#fbbf24" />
+      </svg>
+    }
+    case 'kaareva': {
+      // Kaareva oranssi quadratic bezier nuoli
+      const cy = H / 2
+      return <svg width={W} height={H} style={{ display: 'block', flexShrink: 0 }}>
+        <path d={`M 4 ${cy+4} Q ${W/2} ${cy-8} ${lineEnd} ${cy}`} stroke="#EF9F27" strokeWidth={2} fill="none" />
+        <polygon points={`${lineEnd},${cy-5} ${W},${cy} ${lineEnd},${cy+5}`} fill="#EF9F27" />
       </svg>
     }
     case 'bidir': {
@@ -330,6 +339,51 @@ export default function LeftToolbar({ activeTool, onToolChange, toolOptions, onT
   // Flyout-valikon avaus/sulkeminen
   const [toolsOpen, setToolsOpen] = useState(false)
 
+  // ── TOUCH DRAG ──
+  // Mobiilissa HTML5 drag-tapahtumat eivät toimi – toteutetaan touch-versio
+  const touchDragRef = useRef(null)
+  const [ghostPos, setGhostPos] = useState(null)
+
+  // Aloittaa touch-raahauksen: tallentaa työkalun ja avaa ghost-elementin
+  function startTouchDrag(e, tool, options = {}, label = '') {
+    e.preventDefault()
+    const touch = e.touches[0]
+    touchDragRef.current = { tool, options }
+    setGhostPos({ x: touch.clientX, y: touch.clientY, label })
+  }
+
+  // Siirtää ghost-elementtiä sormen mukana
+  function moveTouchDrag(e) {
+    if (!touchDragRef.current) return
+    e.preventDefault()
+    const touch = e.touches[0]
+    setGhostPos((prev) => prev ? { ...prev, x: touch.clientX, y: touch.clientY } : null)
+  }
+
+  // Pudottaa elementin kentälle: etsii pudotuskohdan ja lähettää custom-tapahtuman
+  function endTouchDrag(e) {
+    if (!touchDragRef.current) return
+    const touch = e.changedTouches[0]
+    const target = document.elementFromPoint(touch.clientX, touch.clientY)
+    if (target) {
+      target.dispatchEvent(new CustomEvent('toolbar-touch-drop', {
+        detail: { ...touchDragRef.current, clientX: touch.clientX, clientY: touch.clientY },
+        bubbles: true,
+      }))
+    }
+    touchDragRef.current = null
+    setGhostPos(null)
+  }
+
+  // Apufunktio: palauttaa touch-käsittelijät elementille
+  function td(tool, options = {}, label = '') {
+    return {
+      onTouchStart: (e) => startTouchDrag(e, tool, options, label),
+      onTouchMove:  moveTouchDrag,
+      onTouchEnd:   endTouchDrag,
+    }
+  }
+
   // Sulje flyout kun valinta-työkalu aktivoituu (esim. spacebar)
   useEffect(() => {
     if (activeTool === 'select') setToolsOpen(false)
@@ -364,6 +418,21 @@ export default function LeftToolbar({ activeTool, onToolChange, toolOptions, onT
         </button>
 
         <button
+          className={styles.toolBtn}
+          onClick={() => {
+            // Lähettää Ctrl+Z-näppäinkomennon ikkunalle
+            window.dispatchEvent(new KeyboardEvent('keydown', { key: 'z', ctrlKey: true, bubbles: true }))
+          }}
+          title="Kumoa (Ctrl+Z)"
+        >
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+            <path d="M4 8 C4 4 8 2 12 4 C16 6 16 10 14 13" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round"/>
+            <polyline points="2,6 4,10 8,8" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+          <span className={styles.label}>Kumoa</span>
+        </button>
+
+        <button
           className={`${styles.toolBtn} ${isEquip || toolsOpen ? styles.active : ''}`}
           onClick={() => setToolsOpen((o) => !o)} title="Välineet"
         >
@@ -387,6 +456,16 @@ export default function LeftToolbar({ activeTool, onToolChange, toolOptions, onT
         </button>
       </aside>
 
+      {/* Touch-raahauksen ghost-elementti – seuraa sormea */}
+      {ghostPos && (
+        <div
+          className={styles.dragGhost}
+          style={{ left: ghostPos.x, top: ghostPos.y }}
+        >
+          {ghostPos.label}
+        </div>
+      )}
+
       {/* Flyout-valikko – näytetään vain kun toolsOpen on true */}
       {toolsOpen && (
         <div className={styles.flyout}>
@@ -408,32 +487,84 @@ export default function LeftToolbar({ activeTool, onToolChange, toolOptions, onT
           {/* 2 — PELAAJAT */}
           <div className={styles.section}>
             <div className={styles.sectionLabel}>Pelaajat</div>
-            <div className={styles.playerTypeLabel}>Maalivahti</div>
-            <div className={styles.playerRow}>
-              <button
-                className={`${styles.playerBtn} ${activeTool === 'player' && toolOptions.playerTeam === 'gk' ? styles.itemActive : ''}`}
-                style={{ '--c': '#f59e0b' }}
-                onClick={() => pick('player', { playerTeam: 'gk' })}
-                title="Maalivahti"
-              />
-            </div>
-            <div className={styles.playerTypeLabel}>Hyökkääjät</div>
-            <div className={styles.playerRow}>
-              {[['blue','#2563eb'],['red','#dc2626'],['green','#16a34a'],['dark','#374151']].map(([role, color]) => (
-                <button key={role}
-                  className={`${styles.playerBtn} ${activeTool === 'player' && toolOptions.playerTeam === role ? styles.itemActive : ''}`}
-                  style={{ '--c': color }} onClick={() => pick('player', { playerTeam: role })} />
+
+            {/* Näyttötapa */}
+            <div className={styles.displayModeRow}>
+              {[
+                { id: 'number', label: '#',  title: 'Numero' },
+                { id: 'name',   label: '#A', title: 'Numero + nimi' },
+                { id: 'jersey', label: '👕', title: 'Pelipaita' },
+              ].map(({ id, label, title }) => (
+                <button key={id}
+                  className={`${styles.displayModeBtn} ${toolOptions.playerDisplayMode === id ? styles.displayModeBtnActive : ''}`}
+                  title={title}
+                  onClick={() => onToolOptionChange('playerDisplayMode', id)}
+                >{label}</button>
               ))}
             </div>
-            <div className={styles.playerTypeLabel}>Puolustajat</div>
-            <div className={styles.playerRow}>
-              {[['def_blue','#2563eb'],['def_red','#dc2626'],['def_green','#16a34a'],['def_dark','#374151']].map(([role, color]) => (
+
+            {/* Maalivahti */}
+            <div className={styles.playerTypeLabel}>Maalivahti</div>
+            <div className={styles.playerGrid}>
+              <button
+                className={`${styles.playerCard} ${activeTool === 'player' && toolOptions.playerTeam === 'gk' ? styles.itemActive : ''}`}
+                title="Maalivahti – raahaa kentälle"
+                draggable
+                onDragStart={(e) => { e.dataTransfer.setData('futisplanner/tool', 'player'); e.dataTransfer.setData('futisplanner/options', JSON.stringify({ playerTeam: 'gk' })); e.dataTransfer.effectAllowed = 'copy' }}
+                {...td('player', { playerTeam: 'gk' }, 'MV')}
+              >
+                <svg width="26" height="26" viewBox="0 0 26 26">
+                  <circle cx="13" cy="13" r="11" fill="#f59e0b" stroke="rgba(255,255,255,0.6)" strokeWidth="1.5"/>
+                  <text x="13" y="17.5" textAnchor="middle" fill="white" fontSize="8" fontWeight="800">MV</text>
+                </svg>
+                <span className={styles.playerCardLabel}>MV</span>
+              </button>
+            </div>
+
+            {/* Hyökkääjät */}
+            <div className={styles.playerTypeLabel}>Hyökkääjät</div>
+            <div className={styles.playerGrid}>
+              {[
+                ['blue',  '#2563eb', 'Sin'],
+                ['red',   '#dc2626', 'Pun'],
+                ['green', '#16a34a', 'Vih'],
+                ['dark',  '#4b5563', 'Har'],
+              ].map(([role, color, label]) => (
                 <button key={role}
-                  className={`${styles.defBtn} ${activeTool === 'player' && toolOptions.playerTeam === role ? styles.itemActive : ''}`}
-                  onClick={() => pick('player', { playerTeam: role })}>
-                  <svg width="28" height="26" viewBox="0 0 28 26">
-                    <polygon points="14,1 27,25 1,25" fill={color} stroke="white" strokeWidth="1.5" strokeLinejoin="round" />
+                  className={`${styles.playerCard} ${activeTool === 'player' && toolOptions.playerTeam === role ? styles.itemActive : ''}`}
+                  title="Hyökkääjä – raahaa kentälle"
+                  draggable
+                  onDragStart={(e) => { e.dataTransfer.setData('futisplanner/tool', 'player'); e.dataTransfer.setData('futisplanner/options', JSON.stringify({ playerTeam: role })); e.dataTransfer.effectAllowed = 'copy' }}
+                  {...td('player', { playerTeam: role }, label)}
+                >
+                  <svg width="26" height="26" viewBox="0 0 26 26">
+                    <circle cx="13" cy="13" r="11" fill={color} stroke="rgba(255,255,255,0.6)" strokeWidth="1.5"/>
                   </svg>
+                  <span className={styles.playerCardLabel}>{label}</span>
+                </button>
+              ))}
+            </div>
+
+            {/* Puolustajat */}
+            <div className={styles.playerTypeLabel}>Puolustajat</div>
+            <div className={styles.playerGrid}>
+              {[
+                ['def_blue',  '#2563eb', 'Sin'],
+                ['def_red',   '#dc2626', 'Pun'],
+                ['def_green', '#16a34a', 'Vih'],
+                ['def_dark',  '#4b5563', 'Har'],
+              ].map(([role, color, label]) => (
+                <button key={role}
+                  className={`${styles.playerCard} ${activeTool === 'player' && toolOptions.playerTeam === role ? styles.itemActive : ''}`}
+                  title="Puolustaja – raahaa kentälle"
+                  draggable
+                  onDragStart={(e) => { e.dataTransfer.setData('futisplanner/tool', 'player'); e.dataTransfer.setData('futisplanner/options', JSON.stringify({ playerTeam: role })); e.dataTransfer.effectAllowed = 'copy' }}
+                  {...td('player', { playerTeam: role }, label)}
+                >
+                  <svg width="26" height="24" viewBox="0 0 26 24">
+                    <polygon points="13,1 25,23 1,23" fill={color} stroke="rgba(255,255,255,0.6)" strokeWidth="1.5" strokeLinejoin="round"/>
+                  </svg>
+                  <span className={styles.playerCardLabel}>{label}</span>
                 </button>
               ))}
             </div>
@@ -456,10 +587,10 @@ export default function LeftToolbar({ activeTool, onToolChange, toolOptions, onT
               ].map(({ tool, label, icon }) => (
                 <button key={tool}
                   className={`${styles.equipBtn} ${activeTool === tool ? styles.itemActive : ''}`}
-                  onClick={() => pick(tool)}
                   draggable
                   onDragStart={(e) => { e.dataTransfer.setData('futisplanner/tool', tool); e.dataTransfer.effectAllowed = 'copy' }}
-                  title={label}
+                  {...td(tool, {}, label)}
+                  title={`${label} – raahaa kentälle`}
                 >
                   {icon}
                   <span className={styles.equipLabel}>{label}</span>
@@ -477,9 +608,10 @@ export default function LeftToolbar({ activeTool, onToolChange, toolOptions, onT
                 <button key={c.id}
                   className={`${styles.swatch} ${activeTool === 'cone' && toolOptions.coneColor === c.id ? styles.swatchActive : ''}`}
                   style={{ background: c.hex, borderColor: c.id === 'white' ? '#94a3b8' : c.hex }}
-                  onClick={() => pick('cone', { coneColor: c.id })} title={c.label}
+                  title={`${c.label} tötsä – raahaa kentälle`}
                   draggable
                   onDragStart={(e) => { e.dataTransfer.setData('futisplanner/tool', 'cone'); e.dataTransfer.setData('futisplanner/options', JSON.stringify({ coneColor: c.id })); e.dataTransfer.effectAllowed = 'copy' }}
+                  {...td('cone', { coneColor: c.id }, c.label)}
                 />
               ))}
             </div>
@@ -489,9 +621,10 @@ export default function LeftToolbar({ activeTool, onToolChange, toolOptions, onT
                 <button key={c.id}
                   className={`${styles.swatch} ${activeTool === 'pole' && toolOptions.poleColor === c.id ? styles.swatchActive : ''}`}
                   style={{ background: c.hex, borderColor: c.id === 'white' ? '#94a3b8' : c.hex }}
-                  onClick={() => pick('pole', { poleColor: c.id })} title={c.label}
+                  title={`${c.label} keppi – raahaa kentälle`}
                   draggable
                   onDragStart={(e) => { e.dataTransfer.setData('futisplanner/tool', 'pole'); e.dataTransfer.setData('futisplanner/options', JSON.stringify({ poleColor: c.id })); e.dataTransfer.effectAllowed = 'copy' }}
+                  {...td('pole', { poleColor: c.id }, c.label)}
                 />
               ))}
             </div>

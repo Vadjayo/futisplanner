@@ -83,6 +83,19 @@ const DrillCard = forwardRef(function DrillCard(
     onToolChange?.(tool)
   }
 
+  // Touch-raahaus mobiilissa: kuuntelee LeftToolbarin lähettämää custom-tapahtumaa
+  useEffect(() => {
+    function handleTouchDrop(e) {
+      const { tool, options = {}, clientX, clientY } = e.detail ?? {}
+      if (!tool) return
+      canvasRef.current?.dropElement(tool, options, clientX, clientY)
+      onToolChange?.(tool)
+    }
+    const card = document.getElementById(`drill-${drill.id}`)
+    card?.addEventListener('toolbar-touch-drop', handleTouchDrop)
+    return () => card?.removeEventListener('toolbar-touch-drop', handleTouchDrop)
+  }, [drill.id, onToolChange])
+
   const { editing, draft, setDraft, startEdit, commit, handleKeyDown } = useInlineEdit(
     drill.title,
     (val) => onUpdate({ title: val })
@@ -113,14 +126,14 @@ const DrillCard = forwardRef(function DrillCard(
             onBlur={commit}
             onKeyDown={handleKeyDown}
             autoFocus
-            placeholder={t('drill.untitled')}
+            placeholder="Kirjoita harjoitteen nimi..."
           />
         ) : (
           <button
             className={styles.titleBtn}
             onClick={(e) => { e.stopPropagation(); startEdit() }}
           >
-            {drill.title || <span className={styles.placeholder}>{t('drill.untitled')}</span>}
+            {drill.title || <span className={styles.placeholder}>Kirjoita harjoitteen nimi...</span>}
             <span className={styles.editHint}>✎</span>
           </button>
         )}
@@ -148,6 +161,16 @@ const DrillCard = forwardRef(function DrillCard(
             onChange={handleDurationChange}
           />
           <span className={styles.durationUnit}>{t('drill.minutes')}</span>
+          {/* Kestopikapainikkeet */}
+          {[10, 15, 20, 30, 45].map((mins) => (
+            <button
+              key={mins}
+              className={`${styles.durationPick} ${drill.duration === mins ? styles.durationPickActive : ''}`}
+              onClick={(e) => { e.stopPropagation(); onUpdate({ duration: mins }) }}
+            >
+              {mins}
+            </button>
+          ))}
         </div>
 
         {/* ⋯ toimintovalikko */}

@@ -110,33 +110,44 @@
   text-transform: uppercase;
   color: #6a80a0;
   margin-bottom: 4px;
-  margin-top: 6px;
+  margin-top: 8px;
 }
 
-/* Pelaajanapit */
-.playerRow {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
+/* Pelaaja-ruudukko — 4 saraketta, sama kuin equipGrid */
+.playerGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 5px;
   margin-bottom: 2px;
 }
 
-.playerBtn {
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  border: 2px solid transparent;
-  background: var(--c);
-  color: white;
-  font-size: 12px;
-  font-weight: 700;
+/* Yhtenäinen pelaaja-kortti — identtinen equipBtn-tyyliin */
+.playerCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  padding: 6px 3px;
+  background: var(--color-surface-deep);
+  border: 1.5px solid transparent;
+  border-radius: var(--radius-md);
   cursor: pointer;
-  opacity: 0.55;
+  opacity: 0.65;
   transition: opacity 0.15s, border-color 0.15s;
+  min-height: 52px;
 }
 
-.playerBtn:hover {
-  opacity: 0.85;
+.playerCard:hover {
+  opacity: 1;
+  border-color: var(--color-border);
+}
+
+.playerCardLabel {
+  font-size: 8px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  white-space: nowrap;
 }
 
 /* Väripaletti */
@@ -322,31 +333,59 @@
   color: white;
 }
 
-/* Puolustaja-kolmionapit */
-.defBtn {
-  width: 44px;
-  height: 44px;
-  border: 2px solid transparent;
-  background: transparent;
-  cursor: pointer;
-  opacity: 0.55;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  border-radius: var(--radius-sm);
-  transition: opacity 0.15s, border-color 0.15s;
-}
-
-.defBtn:hover {
-  opacity: 0.85;
-}
-
 /* Aktiivinen tila kaikille elementeille */
 .itemActive {
   opacity: 1 !important;
   border-color: #3b82f6 !important;
   background: #0f1923 !important;
+}
+
+.displayModeRow {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 8px;
+  padding: 0 2px;
+}
+
+.displayModeBtn {
+  flex: 1;
+  background: #1a1d27;
+  border: 1px solid #2d3f55;
+  border-radius: 5px;
+  color: #8a9bb0;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 5px 2px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.displayModeBtn:hover {
+  background: #1e2a3a;
+  color: #d0dce8;
+}
+
+.displayModeBtnActive {
+  background: #1D9E75;
+  border-color: #1D9E75;
+  color: white;
+}
+
+/* Ghost-elementti touch-raahauksen aikana */
+.dragGhost {
+  position: fixed;
+  transform: translate(-50%, -50%);
+  background: #1D9E75;
+  color: white;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 6px 10px;
+  border-radius: 8px;
+  pointer-events: none;
+  z-index: 9999;
+  white-space: nowrap;
+  opacity: 0.9;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
 }
 
 @media (max-width: 640px) {

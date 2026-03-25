@@ -262,3 +262,92 @@
     display: none;
   }
 }
+
+.summaryCard {
+  background: #161820;
+  border: 1px solid #1e2230;
+  border-radius: 8px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0 12px;
+}
+
+.summaryRow {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.summaryLabel {
+  font-size: 10px;
+  font-weight: 600;
+  color: #4a6080;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.summaryValue {
+  font-size: 13px;
+  color: #d0dce8;
+  font-weight: 600;
+}
+
+.summaryInput {
+  background: #1a1d27;
+  border: 1px solid #2d3f55;
+  border-radius: 4px;
+  color: #d0dce8;
+  font-size: 12px;
+  padding: 4px 8px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.summaryInput:focus {
+  outline: none;
+  border-color: #1D9E75;
+}
+
+.summaryTextarea {
+  background: #1a1d27;
+  border: 1px solid #2d3f55;
+  border-radius: 4px;
+  color: #d0dce8;
+  font-size: 12px;
+  padding: 4px 8px;
+  width: 100%;
+  box-sizing: border-box;
+  resize: none;
+}
+
+.summaryTextarea:focus {
+  outline: none;
+  border-color: #1D9E75;
+}
+
+.sessionProgressWrap {
+  position: relative;
+  height: 6px;
+  background: #1e2230;
+  border-radius: 3px;
+  overflow: hidden;
+  margin-top: -4px;
+}
+
+.sessionProgressBar {
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  background: #1D9E75;
+  border-radius: 3px;
+  transition: width 0.3s;
+}
+
+.sessionProgressLabel {
+  font-size: 9px;
+  color: #4a6080;
+  text-align: right;
+  display: block;
+  margin-top: 2px;
+}

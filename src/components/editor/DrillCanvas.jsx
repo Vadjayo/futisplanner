@@ -6,7 +6,7 @@
 import { useRef, useState, useEffect, useCallback, forwardRef, useImperativeHandle } from 'react'
 import {
   Stage, Layer, Group,
-  Circle, Rect, RegularPolygon, Arrow, Line, Ellipse,
+  Circle, Rect, RegularPolygon, Arrow, Line, Ellipse, Path,
   Text as KonvaText, Transformer,
 } from 'react-konva'
 import FieldBackground from './FieldBackground'
@@ -20,7 +20,7 @@ const FIELD_H = 650
 
 // Pelaajan värit joukkueroolin mukaan — vakio komponentin ulkopuolella (ei luoda per render)
 const ROLE_COLORS = {
-  gk: '#f59e0b', blue: '#2563eb', red: '#dc2626', green: '#16a34a', dark: '#374151',
+  gk: '#EF9F27', blue: '#2563eb', red: '#dc2626', green: '#16a34a', dark: '#374151',
   home: '#2563eb', away: '#dc2626',
 }
 
@@ -37,9 +37,11 @@ function getArrowStyle(arrowType, s) {
     case 'laukaus':
       return { stroke: '#f97316',  fill: '#f97316',  strokeWidth: 3.5*s, dash: null,           pLen: 14*s, pWidth: 10*s }
     case 'kuljetus':
-      return { stroke: '#fbbf24',  fill: '#fbbf24',  strokeWidth: 2.5*s, dash: [3*s, 4*s],     pLen: 10*s, pWidth: 8*s }
+      return { stroke: '#E24B4A',  fill: '#E24B4A',  strokeWidth: 2.5*s, dash: [3*s, 4*s],     pLen: 10*s, pWidth: 8*s }
+    case 'kaareva':
+      return { stroke: '#EF9F27', fill: '#EF9F27', strokeWidth: 2*s, dash: null, pLen: 10*s, pWidth: 8*s }
     case 'bidir':
-      return { stroke: 'white',    fill: 'white',    strokeWidth: 2.5*s, dash: null,       pLen: 10*s, pWidth: 8*s }
+      return { stroke: '#378ADD',  fill: '#378ADD',  strokeWidth: 2.5*s, dash: null,       pLen: 10*s, pWidth: 8*s }
     case 'offball':
       return { stroke: '#a78bfa',  fill: '#a78bfa',  strokeWidth: 2*s,   dash: [5*s,4*s],  pLen: 9*s,  pWidth: 7*s }
     default:
@@ -71,6 +73,30 @@ function getKuljetusPoints(x1, y1, x2, y2, scale) {
   }
   // Lisätään loppupiste suoraan nuolenpäähän
   pts.push(x2 * scale, y2 * scale)
+  return pts
+}
+
+// Laskee kaareva-nuolen pisteet quadratic bezier -käyrällä
+// Kontrollipiste on 40 loogista yksikköä linjan keskilinjasta kohtisuoraan
+function getKaarvaPoints(x1, y1, x2, y2, scale) {
+  const mx = (x1 + x2) / 2
+  const my = (y1 + y2) / 2
+  const dx = x2 - x1
+  const dy = y2 - y1
+  const len = Math.sqrt(dx*dx + dy*dy) || 1
+  // Kohtisuora vektori
+  const px = -dy / len * 40
+  const py =  dx / len * 40
+  // Konva Arrow ei tue bezier-käyrää suoraan, joten approksimoidaan monisegmenttiviivalla
+  const N = 20
+  const pts = []
+  for (let i = 0; i <= N; i++) {
+    const t = i / N
+    // Quadratic bezier: P = (1-t)^2*P0 + 2*(1-t)*t*PC + t^2*P1
+    const bx = (1-t)*(1-t)*x1 + 2*(1-t)*t*(mx+px) + t*t*x2
+    const by = (1-t)*(1-t)*y1 + 2*(1-t)*t*(my+py) + t*t*y2
+    pts.push(bx * scale, by * scale)
+  }
   return pts
 }
 
@@ -114,6 +140,7 @@ const DrillCanvas = forwardRef(function DrillCanvas({ elements, fieldType, activ
   }))
 
   const [stageWidth, setStageWidth] = useState(800)
+  const [zoom, setZoom] = useState(1)
   const [selectedIds, setSelectedIds] = useState([])     // valitut elementit (yksi tai useita)
   const [deleteBtnPos, setDeleteBtnPos] = useState(null) // Poista-napin sijainti pikseleissä
   const [drawingArrow, setDrawingArrow] = useState(null) // Kesken oleva nuolenpiirto
@@ -381,7 +408,10 @@ const DrillCanvas = forwardRef(function DrillCanvas({ elements, fieldType, activ
       if (isBackground) setSelectedIds([])
       return
     }
-    addElement(stageRef.current.getPointerPosition())
+    // Teksti lisätään klikkaamalla — kaikki muut elementit vain drag & dropilla toolbarista
+    if (activeTool === 'text') {
+      addElement(stageRef.current.getPointerPosition())
+    }
   }
 
   // Aloittaa nuolen/muodon piirtämisen tai kumilankahauun valinta-tilassa
@@ -571,8 +601,8 @@ const DrillCanvas = forwardRef(function DrillCanvas({ elements, fieldType, activ
 
   // Asettaa elementin valituksi valinta-tilassa tai polunmuokkaukseen animaatiotilassa
   function selectEl(e, id) {
+    e.cancelBubble = true  // Estetään aina klikkauksen kupliminen stagelle
     if (activeTool === 'animate') {
-      e.cancelBubble = true
       // Vain pelaaja, valmentaja ja pallo voivat saada animaatiopolun
       const el = elements.find((el) => el.id === id)
       if (el && ['player', 'coach', 'ball'].includes(el.type)) {
@@ -581,7 +611,6 @@ const DrillCanvas = forwardRef(function DrillCanvas({ elements, fieldType, activ
       return
     }
     if (activeTool !== 'select') return
-    e.cancelBubble = true
     if (e.evt?.shiftKey) {
       // Shift+klikkaus lisää tai poistaa valinnan
       setSelectedIds((prev) => prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id])
@@ -601,7 +630,8 @@ const DrillCanvas = forwardRef(function DrillCanvas({ elements, fieldType, activ
 
   // Valinta-tilassa normaalikursori, piirtotyökaluissa tähtäinkursori, välineillä plus-kursori
   // Animaatiotilassa: tähtäin kun pelaaja valittu (lisätään reittipisteitä), muuten osoitin
-  const draggable = activeTool === 'select'
+  // Elementit ovat aina raahattavia paitsi piirtotyökalujen aikana
+  const draggable = !['arrow', 'line', 'circle', 'freehand', 'freearrow', 'zone', 'triangle', 'animate'].includes(activeTool)
   const cursor = activeTool === 'select' ? 'default'
     : activeTool === 'animate' ? (animSelectedId ? 'crosshair' : 'pointer')
     : ['arrow', 'line', 'circle', 'freehand', 'freearrow', 'triangle'].includes(activeTool) ? 'crosshair'
@@ -643,11 +673,22 @@ const DrillCanvas = forwardRef(function DrillCanvas({ elements, fieldType, activ
   const animActive = activeTool === 'animate' && (isPlaying || animProgress > 0)
 
   return (
-    <div ref={containerRef} className={styles.wrapper}>
+    <div
+      ref={containerRef}
+      className={styles.wrapper}
+      onWheel={(e) => {
+        if (e.ctrlKey || e.metaKey) {
+          e.preventDefault()
+          setZoom((z) => Math.max(0.5, Math.min(2, z - e.deltaY * 0.001)))
+        }
+      }}
+    >
       <Stage
         ref={stageRef}
         width={stageWidth}
         height={stageHeight}
+        scaleX={zoom}
+        scaleY={zoom}
         style={{ cursor, display: 'block' }}
         onClick={handleStageClick}
         onTap={handleStageClick}
@@ -721,6 +762,10 @@ const DrillCanvas = forwardRef(function DrillCanvas({ elements, fieldType, activ
               const isDefender = el.team?.startsWith('def_')
               const colorKey = isDefender ? el.team.slice(4) : el.team
               const color = ROLE_COLORS[colorKey] ?? '#2563eb'
+              const isGk = el.team === 'gk'
+              const strokeW = isGk ? 2.5 * scale : 1.5 * scale
+              // Pelaajan näyttötapa: 'number' | 'name' | 'jersey'
+              const displayMode = toolOptions?.playerDisplayMode ?? 'number'
               return (
                 <Group
                   key={el.id} id={`el_${el.id}`}
@@ -735,24 +780,79 @@ const DrillCanvas = forwardRef(function DrillCanvas({ elements, fieldType, activ
                   onDragEnd={(e) => handleDragEnd(e, el.id)}
                   onWheel={(e) => handleWheel(e, el.id)}
                 >
-                  {isDefender ? (
-                    // Puolustaja – ylöspäin osoittava kolmio
-                    <RegularPolygon
-                      sides={3} radius={13 * scale}
-                      fill={color} stroke="white" strokeWidth={1.5 * scale}
-                    />
+                  {displayMode === 'jersey' ? (
+                    // Pelipaita – sama kaikille (hyökkääjä, puolustaja, mv)
+                    <>
+                      {/* Paidan vartalo */}
+                      <Rect
+                        x={-11 * scale} y={-14 * scale}
+                        width={22 * scale} height={28 * scale}
+                        fill={color} stroke="white" strokeWidth={strokeW}
+                        cornerRadius={2 * scale}
+                      />
+                      {/* Vasen hiha */}
+                      <Rect
+                        x={-18 * scale} y={-14 * scale}
+                        width={8 * scale} height={10 * scale}
+                        fill={color} stroke="white" strokeWidth={strokeW}
+                        cornerRadius={2 * scale}
+                      />
+                      {/* Oikea hiha */}
+                      <Rect
+                        x={10 * scale} y={-14 * scale}
+                        width={8 * scale} height={10 * scale}
+                        fill={color} stroke="white" strokeWidth={strokeW}
+                        cornerRadius={2 * scale}
+                      />
+                      {/* Kaulus-viiva */}
+                      <Line
+                        points={[-6*scale, -14*scale, 6*scale, -14*scale]}
+                        stroke="white" strokeWidth={2*scale} lineCap="round"
+                      />
+                    </>
+                  ) : isDefender ? (
+                    // Puolustaja – ääriviiva-kolmio kahdella RegularPolygonilla
+                    <>
+                      <RegularPolygon
+                        sides={3} radius={13 * scale}
+                        fill="transparent" stroke={color} strokeWidth={3.5 * scale}
+                      />
+                      <RegularPolygon
+                        sides={3} radius={13 * scale}
+                        fill="transparent" stroke="white" strokeWidth={1 * scale}
+                      />
+                    </>
                   ) : (
-                    <Circle radius={12 * scale} fill={color} stroke="white" strokeWidth={1.5 * scale} />
+                    <Circle radius={12 * scale} fill={color} stroke="white" strokeWidth={strokeW} />
                   )}
-                  {/* Numero – kolmiossa hieman alemmas siirretty */}
+                  {/* Numero – kolmiossa alemmas, paidassa keskelle */}
                   <KonvaText
-                    x={-9 * scale} y={isDefender ? -4 * scale : -7 * scale}
+                    x={-9 * scale} y={displayMode === 'jersey' ? -4 * scale : isDefender ? -4 * scale : -7 * scale}
                     text={String(el.number)}
                     fontSize={11 * scale} fill="white" fontStyle="bold"
                     width={18 * scale} height={14 * scale}
                     align="center" verticalAlign="middle"
                     listening={false}
                   />
+                  {/* Nimitagi – näytetään 'name' tilassa */}
+                  {displayMode === 'name' && el.name && (
+                    <Group y={16 * scale} listening={false}>
+                      <Rect
+                        x={-20 * scale} y={-6 * scale}
+                        width={40 * scale} height={12 * scale}
+                        fill="rgba(0,0,0,0.65)"
+                        cornerRadius={3 * scale}
+                      />
+                      <KonvaText
+                        x={-20 * scale} y={-6 * scale}
+                        text={el.name.slice(0, 8)}
+                        fontSize={8 * scale} fill="white"
+                        width={40 * scale} height={12 * scale}
+                        align="center" verticalAlign="middle"
+                        listening={false}
+                      />
+                    </Group>
+                  )}
                   {/* Positiotunniste pelaajan alla */}
                   {el.posLabel && (
                     <KonvaText
@@ -780,6 +880,8 @@ const DrillCanvas = forwardRef(function DrillCanvas({ elements, fieldType, activ
                   onDragStart={() => startGroupDrag(el.id)}
                   onDragMove={(e) => syncGroupDragMove(e, el.id)}
                   onDragEnd={(e) => handleDragEnd(e, el.id)}
+                  onWheel={(e) => handleWheel(e, el.id)}
+                  rotation={el.rotation ?? 0}
                 >
                   {/* Harmaa neliö valmentajaa kuvaamaan */}
                   <Rect
@@ -815,7 +917,10 @@ const DrillCanvas = forwardRef(function DrillCanvas({ elements, fieldType, activ
                   onDragStart={() => startGroupDrag(el.id)}
                   onDragMove={(e) => syncGroupDragMove(e, el.id)}
                   onDragEnd={(e) => handleDragEnd(e, el.id)}
+                  onWheel={(e) => handleWheel(e, el.id)}
                 >
+                  {/* Läpinäkymätön hit-alue raahauksen ja klikkauksien vastaanottamiseen */}
+                  <Circle radius={r} fill="transparent" />
                   {/* Varjo */}
                   <Circle radius={r} x={1.5 * s} y={2 * s} fill="rgba(0,0,0,0.22)" listening={false} />
                   {/* Pallon pinta leikattu ympyrälle */}
@@ -865,9 +970,11 @@ const DrillCanvas = forwardRef(function DrillCanvas({ elements, fieldType, activ
                   x={el.x * scale} y={el.y * scale}
                   sides={3} radius={14 * scale}
                   fill={colors.fill} stroke={colors.stroke} strokeWidth={1 * scale}
+                  rotation={el.rotation ?? 0}
                   draggable={draggable}
                   onClick={(e) => selectEl(e, el.id)}
                   onDragEnd={(e) => handleDragEnd(e, el.id)}
+                  onWheel={(e) => handleWheel(e, el.id)}
                 />
               )
             }
@@ -878,21 +985,16 @@ const DrillCanvas = forwardRef(function DrillCanvas({ elements, fieldType, activ
               return (
                 <Rect
                   key={el.id} id={`el_${el.id}`}
-                  x={(el.x - 2.5) * scale} y={(el.y - 18) * scale}
+                  x={el.x * scale} y={el.y * scale}
                   width={5 * scale} height={36 * scale}
+                  offsetX={2.5 * scale} offsetY={18 * scale}
                   fill={poleColors.fill} stroke={poleColors.stroke} strokeWidth={0.5 * scale}
                   cornerRadius={2 * scale}
+                  rotation={el.rotation ?? 0}
                   draggable={draggable}
                   onClick={(e) => selectEl(e, el.id)}
-                  onDragEnd={(e) => {
-                    const node = e.target
-                    // Oikaistaan Rectin vasemman yläkulman offset takaisin loogisiin koordinaatteihin
-                    commitChange(elements.map((elem) =>
-                      elem.id === el.id
-                        ? { ...elem, x: (node.x() + 2.5 * scale) / scale, y: (node.y() + 18 * scale) / scale }
-                        : elem
-                    ))
-                  }}
+                  onDragEnd={(e) => handleDragEnd(e, el.id)}
+                  onWheel={(e) => handleWheel(e, el.id)}
                 />
               )
             }
@@ -1114,9 +1216,11 @@ const DrillCanvas = forwardRef(function DrillCanvas({ elements, fieldType, activ
                   x={el.x * scale} y={el.y * scale}
                   sides={3} radius={el.radius * scale}
                   stroke={väri} strokeWidth={2.5 * scale} fill="transparent"
+                  rotation={el.rotation ?? 0}
                   draggable={draggable}
                   onClick={(e) => selectEl(e, el.id)}
                   onDragEnd={(e) => handleDragEnd(e, el.id)}
+                  onWheel={(e) => handleWheel(e, el.id)}
                 />
               )
             }
@@ -1235,9 +1339,11 @@ const DrillCanvas = forwardRef(function DrillCanvas({ elements, fieldType, activ
             if (el.type === 'arrow') {
               const arrowType = el.arrowType ?? 'syotto'
               const st = getArrowStyle(arrowType, scale)
-              // Kuljetusnuoli käyttää aaltoviivapisteitä, muut suoraa kahden pisteen viivaa
+              // Kuljetusnuoli käyttää aaltoviivapisteitä, kaareva bezier-käyrää, muut suoraa viivaa
               const pts = arrowType === 'kuljetus'
                 ? getKuljetusPoints(el.x1, el.y1, el.x2, el.y2, scale)
+                : arrowType === 'kaareva'
+                ? getKaarvaPoints(el.x1, el.y1, el.x2, el.y2, scale)
                 : [el.x1 * scale, el.y1 * scale, el.x2 * scale, el.y2 * scale]
               return (
                 <Group
@@ -1384,6 +1490,22 @@ const DrillCanvas = forwardRef(function DrillCanvas({ elements, fieldType, activ
           />
         </Layer>
       </Stage>
+
+      {/* Tyhjän kentän ohjeteksti – häviää kun elementtejä lisätään */}
+      {elements.length === 0 && activeTool !== 'animate' && (
+        <div className={styles.emptyHint}>
+          <div className={styles.emptyHintText}>
+            Vedä elementtejä vasemmalta<br />tai klikkaa kenttää
+          </div>
+        </div>
+      )}
+
+      {/* Zoom-kontrollit */}
+      <div className={styles.zoomControls}>
+        <button className={styles.zoomBtn} onClick={() => setZoom((z) => Math.max(0.5, z - 0.1))}>−</button>
+        <span className={styles.zoomLabel}>{Math.round(zoom * 100)}%</span>
+        <button className={styles.zoomBtn} onClick={() => setZoom((z) => Math.min(2, z + 0.1))}>+</button>
+      </div>
 
       {/* ── ANIMAATIOKONTROLLIT – näytetään animaatiotilassa ── */}
       {activeTool === 'animate' && (

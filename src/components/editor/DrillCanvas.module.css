@@ -131,6 +131,66 @@
   border-color: #ef4444;
 }
 
+.emptyHint {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.emptyHintText {
+  font-size: 14px;
+  color: rgba(255,255,255,0.22);
+  text-align: center;
+  line-height: 1.6;
+  background: rgba(0,0,0,0.2);
+  padding: 14px 22px;
+  border-radius: 8px;
+  border: 1px dashed rgba(255,255,255,0.12);
+}
+
+.zoomControls {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(22, 24, 32, 0.85);
+  border: 1px solid #2d3f55;
+  border-radius: 6px;
+  padding: 3px 6px;
+  z-index: 10;
+}
+
+.zoomBtn {
+  background: none;
+  border: none;
+  color: #8a9bb0;
+  font-size: 16px;
+  cursor: pointer;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 3px;
+}
+
+.zoomBtn:hover {
+  background: #1e2a3a;
+  color: #d0dce8;
+}
+
+.zoomLabel {
+  font-size: 11px;
+  color: #8a9bb0;
+  min-width: 36px;
+  text-align: center;
+}
+
 .textEditor {
   position: absolute;
   z-index: 10;
