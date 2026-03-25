@@ -1,6 +1,6 @@
 /**
  * seasonDb.js
- * Tietokantafunktiot kausisuunnittelulle — joukkueet ja kalenteritapahtumat.
+ * Tietokantafunktiot kausisuunnittelulle — joukkueet ja kalenteri-tapahtumat.
  * Kaikki funktiot palauttavat Supabasen promise-olion suoraan ({data, error}).
  */
 
@@ -11,7 +11,6 @@ import { supabase } from './supabase'
 /**
  * Lataa kaikki käyttäjän joukkueet luomisjärjestyksessä.
  * @param {string} userId - Supabase-käyttäjän UUID
- * @returns {Promise<{data: Array|null, error: object|null}>}
  */
 export function loadTeams(userId) {
   return supabase
@@ -24,7 +23,6 @@ export function loadTeams(userId) {
 /**
  * Luo uusi joukkue käyttäjälle oletusnimelllä "Uusi joukkue".
  * @param {string} userId - Supabase-käyttäjän UUID
- * @returns {Promise<{data: object|null, error: object|null}>}
  */
 export function createTeam(userId) {
   return supabase
@@ -37,8 +35,7 @@ export function createTeam(userId) {
 /**
  * Päivitä joukkueen tiedot.
  * @param {string} teamId - Päivitettävän joukkueen UUID
- * @param {object} updates - Päivitettävät kentät (esim. { name: 'FC Esimerkki' })
- * @returns {Promise<{data: object|null, error: object|null}>}
+ * @param {object} updates - Päivitettävät kentät
  */
 export function updateTeam(teamId, updates) {
   return supabase
@@ -50,46 +47,99 @@ export function updateTeam(teamId, updates) {
 /**
  * Poista joukkue pysyvästi (RLS varmistaa omistajuuden).
  * @param {string} teamId - Poistettavan joukkueen UUID
- * @returns {Promise<{data: object|null, error: object|null}>}
  */
 export function deleteTeam(teamId) {
   return supabase.from('teams').delete().eq('id', teamId)
 }
 
-// ── KALENTERITAPAHTUMAT ──
+// ── KAUSI-TAPAHTUMAT ──
 
 /**
- * Lataa joukkueen kalenteritapahtumat päivämäärän mukaan nousevassa järjestyksessä.
+ * Lataa joukkueen kaikki tapahtumat päivämäärän mukaan nousevassa järjestyksessä.
  * @param {string} teamId - Joukkueen UUID
- * @returns {Promise<{data: Array|null, error: object|null}>}
  */
 export function loadEvents(teamId) {
   return supabase
-    .from('calendar_events')
+    .from('season_events')
     .select('*')
     .eq('team_id', teamId)
     .order('date', { ascending: true })
 }
 
 /**
- * Lisää uusi kalenteritapahtuma joukkueelle.
- * @param {string} teamId - Joukkueen UUID
- * @param {object} event - Tapahtuman tiedot (date, type, title jne.)
- * @returns {Promise<{data: object|null, error: object|null}>}
+ * Lisää yksi tapahtuma tietokantaan.
+ * @param {object} event - Tapahtuman tiedot (user_id, team_id, title, type, date jne.)
  */
-export function addEvent(teamId, event) {
+export function addEvent(event) {
   return supabase
-    .from('calendar_events')
-    .insert({ team_id: teamId, ...event })
+    .from('season_events')
+    .insert({
+      user_id:             event.userId,
+      team_id:             event.teamId,
+      title:               event.title,
+      type:                event.type,
+      date:                event.date,
+      time:                event.time || null,
+      duration:            event.duration || null,
+      theme:               event.theme || null,
+      is_recurring:        event.isRecurring || false,
+      recurring_until:     event.recurringUntil || null,
+      recurring_group_id:  event.recurringGroupId || null,
+    })
     .select()
     .single()
 }
 
 /**
- * Poista yksittäinen kalenteritapahtuma.
- * @param {string} eventId - Poistettavan tapahtuman UUID
- * @returns {Promise<{data: object|null, error: object|null}>}
+ * Päivitä tapahtuman tiedot.
+ * @param {string} id - Tapahtuman UUID
+ * @param {object} updates - Päivitettävät kentät
  */
-export function deleteEvent(eventId) {
-  return supabase.from('calendar_events').delete().eq('id', eventId)
+export function updateEvent(id, updates) {
+  return supabase
+    .from('season_events')
+    .update(updates)
+    .eq('id', id)
+}
+
+/**
+ * Poista yksittäinen tapahtuma.
+ * @param {string} id - Poistettavan tapahtuman UUID
+ */
+export function deleteEvent(id) {
+  return supabase.from('season_events').delete().eq('id', id)
+}
+
+/**
+ * Poista kaikki saman toistuvan ryhmän tulevat tapahtumat (mukaan lukien tämä päivä).
+ * @param {string} recurringGroupId - Toistuvan ryhmän UUID
+ * @param {string} fromDate - Alkupäivämäärä 'YYYY-MM-DD', poistetaan tästä eteenpäin
+ */
+export function deleteFutureRecurring(recurringGroupId, fromDate) {
+  return supabase
+    .from('season_events')
+    .delete()
+    .eq('recurring_group_id', recurringGroupId)
+    .gte('date', fromDate)
+}
+
+/**
+ * Lisää useita tapahtumia kerralla (toistuvat tapahtumat).
+ * @param {Array<object>} events - Taulukko tapahtumaobjekteja
+ */
+export function addEvents(events) {
+  const rows = events.map((event) => ({
+    user_id:             event.userId,
+    team_id:             event.teamId,
+    title:               event.title,
+    type:                event.type,
+    date:                event.date,
+    time:                event.time || null,
+    duration:            event.duration || null,
+    theme:               event.theme || null,
+    is_recurring:        event.isRecurring || false,
+    recurring_until:     event.recurringUntil || null,
+    recurring_group_id:  event.recurringGroupId || null,
+  }))
+  return supabase.from('season_events').insert(rows).select()
 }

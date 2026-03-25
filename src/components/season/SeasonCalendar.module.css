@@ -1,214 +1,496 @@
+/* ── PÄÄSEKTIO ── */
 .section {
-  margin-bottom: 40px;
+  padding: 0 0 40px;
 }
 
-/* ── OTSIKKORIVI ── */
-.header {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  margin-bottom: 20px;
-  flex-wrap: wrap;
-}
-
-.title {
-  font-size: 16px;
-  font-weight: 700;
-  color: #d0dce8;
-  margin: 0;
-  flex-shrink: 0;
-}
-
-/* ── TYYPIN VALITSIN ── */
-.typeBar {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.typeBarLabel {
-  font-size: 12px;
-  color: #8a9bb0;
-}
-
-.typeBtn {
-  background: #1a1d27;
-  border: 1px solid #2a2d3e;
-  border-radius: 20px;
-  color: #8a9bb0;
-  font-size: 12px;
-  font-weight: 500;
-  padding: 5px 14px;
-  cursor: pointer;
-  transition: all 0.15s;
-}
-
-.typeBtn:hover {
-  border-color: #8a9bb0;
-  color: #d0dce8;
-}
-
-.typeBtnActive {
-  color: white !important;
-  font-weight: 700;
-}
-
-/* ── MODAL ── */
-.modalOverlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.55);
-  z-index: 200;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.modal {
-  background: #1a1d27;
-  border: 1px solid #2a2d3e;
-  border-radius: 12px;
-  width: 280px;
+/* ── FAASIAIKAJANA ── */
+.phaseBar {
+  position: relative;
+  height: 28px;
+  background: #161820;
+  border: 1px solid #1e2230;
+  border-radius: 8px;
   overflow: hidden;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  margin-bottom: 16px;
 }
 
-.modalHeader {
+.phaseSegment {
+  position: absolute;
+  top: 0;
+  height: 100%;
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 12px 14px;
-  border-bottom: 1px solid #2a2d3e;
-  border-left: 3px solid transparent;
+  padding: 0 10px;
+  overflow: hidden;
 }
 
-.modalTitle {
-  font-size: 14px;
+.phaseSegmentLabel {
+  font-size: 11px;
   font-weight: 700;
-  color: #d0dce8;
+  color: rgba(255, 255, 255, 0.9);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.modalDate {
+/* Jaksosuodattimen ilmaisin */
+.phaseFilterBar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: -8px;
+  margin-bottom: 12px;
+  padding: 6px 12px;
+  background: #1a1d27;
+  border: 1px solid #2d3f55;
+  border-radius: 6px;
   font-size: 12px;
   color: #8a9bb0;
+}
+
+.phaseFilterLabel {
   flex: 1;
 }
 
-.modalClose {
+.phaseFilterLabel strong {
+  color: #d0dce8;
+}
+
+.phaseFilterReset {
+  background: none;
+  border: 1px solid #3d5068;
+  border-radius: 4px;
+  color: #8a9bb0;
+  font-size: 11px;
+  padding: 2px 8px;
+  cursor: pointer;
+}
+
+.phaseFilterReset:hover {
+  background: #2d3f55;
+  color: #d0dce8;
+}
+
+/* ── YLÄPALKKI ── */
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 0;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* ── NÄKYMÄVÄLILETIT ── */
+.viewTabs {
+  display: flex;
+  gap: 4px;
+  background: #161820;
+  border-radius: 8px;
+  padding: 4px;
+  border: 1px solid #1e2230;
+}
+
+.tab {
+  padding: 6px 16px;
+  border-radius: 6px;
+  color: #5a7a9a;
   background: none;
   border: none;
-  color: #3d5068;
   cursor: pointer;
   font-size: 13px;
-  padding: 2px 4px;
+  transition: color 0.15s, background 0.15s;
+}
+
+.tab:hover {
+  color: #8a9bb0;
+}
+
+.tabActive {
+  padding: 6px 16px;
+  border-radius: 6px;
+  background: #1a1d27;
+  color: #d0dce8;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+/* ── NAVIGAATIOPALKKI ── */
+.navBar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.navBtn {
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  background: #1a1d27;
+  border: 1px solid #1e2230;
+  color: #8a9bb0;
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.15s, background 0.15s;
+  line-height: 1;
+}
+
+.navBtn:hover {
+  color: #d0dce8;
+  background: #252836;
+}
+
+.navBtnToday {
+  padding: 5px 12px;
+  border-radius: 6px;
+  background: #1a1d27;
+  border: 1px solid #1e2230;
+  color: #8a9bb0;
+  font-size: 12px;
+  cursor: pointer;
+  transition: color 0.15s, background 0.15s;
+}
+
+.navBtnToday:hover {
+  color: #d0dce8;
+}
+
+.navTitle {
+  font-size: 15px;
+  font-weight: 700;
+  color: #d0dce8;
+  min-width: 200px;
+  text-align: center;
+}
+
+/* ── KUUKAUSINÄKYMÄ: RUUDUKKO ── */
+.monthGrid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  border: 1px solid #1e2230;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+/* Viikonpäivien otsikot */
+.dayHeader {
+  background: #0f1218;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: #3d5068;
+  padding: 8px 0;
+  border-bottom: 1px solid #1e2230;
+}
+
+/* Päiväsolut */
+.dayCell {
+  min-height: 80px;
+  padding: 6px;
+  background: #161820;
+  border-right: 1px solid #1e2230;
+  border-bottom: 1px solid #1e2230;
+  cursor: pointer;
+  transition: background 0.1s;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow: hidden;
+}
+
+.dayCell:hover {
+  background: #1a1d27;
+}
+
+.dayCellToday {
+  border-color: #1D9E75 !important;
+  background: #0d1f19 !important;
+}
+
+.dayCellToday:hover {
+  background: #0f2a1e !important;
+}
+
+.dayCellOutside {
+  min-height: 80px;
+  background: #0f1117;
+  border-right: 1px solid #1e2230;
+  border-bottom: 1px solid #1e2230;
+}
+
+.dayCellWeekend {
+  background: #12151e;
+}
+
+.dayCellWeekend:hover {
+  background: #161a27;
+}
+
+/* Päivän numero */
+.dayNum {
+  font-size: 12px;
+  font-weight: 700;
+  color: #3d5068;
+  margin-bottom: 2px;
+  display: block;
+}
+
+.dayCellToday .dayNum {
+  color: #1D9E75;
+}
+
+/* ── TAPAHTUMACHIPIT ── */
+.chip {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 6px;
   border-radius: 4px;
-  transition: color 0.15s;
+  font-size: 11px;
+  font-weight: 600;
+  color: white;
+  cursor: pointer;
+  margin-bottom: 2px;
+  overflow: hidden;
+  flex-shrink: 0;
+  transition: opacity 0.1s;
+  flex-wrap: wrap;
 }
 
-.modalClose:hover { color: #d0dce8; }
-
-.modalForm {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding: 14px;
+.chip:hover {
+  opacity: 0.85;
 }
 
-.modalLabel {
+.chipTitle {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+}
+
+.chipTime {
+  font-size: 10px;
+  opacity: 0.85;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.chipTheme {
+  display: block;
+  font-size: 9px;
+  opacity: 0.75;
+  font-weight: 400;
+  padding-left: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 100%;
+}
+
+/* ── VIIKKONÄKYMÄ ── */
+.weekView {
+  border: 1px solid #1e2230;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #161820;
+}
+
+.weekHeader {
+  display: flex;
+  border-bottom: 1px solid #1e2230;
+  background: #0f1218;
+}
+
+.weekTimeGutter {
+  width: 52px;
+  flex-shrink: 0;
+  border-right: 1px solid #1e2230;
+}
+
+.weekDayHeader {
+  flex: 1;
+  text-align: center;
+  padding: 8px 4px;
+  border-right: 1px solid #1e2230;
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  align-items: center;
+  gap: 2px;
+}
+
+.weekDayHeader:last-child {
+  border-right: none;
+}
+
+.weekDayHeaderToday {
+  background: #0d1f19;
+}
+
+.weekDayName {
+  font-size: 11px;
+  font-weight: 700;
+  color: #3d5068;
+}
+
+.weekDayNum {
   font-size: 12px;
   color: #8a9bb0;
-  font-weight: 500;
 }
 
-.modalInput {
-  background: #0f1117;
-  border: 1px solid #2a2d3e;
-  border-radius: 7px;
-  color: #d0dce8;
-  font-size: 13px;
-  padding: 7px 10px;
-  outline: none;
-  transition: border-color 0.15s;
-  width: 100%;
+.weekDayHeaderToday .weekDayName,
+.weekDayHeaderToday .weekDayNum {
+  color: #1D9E75;
+}
+
+/* Viikon rungon sisältö */
+.weekBody {
+  display: flex;
+  position: relative;
+  height: 640px; /* 16h × 40px */
+  overflow-y: auto;
+}
+
+.weekTimeGutter {
+  width: 52px;
+  flex-shrink: 0;
+  border-right: 1px solid #1e2230;
+  position: relative;
+}
+
+.weekHourLabel {
+  height: 40px;
+  display: flex;
+  align-items: flex-start;
+  padding: 2px 6px 0;
+  font-size: 10px;
+  color: #3d5068;
+  border-bottom: 1px solid #1e2230;
   box-sizing: border-box;
 }
 
-.modalInput:focus { border-color: #1D9E75; }
-
-.modalBtn {
-  border: none;
-  border-radius: 8px;
-  color: white;
-  font-size: 13px;
-  font-weight: 600;
-  padding: 9px 0;
-  cursor: pointer;
-  transition: opacity 0.15s;
-  margin-top: 2px;
+/* Päiväsarake viikkonäkymässä */
+.weekDayCol {
+  flex: 1;
+  position: relative;
+  border-right: 1px solid #1e2230;
+  min-height: 640px;
 }
 
-.modalBtn:hover { opacity: 0.85; }
+.weekDayCol:last-child {
+  border-right: none;
+}
 
-/* ── KUUKAUSIRUUDUKKO ── */
-.monthsGrid {
+.weekAllDay {
+  padding: 2px 4px;
+  border-bottom: 1px solid #1e2230;
+  background: #12151e;
+}
+
+.weekHourCell {
+  height: 40px;
+  border-bottom: 1px solid #1e2230;
+  cursor: pointer;
+  transition: background 0.1s;
+  box-sizing: border-box;
+}
+
+.weekHourCell:hover {
+  background: #1a1d27;
+}
+
+/* Ajoitettu tapahtuma viikkonäkymässä */
+.weekEvent {
+  position: absolute;
+  border-radius: 4px;
+  padding: 2px 4px;
+  overflow: hidden;
+  cursor: pointer;
+  z-index: 2;
+  transition: opacity 0.1s;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.weekEvent:hover {
+  opacity: 0.85;
+}
+
+.weekEventTitle {
+  font-size: 11px;
+  font-weight: 600;
+  color: white;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.weekEventTime {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+/* ── KAUSNÄKYMÄ ── */
+.seasonGrid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 16px;
 }
 
 @media (max-width: 1100px) {
-  .monthsGrid { grid-template-columns: repeat(2, 1fr); }
+  .seasonGrid { grid-template-columns: repeat(2, 1fr); }
 }
 
 @media (max-width: 640px) {
-  .monthsGrid { grid-template-columns: 1fr; }
+  .seasonGrid { grid-template-columns: 1fr; }
 }
 
-/* ── KUUKAUSIKORTTI ── */
-.monthCard {
+.seasonMonthCard {
   background: #161820;
-  border: 1px solid #2a2d3e;
+  border: 1px solid #1e2230;
   border-radius: 10px;
   overflow: hidden;
 }
 
-.monthHeader {
+.seasonMonthHeader {
   display: flex;
   align-items: center;
   gap: 8px;
   padding: 10px 12px;
-  border-bottom: 1px solid #2a2d3e;
+  border-bottom: 1px solid #1e2230;
   border-left: 3px solid transparent;
 }
 
-.monthName {
+.seasonMonthName {
   font-size: 13px;
   font-weight: 700;
   color: #d0dce8;
 }
 
-.monthYear {
+.seasonMonthYear {
   font-size: 12px;
   color: #3d5068;
 }
 
-.phaseBadge {
+.seasonPhaseBadge {
   font-size: 11px;
   font-weight: 600;
   margin-left: auto;
 }
 
-/* ── PÄIVIEN OTSIKOT ── */
-.dayLabels {
+.seasonDayLabels {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   padding: 4px 6px 2px;
 }
 
-.dayLabel {
+.seasonDayLabel {
   text-align: center;
   font-size: 10px;
   font-weight: 600;
@@ -216,86 +498,499 @@
   padding: 2px 0;
 }
 
-/* ── VIIKKO ── */
-.week {
+.seasonWeek {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   padding: 0 6px;
 }
 
-/* ── PÄIVÄSOLU ── */
-.dayCell {
+.seasonDayCell {
   padding: 3px 2px;
   cursor: pointer;
   border-radius: 5px;
-  min-height: 48px;
+  min-height: 44px;
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: 2px;
   transition: background 0.1s;
 }
 
-.dayCell:hover {
+.seasonDayCell:hover {
   background: #1a1d27;
 }
 
-.emptyCell {
-  min-height: 48px;
-}
-
-.dayNum {
-  font-size: 11px;
-  color: #3d5068;
-  line-height: 1;
-  margin-bottom: 2px;
-  display: block;
-  text-align: center;
-}
-
-.today .dayNum {
+.seasonDayCellToday .seasonDayNum {
   color: #1D9E75;
   font-weight: 700;
 }
 
-.outside {
-  cursor: default;
-  opacity: 0.3;
+.seasonDayCellWeekend {
+  background: #12151e;
 }
 
-.weekend .dayNum {
-  color: #8a9bb0;
+.seasonDayCellWeekend:hover {
+  background: #161a27;
 }
 
-/* ── CHIPPIT ── */
-.chips {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
+.seasonEmptyCell {
+  min-height: 44px;
 }
 
-.chip {
-  border-radius: 3px;
+.seasonDayNum {
+  font-size: 11px;
+  color: #3d5068;
+  line-height: 1;
+  display: block;
+  text-align: center;
+}
+
+/* Pieni väripiste tapahtumille kausnäkymässä */
+.seasonChip {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
   cursor: pointer;
+  transition: opacity 0.1s;
+}
+
+.seasonChip:hover {
+  opacity: 0.75;
+}
+
+/* ── MODAALIT ── */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  z-index: 300;
   display: flex;
   align-items: center;
-  gap: 3px;
-  padding: 2px 4px;
-  transition: opacity 0.1s;
-  overflow: hidden;
+  justify-content: center;
+  padding: 16px;
 }
 
-.chip:hover { opacity: 0.7; }
+.modalBox {
+  background: #161820;
+  border: 1px solid #1e2230;
+  border-radius: 14px;
+  width: 100%;
+  max-width: 420px;
+  overflow: hidden;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.6);
+  max-height: 90vh;
+  overflow-y: auto;
+}
 
-.chipShort {
-  font-size: 9px;
+.modalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 18px;
+  border-bottom: 1px solid #1e2230;
+  border-left: 3px solid transparent;
+}
+
+.modalTitle {
+  font-size: 15px;
   font-weight: 700;
-  color: rgba(255,255,255,0.9);
+  color: #d0dce8;
+}
+
+.modalClose {
+  background: none;
+  border: none;
+  color: #3d5068;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 4px 6px;
+  border-radius: 4px;
+  transition: color 0.15s;
+  line-height: 1;
+}
+
+.modalClose:hover {
+  color: #d0dce8;
+}
+
+/* ── LOMAKE ── */
+.eventForm {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 18px;
+}
+
+.formField {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.formLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: #5a7a9a;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.formInput,
+.formSelect {
+  background: #0a0d12;
+  border: 1px solid #1e2230;
+  border-radius: 7px;
+  color: #d0dce8;
+  font-size: 13px;
+  padding: 8px 10px;
+  outline: none;
+  transition: border-color 0.15s;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.formInput:focus,
+.formSelect:focus {
+  border-color: #1D9E75;
+}
+
+/* Tyyppivalinta */
+.typeRow {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.typePill {
+  padding: 5px 12px;
+  border-radius: 20px;
+  background: #1a1d27;
+  border: 1px solid #1e2230;
+  color: #5a7a9a;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.typePill:hover {
+  border-color: #5a7a9a;
+  color: #d0dce8;
+}
+
+.typePillActive {
+  color: white !important;
+  font-weight: 700;
+}
+
+/* Checkbox-rivi */
+.formCheckRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.formCheckbox {
+  width: 16px;
+  height: 16px;
+  accent-color: #1D9E75;
+  cursor: pointer;
+}
+
+.formCheckLabel {
+  font-size: 13px;
+  color: #8a9bb0;
+  cursor: pointer;
+}
+
+/* Lomakkeen painikkeet */
+.formActions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  padding-top: 4px;
+}
+
+.btnCancel {
+  padding: 8px 18px;
+  border-radius: 7px;
+  background: #1a1d27;
+  border: 1px solid #1e2230;
+  color: #8a9bb0;
+  font-size: 13px;
+  cursor: pointer;
+  transition: color 0.15s;
+}
+
+.btnCancel:hover {
+  color: #d0dce8;
+}
+
+.btnSubmit {
+  padding: 8px 20px;
+  border-radius: 7px;
+  border: none;
+  color: white;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.btnSubmit:hover {
+  opacity: 0.85;
+}
+
+/* ── NÄYTTÖMODAALI: SISÄLTÖ ── */
+.viewBody {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 18px;
+}
+
+.viewRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.viewLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: #3d5068;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  min-width: 90px;
   flex-shrink: 0;
 }
 
-.chipTime {
-  font-size: 9px;
-  color: rgba(255,255,255,0.75);
-  white-space: nowrap;
-  overflow: hidden;
+.viewValue {
+  font-size: 13px;
+  color: #d0dce8;
+}
+
+.typeBadge {
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  color: white;
+}
+
+/* Näyttömodaalin painikkeet */
+.viewActions {
+  display: flex;
+  gap: 8px;
+  padding: 12px 18px 16px;
+  border-top: 1px solid #1e2230;
+}
+
+.btnEdit {
+  flex: 1;
+  padding: 8px;
+  border-radius: 7px;
+  background: #1a1d27;
+  border: 1px solid #1e2230;
+  color: #d0dce8;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.btnEdit:hover {
+  background: #252836;
+}
+
+.btnDelete {
+  flex: 1;
+  padding: 8px;
+  border-radius: 7px;
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #ef4444;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.btnDelete:hover {
+  background: rgba(239, 68, 68, 0.22);
+}
+
+.btnClose {
+  flex: 1;
+  padding: 8px;
+  border-radius: 7px;
+  background: #1a1d27;
+  border: 1px solid #1e2230;
+  color: #5a7a9a;
+  font-size: 13px;
+  cursor: pointer;
+  transition: color 0.15s;
+}
+
+.btnClose:hover {
+  color: #8a9bb0;
+}
+
+/* ── VAHVISTUSDIALOKIT ── */
+.confirmBox {
+  background: #161820;
+  border: 1px solid #1e2230;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 380px;
+  padding: 24px 22px 18px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+}
+
+.confirmText {
+  font-size: 14px;
+  color: #d0dce8;
+  line-height: 1.6;
+  margin: 0 0 20px;
+  text-align: center;
+}
+
+.confirmText strong {
+  color: white;
+}
+
+.confirmActions {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.btnConfirmDelete {
+  padding: 8px 18px;
+  border-radius: 7px;
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  color: #ef4444;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.btnConfirmDelete:hover {
+  background: rgba(239, 68, 68, 0.28);
+}
+
+.btnConfirmDeleteAll {
+  padding: 8px 18px;
+  border-radius: 7px;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #f87171;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.btnConfirmDeleteAll:hover {
+  background: rgba(239, 68, 68, 0.22);
+}
+
+.btnConfirmOk {
+  padding: 8px 18px;
+  border-radius: 7px;
+  background: #1D9E75;
+  border: none;
+  color: white;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.btnConfirmOk:hover {
+  opacity: 0.85;
+}
+
+.btnConfirmCancel {
+  padding: 8px 18px;
+  border-radius: 7px;
+  background: #1a1d27;
+  border: 1px solid #1e2230;
+  color: #5a7a9a;
+  font-size: 13px;
+  cursor: pointer;
+  transition: color 0.15s;
+}
+
+.btnConfirmCancel:hover {
+  color: #8a9bb0;
+}
+
+/* ── TILASTOPALKKI ── */
+.statsBar {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+  padding: 16px 20px;
+  background: #161820;
+  border: 1px solid #1e2230;
+  border-radius: 10px;
+  flex-wrap: wrap;
+}
+
+.statItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  flex: 1;
+  min-width: 80px;
+}
+
+.statValue {
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.statLabel {
+  font-size: 11px;
+  color: #3d5068;
+  font-weight: 500;
+  text-align: center;
+}
+
+/* ── RESPONSIIVISUUS ── */
+@media (max-width: 768px) {
+  .monthGrid {
+    font-size: 11px;
+  }
+
+  .dayCell {
+    min-height: 56px;
+    padding: 4px;
+  }
+
+  .chip {
+    font-size: 9px;
+    padding: 1px 4px;
+  }
+
+  .navTitle {
+    min-width: 120px;
+    font-size: 13px;
+  }
+
+  .weekBody {
+    height: 480px;
+  }
+
+  .statsBar {
+    gap: 8px;
+    padding: 12px 14px;
+  }
 }
