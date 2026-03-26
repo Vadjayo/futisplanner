@@ -4,6 +4,7 @@
  */
 
 import { Link } from 'react-router-dom'
+import { ROUTES } from '../../constants/routes'
 import styles from './LandingPage.module.css'
 
 // Ominaisuuskortit — näytetään 3×2 gridissä
@@ -61,7 +62,7 @@ const PLANS = [
     ],
     missing: ['Animaatiot', 'PDF-vienti', 'Jakaminen', 'Harjoituskirjasto', 'AI-avustaja'],
     cta: 'Aloita ilmaiseksi',
-    ctaLink: '/kirjaudu',
+    ctaLink: ROUTES.LOGIN,
     highlighted: false,
   },
   {
@@ -80,7 +81,7 @@ const PLANS = [
     ],
     missing: [],
     cta: 'Kokeile Pro:ta',
-    ctaLink: '/kirjaudu',
+    ctaLink: ROUTES.LOGIN,
     highlighted: true,
   },
 ]
@@ -105,8 +106,8 @@ export default function LandingPage() {
             <a href="#hinnoittelu" className={styles.navLink}>Hinnoittelu</a>
           </div>
           <div className={styles.navActions}>
-            <Link to="/kirjaudu" className={styles.btnOutline}>Kirjaudu sisään</Link>
-            <Link to="/kirjaudu" className={styles.btnPrimary}>Aloita ilmaiseksi</Link>
+            <Link to={ROUTES.LOGIN} className={styles.btnOutline}>Kirjaudu sisään</Link>
+            <Link to={ROUTES.LOGIN} className={styles.btnPrimary}>Aloita ilmaiseksi</Link>
           </div>
         </div>
       </nav>
@@ -173,7 +174,7 @@ export default function LandingPage() {
 
           {/* CTA-napit */}
           <div className={styles.heroBtns}>
-            <Link to="/kirjaudu" className={styles.btnPrimaryLg}>
+            <Link to={ROUTES.LOGIN} className={styles.btnPrimaryLg}>
               Aloita ilmaiseksi →
             </Link>
             <a href="#ominaisuudet" className={styles.btnGhostLg}>

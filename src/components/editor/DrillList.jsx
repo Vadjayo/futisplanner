@@ -3,7 +3,6 @@
  * Harjoitteiden lista editorissa. Hallitsee aktiivisen harjoitteen valinnan.
  */
 
-import { useTranslation } from 'react-i18next'
 import DrillCard from './DrillCard'
 import styles from './DrillList.module.css'
 
@@ -21,8 +20,6 @@ export default function DrillList({
   onDuplicateDrill,
   getCardRef, // (index, el) => void — EditorApp kerää DrillCard-refit PDF-vientiä varten
 }) {
-  const { t } = useTranslation()
-
   // Näytä tyhjän tilan viesti jos yhtään harjoitetta ei ole
   if (drills.length === 0) {
     return (

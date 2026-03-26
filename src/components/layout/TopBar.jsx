@@ -4,17 +4,18 @@
  */
 
 import { useNavigate } from 'react-router-dom'
-import { useTranslation } from 'react-i18next'
 import { useInlineEdit } from '../../hooks/useInlineEdit'
+import { ROUTES } from '../../constants/routes'
 import styles from './TopBar.module.css'
 
+const PLACEHOLDER = 'Nimetön harjoitus'
+
 export default function TopBar({ sessionName, onSessionNameChange, onSignOut, saveStatus = 'idle', onSave, onExportPdf }) {
-  const { t } = useTranslation()
   const navigate = useNavigate()
 
   const { editing, draft, setDraft, startEdit, commit, handleKeyDown } = useInlineEdit(
     sessionName,
-    (val) => onSessionNameChange(val || t('topbar.placeholder'))
+    (val) => onSessionNameChange(val || PLACEHOLDER)
   )
 
   return (
@@ -22,7 +23,7 @@ export default function TopBar({ sessionName, onSessionNameChange, onSignOut, sa
       <div className={styles.left}>
         <button
           className={styles.btnBack}
-          onClick={() => { onSave(); navigate('/dashboard') }}
+          onClick={() => { onSave(); navigate(ROUTES.DASHBOARD) }}
           title="Takaisin suunnitelmiin"
         >
           ← Suunnitelmat
@@ -41,7 +42,7 @@ export default function TopBar({ sessionName, onSessionNameChange, onSignOut, sa
           />
         ) : (
           <button className={styles.namePlaceholder} onClick={startEdit}>
-            {sessionName || t('topbar.placeholder')}
+            {sessionName || PLACEHOLDER}
             <span className={styles.editHint}>✎</span>
           </button>
         )}
@@ -69,7 +70,7 @@ export default function TopBar({ sessionName, onSessionNameChange, onSignOut, sa
         >
           {saveStatus === 'saving' ? '…' : saveStatus === 'saved' ? '✓ Tallennettu' : 'Tallenna'}
         </button>
-        <button className={styles.btnSignOut} onClick={onSignOut} title={t('topbar.signOut')}>
+        <button className={styles.btnSignOut} onClick={onSignOut} title="Kirjaudu ulos">
           ⎋
         </button>
       </div>

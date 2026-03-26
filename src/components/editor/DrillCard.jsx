@@ -4,7 +4,6 @@
  */
 
 import { useRef, useState, useEffect, forwardRef, useImperativeHandle } from 'react'
-import { useTranslation } from 'react-i18next'
 import { useInlineEdit } from '../../hooks/useInlineEdit'
 import DrillCanvas from './DrillCanvas'
 import styles from './DrillCard.module.css'
@@ -24,7 +23,6 @@ const DrillCard = forwardRef(function DrillCard(
   { drill, index, activeTool, toolOptions, isActive, onSelect, onUpdate, onDelete, onToolChange, onSaveToLibrary, onDuplicate },
   ref
 ) {
-  const { t } = useTranslation()
   const canvasRef = useRef(null)
   const menuBtnRef = useRef(null)
 
@@ -160,7 +158,7 @@ const DrillCard = forwardRef(function DrillCard(
             onClick={(e) => e.stopPropagation()}
             onChange={handleDurationChange}
           />
-          <span className={styles.durationUnit}>{t('drill.minutes')}</span>
+          <span className={styles.durationUnit}>min</span>
           {/* Kestopikapainikkeet */}
           {[10, 15, 20, 30, 45].map((mins) => (
             <button

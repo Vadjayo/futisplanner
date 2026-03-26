@@ -7,6 +7,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
+import { ROUTES } from '../../constants/routes'
 import {
   loadTeams,
   createTeam,
@@ -93,7 +94,7 @@ export default function SeasonPage() {
 
   // Ohjaa kirjautumissivulle jos ei kirjautunut
   useEffect(() => {
-    if (!authLoading && !user) navigate('/kirjaudu', { replace: true })
+    if (!authLoading && !user) navigate(ROUTES.LOGIN, { replace: true })
   }, [authLoading, user, navigate])
 
   // Lataa joukkueet käynnistyessä

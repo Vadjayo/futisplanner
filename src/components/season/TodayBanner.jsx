@@ -7,6 +7,7 @@
 
 import { useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { ROUTES } from '../../constants/routes'
 import styles from './TodayBanner.module.css'
 
 // Formatoi 'YYYY-MM-DD' suomeksi lyhyesti, esim. "ti 3.6."
@@ -84,7 +85,7 @@ export default function TodayBanner({ team, events }) {
             {nextDrill.theme && (
               <div className={styles.eventTheme}>{nextDrill.theme}</div>
             )}
-            <button className={styles.panelBtn} onClick={() => navigate('/sovellus')}>
+            <button className={styles.panelBtn} onClick={() => navigate(ROUTES.EDITOR)}>
               Suunnittele treeni →
             </button>
           </>
@@ -110,7 +111,7 @@ export default function TodayBanner({ team, events }) {
             {nextGame.title && (
               <div className={styles.eventTheme}>{nextGame.title}</div>
             )}
-            <button className={styles.panelBtn} onClick={() => navigate('/sovellus')}>
+            <button className={styles.panelBtn} onClick={() => navigate(ROUTES.EDITOR)}>
               Pelipäiväsuunnitelma →
             </button>
           </>

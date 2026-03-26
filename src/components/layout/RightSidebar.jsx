@@ -4,7 +4,6 @@
  */
 
 import { useState, useRef } from 'react'
-import { useTranslation } from 'react-i18next'
 import { totalDuration } from '../../utils/drillUtils'
 import styles from './RightSidebar.module.css'
 
@@ -16,7 +15,6 @@ const FOCUS_FIELDS = [
 ]
 
 export default function RightSidebar({ drills, activeDrillIndex, onDrillSelect, onReorderDrill, onAddDrill, onOpenLibrary, sessionMeta, onSessionMetaChange }) {
-  const { t } = useTranslation()
   const totalMinutes = totalDuration(drills)
   const dragFromRef = useRef(null)
   const [dragOverIndex, setDragOverIndex] = useState(null)
@@ -49,7 +47,7 @@ export default function RightSidebar({ drills, activeDrillIndex, onDrillSelect, 
 
       {/* ── HARJOITTEET ── */}
       <div className={styles.section}>
-        <h3 className={styles.sectionTitle}>{t('sidebar.drills')}</h3>
+        <h3 className={styles.sectionTitle}>Harjoitteet</h3>
 
         <ul className={styles.drillList}>
           {drills.map((drill, i) => (
@@ -69,10 +67,10 @@ export default function RightSidebar({ drills, activeDrillIndex, onDrillSelect, 
               >
                 <span className={styles.drillNum}>{i + 1}</span>
                 <span className={styles.drillName}>
-                  {drill.title || t('drill.untitled')}
+                  {drill.title || 'Nimetön harjoite'}
                 </span>
                 <span className={styles.drillDuration}>
-                  {drill.duration || 0} {t('sidebar.minutes')}
+                  {drill.duration || 0} min
                 </span>
                 {/* Suhteellinen kestopalkki */}
                 {totalMinutes > 0 && (
@@ -87,7 +85,7 @@ export default function RightSidebar({ drills, activeDrillIndex, onDrillSelect, 
         </ul>
 
         <button className={styles.addBtn} onClick={onAddDrill}>
-          {t('sidebar.addDrill')}
+          + Lisää harjoite
         </button>
 
         <button className={styles.libraryBtn} onClick={onOpenLibrary}>
@@ -160,9 +158,9 @@ export default function RightSidebar({ drills, activeDrillIndex, onDrillSelect, 
 
       {/* ── ALATUNNISTE ── */}
       <div className={styles.footer}>
-        <span className={styles.totalLabel}>{t('sidebar.totalDuration')}</span>
+        <span className={styles.totalLabel}>Kesto yhteensä</span>
         <span className={styles.totalValue}>
-          {totalMinutes} {t('sidebar.minutes')}
+          {totalMinutes} min
         </span>
       </div>
     </aside>
