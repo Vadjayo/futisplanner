@@ -1,17 +1,11 @@
 /**
  * PlayerLists.jsx
  * Oikean sivupalkin pelaajalistat: aloittajat, vaihtomiehet, poissaolijat.
- * Pelaajia voi siirtää eri listojen välillä kontekstivalikon kautta.
+ * Vaihtopelaajanvalitsin avautuu joukkueen pelaajista jotka eivät ole listoilla.
  */
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import styles from './PlayerLists.module.css'
-
-const ABSENCE_REASONS = [
-  { value: 'injured',  label: 'Loukkaantunut 🤕' },
-  { value: 'absent',   label: 'Poissa ⛔' },
-  { value: 'rest',     label: 'Taukotila 💤' },
-]
 
 /**
  * Yksittäinen pelaajariivi toimintovalikolla.
@@ -67,16 +61,18 @@ function PlayerRow({ player, listType, onMove }) {
  * @param {Array}    lineup       - Aloittava kokoonpano
  * @param {Array}    substitutes  - Vaihtomiehet
  * @param {Array}    absent       - Poissaolijat
- * @param {function} onChange     - (field, value) => void — päivittää plan-kenttää
+ * @param {Array}    teamPlayers  - Kaikki joukkueen pelaajat (valintaa varten)
+ * @param {function} onChange     - (field, value) => void
  */
-export default function PlayerLists({ lineup, substitutes, absent, onChange }) {
+export default function PlayerLists({ lineup, substitutes, absent, teamPlayers = [], onChange }) {
+  const [subPickerOpen, setSubPickerOpen] = useState(false)
+
   /**
    * Siirtää pelaajan eri listalle.
    * @param {object} player
    * @param {'lineup'|'substitute'|'absent'} targetList
    */
   function handleMove(player, targetList) {
-    // Poista pelaaja kaikista listoista
     const cleanLineup = lineup.filter((p) => p.id !== player.id)
     const cleanSubs   = substitutes.filter((p) => p.id !== player.id)
     const cleanAbsent = absent.filter((p) => p.id !== player.id)
@@ -86,12 +82,53 @@ export default function PlayerLists({ lineup, substitutes, absent, onChange }) {
     if (targetList === 'absent')     onChange('absent',      [...cleanAbsent, player])
   }
 
-  /** Lisää tyhjä uusi pelaaja vaihtomieslistalle */
-  function addSubstitute() {
+  /** PlayerId:t jotka ovat jo jollain listalla */
+  const assignedIds = useMemo(() => {
+    const ids = new Set()
+    lineup.forEach((s) => s.playerId && ids.add(s.playerId))
+    substitutes.forEach((s) => s.playerId && ids.add(s.playerId))
+    absent.forEach((s) => s.playerId && ids.add(s.playerId))
+    return ids
+  }, [lineup, substitutes, absent])
+
+  /** Pelaajat jotka eivät ole millään listalla */
+  const availablePlayers = useMemo(
+    () => teamPlayers.filter((p) => !assignedIds.has(p.id)),
+    [teamPlayers, assignedIds]
+  )
+
+  /**
+   * Lisää joukkuepelaajan vaihtomieslistalle.
+   * @param {object} player - Joukkueen pelaaja
+   */
+  function addSubFromTeam(player) {
     onChange('substitutes', [
       ...substitutes,
-      { id: crypto.randomUUID(), name: '', number: '', position: 'KK' },
+      {
+        id:       crypto.randomUUID(),
+        playerId: player.id,
+        name:     player.name,
+        number:   String(player.number ?? ''),
+        position: player.position ?? '',
+      },
     ])
+    setSubPickerOpen(false)
+  }
+
+  /** Lisää tyhjä rivi jos joukkuetta ei ole käytössä */
+  function addEmptySub() {
+    onChange('substitutes', [
+      ...substitutes,
+      { id: crypto.randomUUID(), name: '', number: '', position: '' },
+    ])
+  }
+
+  function handleAddSubClick() {
+    if (teamPlayers.length > 0) {
+      setSubPickerOpen((v) => !v)
+    } else {
+      addEmptySub()
+    }
   }
 
   return (
@@ -100,7 +137,7 @@ export default function PlayerLists({ lineup, substitutes, absent, onChange }) {
       <div className={styles.statsRow}>
         <span className={styles.statBadge}>
           <span className={`${styles.dot} ${styles.dotLineup}`} />
-          {lineup.length} aloittajaa
+          {lineup.filter((p) => !!(p.name || p.number)).length} aloittajaa
         </span>
         <span className={styles.statBadge}>
           <span className={`${styles.dot} ${styles.dotSub}`} />
@@ -115,12 +152,14 @@ export default function PlayerLists({ lineup, substitutes, absent, onChange }) {
       {/* Aloittajat */}
       <div className={styles.section}>
         <h4 className={styles.sectionTitle}>Aloittava kokoonpano</h4>
-        {lineup.length === 0 ? (
-          <p className={styles.empty}>Ei aloittajia. Vaihda muodostelma lisätäksesi pelaajat kentälle.</p>
+        {lineup.filter((p) => !!(p.name || p.number)).length === 0 ? (
+          <p className={styles.empty}>Valitse muodostelma ja lisää pelaajat kentälle.</p>
         ) : (
-          lineup.map((p) => (
-            <PlayerRow key={p.id} player={p} listType="lineup" onMove={handleMove} />
-          ))
+          lineup
+            .filter((p) => !!(p.name || p.number))
+            .map((p) => (
+              <PlayerRow key={p.id} player={p} listType="lineup" onMove={handleMove} />
+            ))
         )}
       </div>
 
@@ -130,7 +169,27 @@ export default function PlayerLists({ lineup, substitutes, absent, onChange }) {
         {substitutes.map((p) => (
           <PlayerRow key={p.id} player={p} listType="substitute" onMove={handleMove} />
         ))}
-        <button className={styles.addBtn} onClick={addSubstitute}>+ Lisää vaihtopelaaja</button>
+
+        {/* Lisää vaihtopelaaja */}
+        <div className={styles.addSubWrap}>
+          <button className={styles.addBtn} onClick={handleAddSubClick}>
+            + Lisää vaihtopelaaja
+          </button>
+          {subPickerOpen && (
+            <div className={styles.subPicker}>
+              {availablePlayers.length === 0 ? (
+                <div className={styles.subPickerEmpty}>Kaikki pelaajat jo lisätty</div>
+              ) : (
+                availablePlayers.map((p) => (
+                  <button key={p.id} className={styles.subPickerItem} onClick={() => addSubFromTeam(p)}>
+                    <span className={styles.subPickerNum}>{p.number ?? '–'}</span>
+                    <span>{p.name}</span>
+                  </button>
+                ))
+              )}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Poissaolijat */}

@@ -1,18 +1,21 @@
 /**
  * PlayerTable.jsx
- * Pelaajataulukko suodattimineen ja toimintopainikkeineen. Puhdas UI-komponentti.
+ * Pelaajataulukko suodattimineen ja toimintopainikkeineen.
+ * Pelipaikka-badgea klikkaamalla avautuu suoraan dropdown — ei erillistä modaalia.
+ * MV-varoitusbanneri jos joukkueesta puuttuu maalivahti.
  *
- * @param {Array}    players        - Näytettävät pelaajat (jo suodatettu)
- * @param {boolean}  loading        - Lataustila — näyttää skeleton-rivit
- * @param {string}   positionFilter - 'all' | 'MV' | 'PO' | 'KP' | 'KK' | 'HY'
- * @param {Function} onFilterChange - (pos: string) => void
- * @param {Function} onNew          - () => void
- * @param {Function} onCsvImport    - () => void
- * @param {Function} onEdit         - (player) => void
- * @param {Function} onDelete       - (player) => void
+ * @param {Array}    players           - Näytettävät pelaajat (jo suodatettu)
+ * @param {boolean}  loading           - Lataustila
+ * @param {string}   positionFilter    - 'all' | 'MV' | 'PO' | 'KP' | 'KK' | 'HY'
+ * @param {Function} onFilterChange    - (pos: string) => void
+ * @param {Function} onNew             - () => void
+ * @param {Function} onCsvImport       - () => void
+ * @param {Function} onEdit            - (player) => void
+ * @param {Function} onDelete          - (player) => void
+ * @param {Function} onPositionChange  - (player, newPosition) => void
  */
 
-import { useCallback } from 'react'
+import { useState, useCallback } from 'react'
 import { COLORS } from '../../constants/colors'
 import Button from '../ui/Button'
 import styles from './PlayerTable.module.css'
@@ -28,9 +31,23 @@ const POSITION_COLORS = {
 
 const POSITIONS = ['MV', 'PO', 'KP', 'KK', 'HY']
 
-/** Pelipaikkamerkki väreillä */
-function PositionBadge({ position }) {
-  if (!position) return <span style={{ color: COLORS.text.secondary }}>—</span>
+/**
+ * Pelipaikkamerkki väreillä. Klikkaamalla avautuu suoraan inline-valinta.
+ * @param {string}   position
+ * @param {function} onClick
+ */
+function PositionBadge({ position, onClick }) {
+  if (!position) {
+    return (
+      <span
+        style={{ color: COLORS.text.secondary, cursor: 'pointer' }}
+        onClick={onClick}
+        title="Klikkaa muuttaaksesi pelipaikka"
+      >
+        —
+      </span>
+    )
+  }
   const color = POSITION_COLORS[position] ?? COLORS.text.secondary
   return (
     <span
@@ -44,7 +61,10 @@ function PositionBadge({ position }) {
         fontSize: 10,
         fontWeight: 700,
         letterSpacing: '0.04em',
+        cursor: 'pointer',
       }}
+      onClick={onClick}
+      title="Klikkaa muuttaaksesi pelipaikka"
     >
       {position}
     </span>
@@ -73,18 +93,17 @@ export default function PlayerTable({
   onCsvImport,
   onEdit,
   onDelete,
+  onPositionChange,
 }) {
-  const handleFilterChange = useCallback((pos) => {
-    onFilterChange(pos)
-  }, [onFilterChange])
+  // Inline-muokkauksessa oleva pelaajan id (pelipaikka-dropdown)
+  const [editingPosId, setEditingPosId] = useState(null)
 
-  const handleEdit = useCallback((player) => {
-    onEdit(player)
-  }, [onEdit])
+  const handleFilterChange = useCallback((pos) => onFilterChange(pos), [onFilterChange])
+  const handleEdit         = useCallback((player) => onEdit(player),    [onEdit])
+  const handleDelete       = useCallback((player) => onDelete(player),  [onDelete])
 
-  const handleDelete = useCallback((player) => {
-    onDelete(player)
-  }, [onDelete])
+  // Puuttuuko MV-pelaaja? Varoitusbanneria varten.
+  const hasMV = players.some((p) => p.position === 'MV')
 
   return (
     <div className={styles.wrapper}>
@@ -106,6 +125,13 @@ export default function PlayerTable({
         </div>
       </div>
 
+      {/* MV-varoitusbanneri */}
+      {!hasMV && !loading && players.length > 0 && (
+        <div className={styles.warning}>
+          ⚠️ Joukkueesta puuttuu maalivahti — lisää pelaaja tai korjaa pelipaikka
+        </div>
+      )}
+
       {/* Pelipaikkafiltterit */}
       <div className={styles.filters}>
         <button
@@ -117,7 +143,7 @@ export default function PlayerTable({
         </button>
         {POSITIONS.map((pos) => {
           const isActive = positionFilter === pos
-          const color = POSITION_COLORS[pos]
+          const color    = POSITION_COLORS[pos]
           return (
             <button
               key={pos}
@@ -169,9 +195,33 @@ export default function PlayerTable({
                   <td className={styles.td} style={{ color: COLORS.text.light, fontWeight: 500 }}>
                     {player.name}
                   </td>
+
+                  {/* Pelipaikka — inline dropdown klikkaamalla */}
                   <td className={styles.td}>
-                    <PositionBadge position={player.position} />
+                    {editingPosId === player.id ? (
+                      <select
+                        className={styles.posSelect}
+                        value={player.position ?? ''}
+                        autoFocus
+                        onChange={(e) => {
+                          onPositionChange(player, e.target.value)
+                          setEditingPosId(null)
+                        }}
+                        onBlur={() => setEditingPosId(null)}
+                      >
+                        <option value="">–</option>
+                        {POSITIONS.map((p) => (
+                          <option key={p} value={p}>{p}</option>
+                        ))}
+                      </select>
+                    ) : (
+                      <PositionBadge
+                        position={player.position}
+                        onClick={() => setEditingPosId(player.id)}
+                      />
+                    )}
                   </td>
+
                   <td className={styles.td}>
                     <PositionBadge position={player.position_secondary} />
                   </td>

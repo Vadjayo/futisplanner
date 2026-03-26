@@ -127,6 +127,13 @@ export default function TeamsPage() {
     setPlayerModal(null)
   }
 
+  /** Päivittää pelaajan pelipaikan suoraan taulukosta (inline-muokkaus) */
+  async function handlePositionChange(player, position) {
+    const { error } = await updatePlayer(player.id, { position })
+    if (error) showToast('Päivitys epäonnistui.', 'error')
+    else       showToast('Pelipaikka päivitetty ✓', 'success')
+  }
+
   /** Poista pelaaja (kutsutaan vahvistuksen jälkeen) */
   async function handleDeletePlayer() {
     if (!playerToDelete) return
@@ -178,6 +185,7 @@ export default function TeamsPage() {
         <TeamSidebar
           teams={teams}
           selectedId={selectedId}
+          playerCount={players.length}
           onSelect={handleSelectTeam}
           onCreate={() => setTeamModalOpen(true)}
         />
@@ -236,6 +244,7 @@ export default function TeamsPage() {
                   onCsvImport={() => setCsvImportOpen(true)}
                   onEdit={(p) => setPlayerModal({ mode: 'edit', player: p })}
                   onDelete={(p) => setPlayerToDelete(p)}
+                  onPositionChange={handlePositionChange}
                 />
               ) : (
                 <PlayerFieldView players={players} />

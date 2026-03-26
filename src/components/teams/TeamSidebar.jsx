@@ -2,17 +2,18 @@
  * TeamSidebar.jsx
  * Joukkuelista sivupalkissa. Puhdas UI-komponentti.
  *
- * @param {Array}          teams      - Joukkueiden lista
- * @param {string|null}    selectedId - Valitun joukkueen ID
- * @param {Function}       onSelect   - (teamId) => void
- * @param {Function}       onCreate   - () => void
+ * @param {Array}          teams        - Joukkueiden lista
+ * @param {string|null}    selectedId   - Valitun joukkueen ID
+ * @param {number}         playerCount  - Valitun joukkueen pelaajamäärä (tuore tieto)
+ * @param {Function}       onSelect     - (teamId) => void
+ * @param {Function}       onCreate     - () => void
  */
 
 import { useCallback } from 'react'
 import { COLORS } from '../../constants/colors'
 import styles from './TeamSidebar.module.css'
 
-export default function TeamSidebar({ teams, selectedId, onSelect, onCreate }) {
+export default function TeamSidebar({ teams, selectedId, playerCount, onSelect, onCreate }) {
   /**
    * Käsittelee joukkueen valinnan.
    * @param {string} teamId
@@ -63,8 +64,13 @@ export default function TeamSidebar({ teams, selectedId, onSelect, onCreate }) {
                     {team.season && (
                       <span className={styles.metaTag}>{team.season}</span>
                     )}
-                    {team.player_count != null && team.player_count > 0 && (
-                      <span className={styles.metaTag}>{team.player_count} pelaaajaa</span>
+                    {/* Valitun joukkueen osalta käytetään tuoretta pelaajamäärää */}
+                    {team.id === selectedId ? (
+                      <span className={styles.metaTag}>{playerCount} pelaajaa</span>
+                    ) : (
+                      team.player_count != null && team.player_count > 0 && (
+                        <span className={styles.metaTag}>{team.player_count} pelaajaa</span>
+                      )
                     )}
                   </div>
                 </div>

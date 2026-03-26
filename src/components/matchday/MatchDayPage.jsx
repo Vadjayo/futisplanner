@@ -49,19 +49,7 @@ export default function MatchDayPage() {
   // Auto-täytä lineup joukkueen pelaajista kun suunnitelma on uusi (tyhjä lineup)
   useEffect(() => {
     if (!plan || plan.lineup?.length > 0 || !teamPlayers.length) return
-    const slots = FORMATIONS[plan.formation] ?? FORMATIONS['4-3-3']
-    const autoLineup = slots.map((slot, i) => {
-      const player = teamPlayers[i]
-      return {
-        id:       crypto.randomUUID(),
-        name:     player?.name   ?? '',
-        number:   player?.number ? String(player.number) : '',
-        position: slot.position,
-        x:        slot.x,
-        y:        slot.y,
-      }
-    })
-    updateLineup(autoLineup)
+    applyFormation(plan.formation, teamPlayers)
   }, [plan?.id, teamPlayers.length]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const [activeTab,          setActiveTab]          = useState('players')
@@ -79,10 +67,16 @@ export default function MatchDayPage() {
     else       showToast('Pelipäivä tallennettu ✓', 'success')
   }
 
-  // ── Muodostelman vaihto ──
+  // ── Muodostelman vaihto — täyttää paikat joukkueen pelaajilla ──
 
   function handleFormationChange(f) {
-    applyFormation(f)
+    applyFormation(f, teamPlayers)
+  }
+
+  // ── Siirtää pelaajan vaihtomieslistalle ──
+
+  function handleMoveToSub(player) {
+    updateField('substitutes', [...(plan?.substitutes ?? []), player])
   }
 
   // ── Kokoonpanopohjan tallennus ──
@@ -175,7 +169,9 @@ export default function MatchDayPage() {
             {/* Kenttänäkymä */}
             <MatchFieldCanvas
               lineup={plan.lineup}
+              teamPlayers={teamPlayers}
               onLineupChange={updateLineup}
+              onMoveToSub={handleMoveToSub}
             />
 
           </div>
@@ -200,6 +196,7 @@ export default function MatchDayPage() {
                 lineup={plan.lineup}
                 substitutes={plan.substitutes}
                 absent={plan.absent}
+                teamPlayers={teamPlayers}
                 onChange={updateField}
               />
             )}

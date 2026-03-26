@@ -275,22 +275,45 @@ export function useMatchPlan(matchId) {
   }, [])
 
   /**
-   * Soveltaa muodostelman oletuspaikat; säilyttää pelaajanimet jos löytyvät.
-   * @param {string} formation  - esim. '4-3-3'
+   * Soveltaa muodostelman paikat.
+   * Jos players annetaan, täyttää paikat joukkueen pelaajilla (MV ensin, muut numerojärj.).
+   * Ilman players-listaa säilyttää nykyiset pelaajat uusissa sijainneissa.
+   * @param {string}      formation  - esim. '4-3-3'
+   * @param {Array|null}  players    - Joukkueen pelaajat (valinnainen)
    */
-  const applyFormation = useCallback((formation) => {
-    const slots  = FORMATIONS[formation] ?? FORMATIONS['4-3-3']
+  const applyFormation = useCallback((formation, players = null) => {
+    const slots = FORMATIONS[formation] ?? FORMATIONS['4-3-3']
     setPlan((prev) => {
-      // Säilytä nykyiset pelaajat järjestyksessä uusiin sijainteihin
-      const oldLineup = prev.lineup ?? []
-      const newLineup = slots.map((slot, i) => ({
-        id:       oldLineup[i]?.id       ?? crypto.randomUUID(),
-        name:     oldLineup[i]?.name     ?? '',
-        number:   oldLineup[i]?.number   ?? '',
-        position: slot.position,
-        x:        slot.x,
-        y:        slot.y,
-      }))
+      let newLineup
+      if (players && players.length > 0) {
+        // Laita MV-pelaaja ensimmäiseksi, muut numerojärjestyksessä — ei pelipaikkarajoituksia
+        const goalkeeper = players.find((p) => p.position === 'MV')
+        const outfield   = players
+          .filter((p) => p.position !== 'MV')
+          .sort((a, b) => (a.number ?? 99) - (b.number ?? 99))
+        const ordered = goalkeeper ? [goalkeeper, ...outfield] : [...players].sort((a, b) => (a.number ?? 99) - (b.number ?? 99))
+        newLineup = slots.map((slot, i) => ({
+          id:       crypto.randomUUID(),
+          playerId: ordered[i]?.id     ?? null,
+          name:     ordered[i]?.name   ?? '',
+          number:   ordered[i]?.number != null ? String(ordered[i].number) : '',
+          position: slot.position,
+          x:        slot.x,
+          y:        slot.y,
+        }))
+      } else {
+        // Säilytä nykyiset pelaajat uusissa sijainneissa
+        const old = prev.lineup ?? []
+        newLineup = slots.map((slot, i) => ({
+          id:       old[i]?.id       ?? crypto.randomUUID(),
+          playerId: old[i]?.playerId ?? null,
+          name:     old[i]?.name     ?? '',
+          number:   old[i]?.number   ?? '',
+          position: slot.position,
+          x:        slot.x,
+          y:        slot.y,
+        }))
+      }
       return { ...prev, formation, lineup: newLineup }
     })
     setDirty(true)
