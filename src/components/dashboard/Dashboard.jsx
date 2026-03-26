@@ -4,11 +4,12 @@
  * Vain UI — data haetaan useDashboard-hookilla.
  */
 
-import { useEffect }    from 'react'
-import { useNavigate }  from 'react-router-dom'
-import { useAuth }      from '../../hooks/useAuth'
-import { useDashboard } from '../../hooks/useDashboard'
-import { ROUTES }       from '../../constants/routes'
+import { useEffect }       from 'react'
+import { useNavigate }     from 'react-router-dom'
+import { useAuth }         from '../../hooks/useAuth'
+import { useDashboard }    from '../../hooks/useDashboard'
+import { useCurrentTeam }  from '../../store/teamStore'
+import { ROUTES }          from '../../constants/routes'
 import TodayBanner      from './TodayBanner'
 import RecentSessions   from './RecentSessions'
 import WeekCalendar     from './WeekCalendar'
@@ -21,6 +22,7 @@ export default function Dashboard() {
   const { user, loading: authLoading, signOut } = useAuth()
   const navigate = useNavigate()
   const { data, loading, error, reload } = useDashboard()
+  const { currentTeam } = useCurrentTeam()
 
   // Ohjaa kirjautumissivulle jos ei kirjautunut
   useEffect(() => {
@@ -43,7 +45,7 @@ export default function Dashboard() {
   })
 
   // Onboarding: uusi käyttäjä ilman joukkuetta ja sessioita
-  const isNewUser = !loading && !error && data && !data.team && data.sessions.length === 0
+  const isNewUser = !loading && !error && data && !currentTeam && data.sessions.length === 0
 
   return (
     <div className={styles.page}>
@@ -68,8 +70,8 @@ export default function Dashboard() {
           <h1 className={styles.greetingTitle}>Hei, {userName} 👋</h1>
           <p className={styles.greetingMeta}>
             {dateLabel}
-            {data?.team && (
-              <span className={styles.teamBadge}>{data.team.name}</span>
+            {currentTeam && (
+              <span className={styles.teamBadge}>{currentTeam.name}</span>
             )}
           </p>
         </div>
@@ -108,7 +110,7 @@ export default function Dashboard() {
           nextGame={data?.nextGame}
           drillCount={data?.drillCount ?? 0}
           gameCount={data?.gameCount ?? 0}
-          team={data?.team}
+          team={currentTeam}
           onOpenEditor={handleNewSession}
           onNewDrill={() => navigate(ROUTES.SEASON)}
           onMatchDay={() => navigate(ROUTES.MATCH_DAY)}
@@ -148,7 +150,7 @@ export default function Dashboard() {
             />
             <SeasonGoalTags
               loading={loading}
-              goals={data?.team?.goals}
+              goals={currentTeam?.goals}
               onNavigate={() => navigate(ROUTES.SEASON)}
             />
           </div>

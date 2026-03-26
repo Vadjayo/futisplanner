@@ -4,12 +4,12 @@
  * Kaksi palstaa: vasen (kenttä + tiedot), oikea (välilehdet).
  */
 
-import { useState }              from 'react'
+import { useState, useEffect }   from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { useAuth }                  from '../../hooks/useAuth'
-import { useMatchPlan }             from '../../hooks/useMatchPlan'
+import { useMatchPlan, FORMATIONS } from '../../hooks/useMatchPlan'
 import { useFormationTemplates }    from '../../hooks/useFormationTemplates'
-import { useTeam }                  from '../../hooks/useTeam'
+import { useCurrentTeam }           from '../../store/teamStore'
+import { useMatchDayPlayers }       from '../../hooks/useMatchDayPlayers'
 import { useToast }                 from '../../hooks/useToast'
 import { ROUTES }                   from '../../constants/routes'
 import Button              from '../ui/Button'
@@ -35,8 +35,7 @@ const TABS = [
 export default function MatchDayPage() {
   const navigate              = useNavigate()
   const { id: matchId }       = useParams()
-  const { user }                   = useAuth()
-  const { selectedTeam: team }     = useTeam(user?.id)
+  const { currentTeam: team } = useCurrentTeam()
   const { toasts, showToast } = useToast()
 
   const {
@@ -45,6 +44,25 @@ export default function MatchDayPage() {
   } = useMatchPlan(matchId ?? null)
 
   const { templates, saveTemplate } = useFormationTemplates()
+  const { players: teamPlayers }    = useMatchDayPlayers(team?.id)
+
+  // Auto-täytä lineup joukkueen pelaajista kun suunnitelma on uusi (tyhjä lineup)
+  useEffect(() => {
+    if (!plan || plan.lineup?.length > 0 || !teamPlayers.length) return
+    const slots = FORMATIONS[plan.formation] ?? FORMATIONS['4-3-3']
+    const autoLineup = slots.map((slot, i) => {
+      const player = teamPlayers[i]
+      return {
+        id:       crypto.randomUUID(),
+        name:     player?.name   ?? '',
+        number:   player?.number ? String(player.number) : '',
+        position: slot.position,
+        x:        slot.x,
+        y:        slot.y,
+      }
+    })
+    updateLineup(autoLineup)
+  }, [plan?.id, teamPlayers.length]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const [activeTab,          setActiveTab]          = useState('players')
   const [saving,             setSaving]             = useState(false)

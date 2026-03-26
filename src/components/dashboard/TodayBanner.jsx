@@ -63,29 +63,33 @@ export default function TodayBanner({
     )
   }
 
-  // Laske treeniä/vk kauden alusta faasiaikajanasta
-  let drillsPerWeek = '–'
-  if (team?.phases) {
-    const valid = (team.phases ?? []).filter((p) => p.start && p.end)
-    if (valid.length > 0) {
-      const startMs = Math.min(...valid.map((p) => new Date(p.start).getTime()))
-      const weeks   = Math.max(1, Math.floor((Date.now() - startMs) / (7 * 86400000)))
-      const dpw     = drillCount / weeks
-      drillsPerWeek = dpw >= 1 ? `${Math.round(dpw)}×` : `${dpw.toFixed(1)}×`
-    }
-  }
+  // Laske treeniä/vk — käytä faaseja tai tämän vuoden alkua fallbackina
+  const validPhases = (team?.phases ?? []).filter((p) => p.start && p.end)
+  const phaseStartMs = validPhases.length > 0
+    ? Math.min(...validPhases.map((p) => new Date(p.start).getTime()))
+    : new Date(new Date().getFullYear(), 0, 1).getTime()   // tammikuu 1.
 
-  // Kausi % faasiaikajanasta
+  const weeks = Math.max(1, Math.floor((Date.now() - phaseStartMs) / (7 * 86400000)))
+  const dpw   = drillCount / weeks
+  const drillsPerWeek = drillCount === 0 ? '0×'
+    : dpw >= 1 ? `${Math.round(dpw)}×`
+    : `${dpw.toFixed(1)}×`
+
+  // Kausi % — faaseista tai kalenterivuodesta
   let seasonPct = 0
-  if (team?.phases) {
-    const valid = (team.phases ?? []).filter((p) => p.start && p.end)
-    if (valid.length > 0) {
-      const startMs   = Math.min(...valid.map((p) => new Date(p.start).getTime()))
-      const endMs     = Math.max(...valid.map((p) => new Date(p.end).getTime()))
-      const totalDays = Math.max(1, Math.ceil((endMs - startMs) / 86400000))
-      const pastDays  = Math.max(0, Math.ceil((Date.now() - startMs) / 86400000))
-      seasonPct = Math.min(100, Math.round((pastDays / totalDays) * 100))
-    }
+  if (validPhases.length > 0) {
+    const startMs   = phaseStartMs
+    const endMs     = Math.max(...validPhases.map((p) => new Date(p.end).getTime()))
+    const totalDays = Math.max(1, Math.ceil((endMs - startMs) / 86400000))
+    const pastDays  = Math.max(0, Math.ceil((Date.now() - startMs) / 86400000))
+    seasonPct = Math.min(100, Math.round((pastDays / totalDays) * 100))
+  } else {
+    const yr        = new Date().getFullYear()
+    const startMs   = new Date(yr, 0, 1).getTime()
+    const endMs     = new Date(yr, 11, 31).getTime()
+    const totalDays = Math.max(1, Math.ceil((endMs - startMs) / 86400000))
+    const pastDays  = Math.max(0, Math.ceil((Date.now() - startMs) / 86400000))
+    seasonPct = Math.min(100, Math.round((pastDays / totalDays) * 100))
   }
 
   const pctColor = seasonPct < 25

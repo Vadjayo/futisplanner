@@ -1,19 +1,19 @@
 /**
  * useDashboard.js
  * Dashboard-näkymän tila: data, lataus ja virheenkäsittely.
- * Kutsuu dashboardService:ä ja tarjoaa reload-funktion.
+ * Kutsuu dashboardService:ä aktiivisen joukkueen mukaan suodatettuna.
  *
  * Käyttö:
  *   const { data, loading, error, reload } = useDashboard()
  */
 
 import { useState, useEffect, useCallback } from 'react'
-import { useAuth }            from './useAuth'
-import { getDashboardData }   from '../services/dashboardService'
+import { useAuth }           from './useAuth'
+import { useCurrentTeam }    from '../store/teamStore'
+import { getDashboardData }  from '../services/dashboardService'
 
 /**
  * Palauttaa tänään YYYY-MM-DD -muodossa.
- * sv-SE locale palauttaa ISO-muotoisen päivämäärän.
  * @returns {string}
  */
 function todayStr() {
@@ -26,7 +26,7 @@ function todayStr() {
  */
 function getWeekRange() {
   const now = new Date()
-  const dow = now.getDay() // 0 = sunnuntai
+  const dow = now.getDay()
   const mon = new Date(now)
   mon.setDate(now.getDate() - (dow === 0 ? 6 : dow - 1))
   mon.setHours(0, 0, 0, 0)
@@ -40,10 +40,12 @@ function getWeekRange() {
 
 /**
  * Hakee ja hallinnoi dashboard-datan tilan.
+ * Hakee aina aktiivisen joukkueen tapahtumat.
  * @returns {{ data: object|null, loading: boolean, error: object|null, reload: function }}
  */
 export function useDashboard() {
-  const { user } = useAuth()
+  const { user }        = useAuth()
+  const { currentTeam, loading: teamLoading } = useCurrentTeam()
 
   const [data,    setData]    = useState(null)
   const [loading, setLoading] = useState(true)
@@ -57,13 +59,18 @@ export function useDashboard() {
       user.id,
       todayStr(),
       getWeekRange(),
+      currentTeam?.id ?? null,
     )
     if (err) setError(err)
     else     setData(result)
     setLoading(false)
-  }, [user?.id])
+  }, [user?.id, currentTeam?.id])
 
-  useEffect(() => { loadData() }, [loadData])
+  // Lataa data kun käyttäjä tai aktiivinen joukkue vaihtuu
+  useEffect(() => {
+    if (teamLoading) return  // Odota kunnes joukkue on ladattu
+    loadData()
+  }, [loadData, teamLoading])
 
   return { data, loading, error, reload: loadData }
 }

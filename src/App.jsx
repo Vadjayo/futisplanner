@@ -12,6 +12,7 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import { useAuth }          from './hooks/useAuth'
 import { ROUTES }           from './constants/routes'
 import LoadingSpinner       from './components/ui/LoadingSpinner'
+import { TeamProvider }     from './store/teamStore'
 
 // Sivut
 import Home           from './pages/Home'
@@ -49,6 +50,7 @@ function PublicRoute({ children }) {
 
 export default function App() {
   return (
+    <TeamProvider>
     <Routes>
       {/* Julkinen etusivu */}
       <Route path={ROUTES.HOME} element={<Home />} />
@@ -90,5 +92,6 @@ export default function App() {
       {/* Tuntematon polku — ohjaa etusivulle */}
       <Route path="*" element={<Navigate to={ROUTES.HOME} replace />} />
     </Routes>
+    </TeamProvider>
   )
 }

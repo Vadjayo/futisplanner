@@ -5,9 +5,10 @@
 
 import { useState, useMemo, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useTeams }  from '../hooks/useTeams'
-import { usePlayers } from '../hooks/usePlayers'
-import { useToast }  from '../hooks/useToast'
+import { useTeams }       from '../hooks/useTeams'
+import { usePlayers }     from '../hooks/usePlayers'
+import { useToast }       from '../hooks/useToast'
+import { useCurrentTeam } from '../store/teamStore'
 import { ROUTES }    from '../constants/routes'
 import { COLORS }    from '../constants/colors'
 import Button          from '../components/ui/Button'
@@ -26,6 +27,7 @@ import styles          from './Teams.module.css'
 export default function TeamsPage() {
   const navigate = useNavigate()
   const { toasts, showToast } = useToast()
+  const { switchTeam } = useCurrentTeam()
 
   const {
     teams,
@@ -78,8 +80,10 @@ export default function TeamsPage() {
 
   /** Luo uusi joukkue lomakkeen tiedoilla */
   async function handleCreateTeam(formData) {
-    const { error } = await createTeam(formData)
+    const { data, error } = await createTeam(formData)
     if (error) { showToast('Joukkueen luonti epäonnistui.', 'error'); return }
+    // Synkronoi globaaliin storeen
+    if (data) switchTeam(data)
     setTeamModalOpen(false)
     showToast('Joukkue luotu!', 'success')
   }
@@ -144,12 +148,14 @@ export default function TeamsPage() {
     }
   }
 
-  // Resetoi filtteri joukkueen vaihtuessa
+  // Resetoi filtteri joukkueen vaihtuessa ja päivitä globaali store
   const handleSelectTeam = useCallback((teamId) => {
     selectTeam(teamId)
+    const team = teams.find((t) => t.id === teamId)
+    if (team) switchTeam(team)
     setPositionFilter('all')
     setView('list')
-  }, [selectTeam])
+  }, [selectTeam, switchTeam, teams])
 
   // ── RENDER ──
 

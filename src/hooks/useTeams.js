@@ -28,10 +28,10 @@ export function useTeams() {
       } else {
         const list = data ?? []
         setTeams(list)
-        // Valitse ensimmäinen joukkue automaattisesti
-        if (list.length > 0 && !selectedId) {
-          setSelectedId(list[0].id)
-        }
+        // Palauta globalsti valittu joukkue localStoragesta
+        const savedId     = localStorage.getItem('activeTeamId')
+        const savedExists = list.some((t) => t.id === savedId)
+        setSelectedId(savedExists ? savedId : (list[0]?.id ?? null))
       }
       setLoading(false)
     })
