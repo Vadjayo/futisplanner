@@ -1,0 +1,125 @@
+/* RecentSessions */
+
+.panel {
+  background: #161820;
+  border: 1px solid #1e2230;
+  border-radius: 14px;
+  padding: 20px;
+}
+
+.panelHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.panelTitle {
+  font-size: 15px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.newBtn {
+  padding: 5px 12px;
+  background: rgba(29, 158, 117, 0.12);
+  border: 1px solid rgba(29, 158, 117, 0.3);
+  border-radius: 8px;
+  color: #1D9E75;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.newBtn:hover { background: rgba(29, 158, 117, 0.22); }
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sessionRow {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: transparent;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.12s;
+}
+.sessionRow:hover { background: #1e2230; }
+
+.sessionInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.sessionName {
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sessionMeta {
+  font-size: 12px;
+  color: #8b8d97;
+}
+
+.sessionRight {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  margin-left: 12px;
+}
+
+.sessionDate {
+  font-size: 12px;
+  color: #4a4d55;
+}
+
+.sessionArrow {
+  font-size: 14px;
+  color: #4a4d55;
+}
+
+.empty {
+  font-size: 13px;
+  color: #4a4d55;
+  margin: 4px 0;
+}
+
+/* Skeleton */
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.35; }
+}
+
+.skel {
+  background: #1e2230;
+  border-radius: 6px;
+  animation: pulse 1.5s ease infinite;
+}
+
+.skeletonRow {
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.skelTitle { height: 14px; width: 55%; }
+.skelMeta  { height: 11px; width: 35%; }

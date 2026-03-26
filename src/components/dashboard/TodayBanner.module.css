@@ -1,0 +1,148 @@
+/* TodayBanner — kolme korttia rinnakkain */
+
+.banner {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+/* ── KORTTI ── */
+.card {
+  background: #161820;
+  border: 1px solid #1e2230;
+  border-radius: 14px;
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 140px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Värilliset vasen reuna */
+.cardDrill { border-left: 3px solid #1D9E75; }
+.cardGame  { border-left: 3px solid #378ADD; }
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 2px;
+}
+
+.cardIcon  { font-size: 16px; }
+.cardTitle {
+  font-size: 12px;
+  font-weight: 600;
+  color: #8b8d97;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.eventDate {
+  font-size: 18px;
+  font-weight: 700;
+  color: #ffffff;
+  line-height: 1.2;
+}
+
+.eventTime {
+  font-size: 14px;
+  font-weight: 500;
+  color: #8b8d97;
+}
+
+.eventTheme {
+  font-size: 13px;
+  color: #8b8d97;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.emptyText {
+  font-size: 13px;
+  color: #4a4d55;
+  margin: 4px 0 0;
+  flex: 1;
+}
+
+/* Napit */
+.cardBtn, .cardBtnBlue, .cardBtnOutline {
+  margin-top: auto;
+  align-self: flex-start;
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: background 0.15s, opacity 0.15s;
+}
+
+.cardBtn {
+  background: rgba(29, 158, 117, 0.15);
+  color: #1D9E75;
+}
+.cardBtn:hover { background: rgba(29, 158, 117, 0.25); }
+
+.cardBtnBlue {
+  background: rgba(55, 138, 221, 0.15);
+  color: #378ADD;
+}
+.cardBtnBlue:hover { background: rgba(55, 138, 221, 0.25); }
+
+.cardBtnOutline {
+  background: transparent;
+  color: #8b8d97;
+  border: 1px solid #1e2230;
+}
+.cardBtnOutline:hover { border-color: #3a3d4a; color: #ffffff; }
+
+/* ── STATS GRID 2×2 ── */
+.statsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  flex: 1;
+}
+
+.statBox {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.statVal {
+  font-size: 20px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.statLbl {
+  font-size: 11px;
+  color: #8b8d97;
+}
+
+/* ── SKELETON ── */
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.35; }
+}
+
+.skel {
+  background: #1e2230;
+  border-radius: 6px;
+  animation: pulse 1.5s ease infinite;
+}
+
+.skelTitle      { height: 14px; width: 60%; }
+.skelLine       { height: 22px; width: 80%; }
+.skelLineShort  { height: 14px; width: 45%; }
+
+/* ── MOBIILI ── */
+@media (max-width: 800px) {
+  .banner { grid-template-columns: 1fr; }
+}

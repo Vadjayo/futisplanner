@@ -1,63 +1,48 @@
 /**
  * Dashboard.jsx
- * Kirjautuneen käyttäjän aloitussivu. Näyttää kaikki harjoitussuunnitelmat kortteina.
+ * Kirjautuneen käyttäjän aloitussivu.
+ * Vain UI — data haetaan useDashboard-hookilla.
  */
 
-import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { useAuth } from '../../hooks/useAuth'
-import { ROUTES } from '../../constants/routes'
-import { loadAllSessions, deleteSession } from '../../lib/db'
-import { formatDate, totalDuration } from '../../utils/drillUtils'
-import styles from './Dashboard.module.css'
+import { useEffect }    from 'react'
+import { useNavigate }  from 'react-router-dom'
+import { useAuth }      from '../../hooks/useAuth'
+import { useDashboard } from '../../hooks/useDashboard'
+import { ROUTES }       from '../../constants/routes'
+import TodayBanner      from './TodayBanner'
+import RecentSessions   from './RecentSessions'
+import WeekCalendar     from './WeekCalendar'
+import QuickActions     from './QuickActions'
+import SeasonGoalTags   from './SeasonGoalTags'
+import styles           from './Dashboard.module.css'
 
 export default function Dashboard() {
   const { user, loading: authLoading, signOut } = useAuth()
   const navigate = useNavigate()
+  const { data, loading, error, reload } = useDashboard()
 
-  const [sessions, setSessions] = useState([])
-  const [loading, setLoading] = useState(true)
-  // deletingId = juuri poistettavan session id — näyttää lataustilan kortissa
-  const [deletingId, setDeletingId] = useState(null)
-
-  // Ohjaa kirjautumissivulle jos ei ole kirjautunut (auth tarkistettu)
+  // Ohjaa kirjautumissivulle jos ei kirjautunut
   useEffect(() => {
     if (!authLoading && !user) navigate(ROUTES.LOGIN, { replace: true })
   }, [user, authLoading, navigate])
 
-  // Lataa sessiot kun komponentti mountataan
-  useEffect(() => {
-    if (!user) return
-    loadAllSessions(user.id).then(({ data }) => {
-      setSessions(data ?? [])
-      setLoading(false)
-    })
-  }, [user])
-
-  // Luo uusi sessio — generoi UUID:n ja siirtyy editoriin
+  /** Luo uusi sessio UUID:lla ja avaa editorissa */
   function handleNewSession() {
-    const newSessionId = crypto.randomUUID()
-    navigate(ROUTES.EDITOR, { state: { sessionId: newSessionId, isNew: true } })
+    navigate(ROUTES.EDITOR, { state: { sessionId: crypto.randomUUID(), isNew: true } })
   }
 
-  // Avaa olemassa oleva sessio editorissa
-  function handleOpen(sessionId) {
-    navigate(ROUTES.EDITOR, { state: { sessionId } })
-  }
+  // Käyttäjän nimi metadatasta tai sähköpostista
+  const userName = user?.user_metadata?.full_name
+    || user?.email?.split('@')[0]
+    || 'Valmentaja'
 
-  // Poista sessio vahvistuksen jälkeen
-  async function handleDelete(e, sessionId) {
-    e.stopPropagation() // estä kortin click-tapahtuma
-    if (!confirm('Poistetaanko suunnitelma pysyvästi?')) return
-    setDeletingId(sessionId)
-    await deleteSession(sessionId)
-    setSessions((prev) => prev.filter((s) => s.id !== sessionId))
-    setDeletingId(null)
-  }
+  // Päivämäärä suomeksi esim. "ke 26.3.2026"
+  const dateLabel = new Date().toLocaleDateString('fi-FI', {
+    weekday: 'short', day: 'numeric', month: 'numeric', year: 'numeric',
+  })
 
-  // Laske kokonaisstatistiikat otsikkoriville
-  const totalSessions = sessions.length
-  const totalDrills = sessions.reduce((sum, s) => sum + (s.drills?.length ?? 0), 0)
+  // Onboarding: uusi käyttäjä ilman joukkuetta ja sessioita
+  const isNewUser = !loading && !error && data && !data.team && data.sessions.length === 0
 
   return (
     <div className={styles.page}>
@@ -65,112 +50,104 @@ export default function Dashboard() {
       {/* ── NAVIGAATIO ── */}
       <nav className={styles.nav}>
         <div className={styles.navInner}>
-          <button className={styles.logo} onClick={() => navigate(ROUTES.HOME)}>⚽ FutisPlanner</button>
+          <button className={styles.logo} onClick={() => navigate(ROUTES.HOME)}>
+            ⚽ FutisPlanner
+          </button>
           <div className={styles.navRight}>
             <span className={styles.userEmail}>{user?.email}</span>
-            <button className={styles.btnSignOut} onClick={signOut}>
-              Kirjaudu ulos
-            </button>
+            <button className={styles.btnSignOut} onClick={signOut}>Kirjaudu ulos</button>
           </div>
         </div>
       </nav>
 
       <div className={styles.content}>
 
-        {/* ── OTSIKKORIVI ── */}
-        <div className={styles.header}>
-          <div>
-            <h1 className={styles.title}>Harjoitussuunnitelmat</h1>
-            {!loading && (
-              <p className={styles.subtitle}>
-                {totalSessions} suunnitelmaa · {totalDrills} harjoitetta yhteensä
-              </p>
+        {/* ── TERVEHDYS ── */}
+        <div className={styles.greeting}>
+          <h1 className={styles.greetingTitle}>Hei, {userName} 👋</h1>
+          <p className={styles.greetingMeta}>
+            {dateLabel}
+            {data?.team && (
+              <span className={styles.teamBadge}>{data.team.name}</span>
             )}
-          </div>
-          <div className={styles.headerActions}>
-            <button className={styles.btnSeason} onClick={() => navigate(ROUTES.SEASON)}>
-              📅 Kausisuunnittelu
-            </button>
-            <button className={styles.btnNew} onClick={handleNewSession}>
-              + Uusi suunnitelma
-            </button>
-          </div>
+          </p>
         </div>
 
-        {/* ── LATAUS ── */}
-        {loading && (
-          <div className={styles.loadingState}>
-            <span className={styles.loadingIcon}>⚽</span>
+        {/* ── VIRHETILA ── */}
+        {error && (
+          <div className={styles.errorBanner}>
+            <span>Tietojen haku epäonnistui — yritä uudelleen</span>
+            <button className={styles.btnRetry} onClick={reload}>Yritä uudelleen</button>
           </div>
         )}
 
-        {/* ── TYHJÄ TILA ── */}
-        {!loading && sessions.length === 0 && (
-          <div className={styles.emptyState}>
-            <div className={styles.emptyIcon}>📋</div>
-            <h2 className={styles.emptyTitle}>Ei vielä suunnitelmia</h2>
-            <p className={styles.emptyDesc}>
-              Luo ensimmäinen harjoitussuunnitelmasi aloittaaksesi.
+        {/* ── ONBOARDING (uusi käyttäjä) ── */}
+        {isNewUser && (
+          <div className={styles.onboarding}>
+            <div className={styles.onboardingIcon}>🎉</div>
+            <h2 className={styles.onboardingTitle}>Tervetuloa FutisPlanner!</h2>
+            <p className={styles.onboardingDesc}>
+              Aloita luomalla joukkue ja suunnittelemalla ensimmäinen harjoituksesi.
             </p>
-            <button className={styles.btnNewLg} onClick={handleNewSession}>
-              Luo ensimmäinen suunnitelma →
-            </button>
+            <div className={styles.onboardingActions}>
+              <button className={styles.btnPrimary} onClick={() => navigate(ROUTES.SEASON)}>
+                Luo joukkue
+              </button>
+              <button className={styles.btnSecondary} onClick={handleNewSession}>
+                Luo harjoitus
+              </button>
+            </div>
           </div>
         )}
 
-        {/* ── SESSIORUUDUKKO ── */}
-        {!loading && sessions.length > 0 && (
-          <div className={styles.grid}>
-            {sessions.map((session) => {
-              const drillCount = session.drills?.length ?? 0
-              const minutes = totalDuration(session.drills)
+        {/* ── TÄNÄÄN-BANNERI ── */}
+        <TodayBanner
+          loading={loading}
+          nextDrill={data?.nextDrill}
+          nextGame={data?.nextGame}
+          drillCount={data?.drillCount ?? 0}
+          gameCount={data?.gameCount ?? 0}
+          team={data?.team}
+          onOpenEditor={handleNewSession}
+          onNewDrill={() => navigate(ROUTES.SEASON)}
+          onMatchDay={() => navigate(ROUTES.MATCH_DAY)}
+        />
 
-              return (
-                <div
-                  key={session.id}
-                  className={styles.card}
-                  onClick={() => handleOpen(session.id)}
-                  role="button"
-                  tabIndex={0}
-                  onKeyDown={(e) => e.key === 'Enter' && handleOpen(session.id)}
-                >
-                  {/* Kortin yläosa: nimi + poistopainike */}
-                  <div className={styles.cardTop}>
-                    <h3 className={styles.cardTitle}>
-                      {session.name || 'Nimetön suunnitelma'}
-                    </h3>
-                    <button
-                      className={styles.btnDelete}
-                      onClick={(e) => handleDelete(e, session.id)}
-                      disabled={deletingId === session.id}
-                      title="Poista suunnitelma"
-                    >
-                      ✕
-                    </button>
-                  </div>
+        {/* ── KAKSIPALSTAINEN LAYOUT ── */}
+        <div className={styles.columns}>
 
-                  {/* Tilastobadget */}
-                  <div className={styles.cardBadges}>
-                    <span className={styles.badge}>
-                      {drillCount} {drillCount === 1 ? 'harjoite' : 'harjoitetta'}
-                    </span>
-                    {minutes > 0 && (
-                      <span className={styles.badge}>{minutes} min</span>
-                    )}
-                  </div>
-
-                  {/* Päivämäärä + avaa-nappi */}
-                  <div className={styles.cardFooter}>
-                    <span className={styles.cardDate}>
-                      Muokattu {formatDate(session.updated_at)}
-                    </span>
-                    <span className={styles.openHint}>Avaa →</span>
-                  </div>
-                </div>
-              )
-            })}
+          {/* VASEN: harjoitukset + viikkokalenteri */}
+          <div className={styles.colMain}>
+            <RecentSessions
+              loading={loading}
+              sessions={data?.sessions ?? []}
+              onOpen={(id) => navigate(ROUTES.EDITOR, { state: { sessionId: id } })}
+              onNew={handleNewSession}
+            />
+            <WeekCalendar
+              loading={loading}
+              weekEvents={data?.weekEvents ?? []}
+              onNavigate={() => navigate(ROUTES.SEASON)}
+            />
           </div>
-        )}
+
+          {/* OIKEA: pikaoikaisut + kausitavoitteet */}
+          <div className={styles.colSide}>
+            <QuickActions
+              onNewSession={handleNewSession}
+              onSeason={() => navigate(ROUTES.SEASON)}
+              onMatchDay={() => navigate(ROUTES.MATCH_DAY)}
+              onTeams={() => navigate(ROUTES.TEAMS)}
+            />
+            <SeasonGoalTags
+              loading={loading}
+              goals={data?.team?.goals}
+              onNavigate={() => navigate(ROUTES.SEASON)}
+            />
+          </div>
+
+        </div>
+
       </div>
     </div>
   )

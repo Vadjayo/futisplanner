@@ -40,6 +40,7 @@ export const COLORS = {
   text: {
     primary:   '#ffffff',
     secondary: '#8b8d97',
+    light:     '#d0dce8',
     muted:     '#2a2d35',
   },
 }

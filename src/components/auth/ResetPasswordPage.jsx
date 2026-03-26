@@ -4,34 +4,23 @@
  * Istunto asetetaan automaattisesti URL:n hash-parametreista.
  */
 
-import { useState, useEffect } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
-import { supabase } from '../../services/supabase'
-import { ROUTES } from '../../constants/routes'
-import styles from './AuthPage.module.css'
+import { useState }             from 'react'
+import { useNavigate, Link }    from 'react-router-dom'
+import { usePasswordReset }     from '../../hooks/usePasswordReset'
+import { ROUTES }               from '../../constants/routes'
+import styles                   from './AuthPage.module.css'
 
 export default function ResetPasswordPage() {
   const navigate = useNavigate()
+  const { ready, updatePassword } = usePasswordReset()
 
-  const [ready,      setReady]      = useState(false)   // onko palautusistunto asetettu
   const [password,   setPassword]   = useState('')
   const [confirmPwd, setConfirmPwd] = useState('')
   const [error,      setError]      = useState(null)
   const [success,    setSuccess]    = useState(false)
   const [submitting, setSubmitting] = useState(false)
 
-  useEffect(() => {
-    // Supabase lähettää access_token hash-parametrina — kuuntele PASSWORD_RECOVERY tapahtumaa
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      if (event === 'PASSWORD_RECOVERY') {
-        // Istunto on nyt voimassa — käyttäjä voi vaihtaa salasanansa
-        setReady(true)
-      }
-    })
-    return () => subscription.unsubscribe()
-  }, [])
-
-  // Tallenna uusi salasana
+  /** Tallenna uusi salasana */
   async function handleSubmit(e) {
     e.preventDefault()
     setError(null)
@@ -46,10 +35,10 @@ export default function ResetPasswordPage() {
     }
 
     setSubmitting(true)
-    const { error } = await supabase.auth.updateUser({ password })
+    const { error: updateError } = await updatePassword(password)
     setSubmitting(false)
 
-    if (error) {
+    if (updateError) {
       setError('Salasanan vaihto epäonnistui. Yritä pyytää uusi palautuslinkki.')
       return
     }
