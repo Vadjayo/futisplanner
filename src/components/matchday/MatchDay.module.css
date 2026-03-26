@@ -1,0 +1,341 @@
+/* MatchDay — pääsivu ja yhteiset tyylit */
+
+.page {
+  background: #0a0d12;
+  color: #ffffff;
+  min-height: 100vh;
+  font-family: inherit;
+}
+
+/* ── NAVIGAATIO ── */
+.nav {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(10, 13, 18, 0.92);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid #1e2230;
+}
+
+.navInner {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 24px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.navLeft {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.backBtn {
+  background: none;
+  border: none;
+  color: #8b8d97;
+  cursor: pointer;
+  font-size: 13px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: color 0.15s;
+}
+
+.backBtn:hover { color: #ffffff; }
+
+.navTitle {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.navActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dirtyBadge {
+  font-size: 11px;
+  color: #EF9F27;
+}
+
+/* ── SISÄLTÖ ── */
+.content {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 24px 24px 64px;
+}
+
+/* ── KAKSIPALSTAINEN LAYOUT ── */
+.columns {
+  display: grid;
+  grid-template-columns: 55% 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+.colLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.colRight {
+  background: #161820;
+  border: 1px solid #1e2230;
+  border-radius: 14px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ── OTTELUN TIEDOT ── */
+.matchHeader {
+  background: #161820;
+  border: 1px solid #1e2230;
+  border-radius: 14px;
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.teamsRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.homeTeam {
+  font-size: 17px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.vsLabel {
+  font-size: 13px;
+  color: #4a4d55;
+  font-weight: 600;
+}
+
+.opponentInput {
+  flex: 1;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid #1e2230;
+  color: #ffffff;
+  font-size: 17px;
+  font-weight: 700;
+  padding: 2px 4px;
+  outline: none;
+  font-family: inherit;
+  min-width: 0;
+  transition: border-color 0.15s;
+}
+
+.opponentInput:focus { border-bottom-color: #1D9E75; }
+.opponentInput::placeholder { color: #3a3d4a; }
+
+.matchMeta {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.metaInput {
+  background: #0a0d12;
+  border: 1px solid #1e2230;
+  border-radius: 8px;
+  color: #8b8d97;
+  font-size: 13px;
+  padding: 5px 10px;
+  outline: none;
+  font-family: inherit;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.metaInput:focus { border-color: #1D9E75; color: #ffffff; }
+
+/* Päivämäärän kentän oma väri */
+input[type="date"].metaInput,
+input[type="time"].metaInput {
+  color-scheme: dark;
+}
+
+/* ── MUODOSTELMA ── */
+.formationRow {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.formationBtn {
+  padding: 5px 12px;
+  background: transparent;
+  border: 1px solid #1e2230;
+  border-radius: 8px;
+  color: #8b8d97;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+
+.formationBtn:hover {
+  border-color: #1D9E75;
+  color: #1D9E75;
+}
+
+.formationBtnActive {
+  background: rgba(29, 158, 117, 0.15);
+  border-color: #1D9E75;
+  color: #1D9E75;
+}
+
+/* ── KOKOONPANOPOHJAT ── */
+.templatesRow {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.templateTag {
+  padding: 4px 10px;
+  background: rgba(127, 119, 221, 0.1);
+  border: 1px solid rgba(127, 119, 221, 0.3);
+  border-radius: 20px;
+  color: #7F77DD;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.templateTag:hover { background: rgba(127, 119, 221, 0.2); }
+
+.templateTagOutline {
+  padding: 4px 10px;
+  background: transparent;
+  border: 1px dashed #1e2230;
+  border-radius: 20px;
+  color: #4a4d55;
+  font-size: 12px;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.templateTagOutline:hover { border-color: #3a3d4a; color: #8b8d97; }
+
+/* ── VÄLILEHDET ── */
+.tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid #1e2230;
+  margin-bottom: 16px;
+}
+
+.tab {
+  padding: 8px 14px;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: #8b8d97;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+  white-space: nowrap;
+}
+
+.tab:hover { color: #d0dce8; }
+
+.tabActive {
+  color: #ffffff;
+  border-bottom-color: #1D9E75;
+}
+
+.tabContent {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ── LOMAKEKENTÄT ── */
+.fieldGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.fieldLabel {
+  font-size: 11px;
+  font-weight: 700;
+  color: #8b8d97;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.textarea {
+  width: 100%;
+  background: #0a0d12;
+  border: 1px solid #1e2230;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 13px;
+  line-height: 1.6;
+  padding: 10px 12px;
+  resize: vertical;
+  outline: none;
+  font-family: inherit;
+  box-sizing: border-box;
+  transition: border-color 0.15s;
+}
+
+.textarea:focus { border-color: #1D9E75; }
+
+.linkBtn {
+  background: none;
+  border: none;
+  color: #1D9E75;
+  font-size: 13px;
+  cursor: pointer;
+  padding: 0;
+  text-align: left;
+  transition: opacity 0.15s;
+}
+
+.linkBtn:hover { opacity: 0.75; }
+
+/* ── TALLENNUS-POHJA MODAALI ── */
+.saveTemplateInput {
+  width: 100%;
+  background: #0a0d12;
+  border: 1px solid #1e2230;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 14px;
+  padding: 10px 12px;
+  outline: none;
+  font-family: inherit;
+  box-sizing: border-box;
+  transition: border-color 0.15s;
+}
+
+.saveTemplateInput:focus { border-color: #1D9E75; }
+
+/* ── MOBIILI ── */
+@media (max-width: 900px) {
+  .columns {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .content { padding: 16px 12px 48px; }
+  .navInner { padding: 0 12px; }
+}

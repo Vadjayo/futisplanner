@@ -14,6 +14,7 @@ import RecentSessions   from './RecentSessions'
 import WeekCalendar     from './WeekCalendar'
 import QuickActions     from './QuickActions'
 import SeasonGoalTags   from './SeasonGoalTags'
+import RecentMatches    from './RecentMatches'
 import styles           from './Dashboard.module.css'
 
 export default function Dashboard() {
@@ -116,13 +117,19 @@ export default function Dashboard() {
         {/* ── KAKSIPALSTAINEN LAYOUT ── */}
         <div className={styles.columns}>
 
-          {/* VASEN: harjoitukset + viikkokalenteri */}
+          {/* VASEN: harjoitukset + ottelut + viikkokalenteri */}
           <div className={styles.colMain}>
             <RecentSessions
               loading={loading}
               sessions={data?.sessions ?? []}
               onOpen={(id) => navigate(ROUTES.EDITOR, { state: { sessionId: id } })}
               onNew={handleNewSession}
+            />
+            <RecentMatches
+              loading={loading}
+              matches={data?.recentMatches ?? []}
+              onOpen={(id) => navigate(`${ROUTES.MATCH_DAY}/${id}`)}
+              onNew={() => navigate(ROUTES.MATCH_DAY)}
             />
             <WeekCalendar
               loading={loading}

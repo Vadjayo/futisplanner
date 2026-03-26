@@ -1,0 +1,129 @@
+.card {
+  background: #161820;
+  border: 1px solid #1e2230;
+  border-radius: 12px;
+  padding: 18px 20px 14px;
+  margin-bottom: 16px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #d0dce8;
+  margin: 0;
+}
+
+.btnNew {
+  font-size: 12px;
+  color: #1D9E75;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  font-weight: 600;
+}
+
+.btnNew:hover {
+  opacity: 0.8;
+}
+
+/* Lista */
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 9px 12px;
+  border-radius: 8px;
+  background: #1a1d27;
+  cursor: pointer;
+  transition: background 0.15s;
+  list-style: none;
+}
+
+.row:hover {
+  background: #1f2235;
+}
+
+.rowLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.opponent {
+  font-size: 13px;
+  font-weight: 600;
+  color: #d0dce8;
+}
+
+.date {
+  font-size: 11px;
+  color: #5a7a9a;
+}
+
+.result {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.noResult {
+  font-size: 11px;
+  color: #3a5070;
+  font-style: italic;
+}
+
+/* Skeleton */
+.skeletonRow {
+  height: 48px;
+  border-radius: 8px;
+  background: linear-gradient(90deg, #1a1d27 25%, #1f2235 50%, #1a1d27 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+}
+
+@keyframes shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Tyhjä tila */
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 20px 0 8px;
+}
+
+.emptyText {
+  font-size: 13px;
+  color: #5a7a9a;
+  margin: 0;
+}
+
+.btnEmpty {
+  font-size: 12px;
+  color: #1D9E75;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  font-weight: 600;
+}
+
+.btnEmpty:hover {
+  opacity: 0.8;
+}

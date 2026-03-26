@@ -1,0 +1,194 @@
+/* MatchReport */
+
+.report {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sectionTitle {
+  font-size: 11px;
+  font-weight: 700;
+  color: #8b8d97;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin: 0 0 4px;
+}
+
+/* Lopputulos */
+.resultRow {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.resultTeam {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.resultInput {
+  width: 64px;
+  background: #161820;
+  border: 1px solid #1e2230;
+  border-radius: 10px;
+  color: #fff;
+  font-size: 28px;
+  font-weight: 800;
+  text-align: center;
+  padding: 8px 0;
+  outline: none;
+  font-family: inherit;
+  transition: border-color 0.15s;
+}
+
+.resultInput:focus { border-color: #1D9E75; }
+
+.resultTeamName {
+  font-size: 11px;
+  color: #8b8d97;
+}
+
+.resultDash {
+  font-size: 28px;
+  font-weight: 700;
+  color: #4a4d55;
+  margin-top: -20px;
+}
+
+/* Maali- ja vaihtorivit */
+.listRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.smallInput {
+  background: #0a0d12;
+  border: 1px solid #1e2230;
+  border-radius: 6px;
+  color: #fff;
+  font-size: 12px;
+  padding: 5px 8px;
+  outline: none;
+  font-family: inherit;
+  flex: 1;
+  min-width: 80px;
+  transition: border-color 0.15s;
+}
+
+.smallInput:focus { border-color: #1D9E75; }
+
+.minuteInput {
+  flex: 0;
+  width: 56px;
+  min-width: 56px;
+}
+
+.smallSelect {
+  background: #0a0d12;
+  border: 1px solid #1e2230;
+  border-radius: 6px;
+  color: #d0dce8;
+  font-size: 12px;
+  padding: 5px 8px;
+  outline: none;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.arrowLabel {
+  font-size: 14px;
+  color: #4a4d55;
+  flex-shrink: 0;
+}
+
+.removeBtn {
+  background: none;
+  border: none;
+  color: #4a4d55;
+  cursor: pointer;
+  font-size: 12px;
+  padding: 4px 6px;
+  border-radius: 4px;
+  transition: color 0.12s;
+  flex-shrink: 0;
+}
+
+.removeBtn:hover { color: #E24B4A; }
+
+.addBtn {
+  padding: 6px 12px;
+  background: transparent;
+  border: 1px dashed #1e2230;
+  border-radius: 8px;
+  color: #4a4d55;
+  font-size: 12px;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.12s, color 0.12s;
+  width: fit-content;
+}
+
+.addBtn:hover {
+  border-color: #3a3d4a;
+  color: #8b8d97;
+}
+
+/* Pelaajaarviot */
+.ratingRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 5px 0;
+  border-bottom: 1px solid #1e2230;
+}
+
+.ratingName {
+  font-size: 13px;
+}
+
+.stars {
+  display: flex;
+  gap: 2px;
+}
+
+.star {
+  background: none;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  padding: 2px;
+  transition: transform 0.1s;
+  line-height: 1;
+}
+
+.star:hover { transform: scale(1.2); }
+
+/* Vapaa tekstikenttä */
+.textarea {
+  width: 100%;
+  background: #0a0d12;
+  border: 1px solid #1e2230;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 13px;
+  line-height: 1.6;
+  padding: 10px 12px;
+  resize: vertical;
+  outline: none;
+  font-family: inherit;
+  box-sizing: border-box;
+  transition: border-color 0.15s;
+}
+
+.textarea:focus { border-color: #1D9E75; }

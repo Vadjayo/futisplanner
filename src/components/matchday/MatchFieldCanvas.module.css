@@ -1,0 +1,44 @@
+/* MatchFieldCanvas */
+
+.wrap {
+  width: 100%;
+}
+
+.canvasContainer {
+  width: 100%;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #1a3a1f;
+  cursor: default;
+}
+
+.editForm {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.editLabel {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12px;
+  color: #8b8d97;
+  font-weight: 500;
+}
+
+.editInput {
+  background: #0a0d12;
+  border: 1px solid #1e2230;
+  border-radius: 8px;
+  color: #ffffff;
+  font-size: 14px;
+  padding: 8px 12px;
+  outline: none;
+  font-family: inherit;
+  transition: border-color 0.15s;
+}
+
+.editInput:focus {
+  border-color: #1D9E75;
+}

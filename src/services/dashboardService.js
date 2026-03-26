@@ -25,6 +25,7 @@ export async function getDashboardData(userId, today, week) {
       drillCountRes,
       gameCountRes,
       weekRes,
+      recentMatchesRes,
     ] = await Promise.all([
       // Aktiivinen joukkue — viimeksi luotu
       supabase.from('teams')
@@ -81,6 +82,13 @@ export async function getDashboardData(userId, today, week) {
         .eq('user_id', userId)
         .gte('date', week.start)
         .lte('date', week.end),
+
+      // Viimeksi pelatut ottelut
+      supabase.from('match_plans')
+        .select('id, opponent, match_date, result_home, result_away, season_event_id')
+        .eq('user_id', userId)
+        .order('match_date', { ascending: false })
+        .limit(5),
     ])
 
     if (sessionsRes.error) throw sessionsRes.error
@@ -93,7 +101,8 @@ export async function getDashboardData(userId, today, week) {
         nextGame:   nextGameRes.data   ?? null,
         drillCount: drillCountRes.count ?? 0,
         gameCount:  gameCountRes.count  ?? 0,
-        weekEvents: weekRes.data ?? [],
+        weekEvents:     weekRes.data           ?? [],
+        recentMatches:  recentMatchesRes.data  ?? [],
       },
       error: null,
     }

@@ -382,7 +382,7 @@ function NavigationBar({ view, currentDate, onPrev, onNext, onToday }) {
 
 // ── PÄÄKOMPONENTTI ──
 
-export default function SeasonCalendar({ phases, events, teamId, userId, onEventsChange }) {
+export default function SeasonCalendar({ phases, events, teamId, userId, onEventsChange, onGameClick }) {
   const [view, setView]               = useState('month')
   const [currentDate, setCurrentDate] = useState(new Date())
   const [modal, setModal]             = useState(null)
@@ -1001,6 +1001,14 @@ export default function SeasonCalendar({ phases, events, teamId, userId, onEvent
             )}
           </div>
           <div className={styles.viewActions}>
+            {event.type === 'game' && onGameClick && (
+              <button
+                className={styles.btnMatchDay}
+                onClick={() => { onGameClick(event); setModal(null) }}
+              >
+                Avaa pelipäivä →
+              </button>
+            )}
             <button
               className={styles.btnEdit}
               onClick={() => setModal({ mode: 'edit', event })}

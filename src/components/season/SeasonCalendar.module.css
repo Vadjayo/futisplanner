@@ -845,6 +845,23 @@
   color: #8a9bb0;
 }
 
+.btnMatchDay {
+  flex: 1;
+  padding: 8px;
+  border-radius: 7px;
+  background: rgba(55, 138, 221, 0.12);
+  border: 1px solid rgba(55, 138, 221, 0.35);
+  color: #378ADD;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.btnMatchDay:hover {
+  background: rgba(55, 138, 221, 0.22);
+}
+
 /* ── VAHVISTUSDIALOKIT ── */
 .confirmBox {
   background: #161820;

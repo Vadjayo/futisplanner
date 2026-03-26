@@ -375,6 +375,7 @@ export default function SeasonPage() {
                 teamId={selectedId}
                 userId={user.id}
                 onEventsChange={handleEventsChange}
+                onGameClick={(ev) => navigate(ROUTES.MATCH_DAY + '?event=' + ev.id)}
               />
             </>
           )}
