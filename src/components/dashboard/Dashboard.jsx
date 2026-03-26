@@ -113,7 +113,11 @@ export default function Dashboard() {
           team={currentTeam}
           onOpenEditor={handleNewSession}
           onNewDrill={() => navigate(ROUTES.SEASON)}
-          onMatchDay={() => navigate(ROUTES.MATCH_DAY)}
+          onMatchDay={() => navigate(
+            data?.nextGame?.id
+              ? `${ROUTES.MATCH_DAY}?event=${data.nextGame.id}`
+              : ROUTES.MATCH_DAY
+          )}
         />
 
         {/* ── KAKSIPALSTAINEN LAYOUT ── */}

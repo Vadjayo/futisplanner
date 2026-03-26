@@ -24,9 +24,11 @@ function todayStr() {
 
 /**
  * Muodostelmien pelaajapaikat 1000×650 kentällä.
- * Kotijoukkue pelaa vasemmalta oikealle.
+ * Kotijoukkue pelaa vasemmalta oikealle — oma kenttäpuolisko x: 0–490.
+ * Sisältää 11v11-, 8v8- ja 5v5-muodostelmat.
  */
 export const FORMATIONS = {
+  // ── 11v11 ──
   '4-3-3': [
     { position: 'MV', x: 75,  y: 325 },
     { position: 'PO', x: 220, y: 140 },
@@ -91,6 +93,54 @@ export const FORMATIONS = {
     { position: 'KK', x: 395, y: 440 },
     { position: 'HY', x: 575, y: 245 },
     { position: 'HY', x: 575, y: 405 },
+  ],
+
+  // ── 8v8 ──
+  '3-3-1': [
+    { position: 'MV', x: 75,  y: 325 },
+    { position: 'KP', x: 210, y: 195 },
+    { position: 'KP', x: 210, y: 325 },
+    { position: 'KP', x: 210, y: 455 },
+    { position: 'KK', x: 360, y: 195 },
+    { position: 'KK', x: 360, y: 325 },
+    { position: 'KK', x: 360, y: 455 },
+    { position: 'HY', x: 470, y: 325 },
+  ],
+  '3-2-2': [
+    { position: 'MV', x: 75,  y: 325 },
+    { position: 'KP', x: 210, y: 195 },
+    { position: 'KP', x: 210, y: 325 },
+    { position: 'KP', x: 210, y: 455 },
+    { position: 'KK', x: 360, y: 260 },
+    { position: 'KK', x: 360, y: 390 },
+    { position: 'HY', x: 470, y: 225 },
+    { position: 'HY', x: 470, y: 425 },
+  ],
+  '2-4-1': [
+    { position: 'MV', x: 75,  y: 325 },
+    { position: 'KP', x: 200, y: 260 },
+    { position: 'KP', x: 200, y: 390 },
+    { position: 'KK', x: 325, y: 160 },
+    { position: 'KK', x: 325, y: 280 },
+    { position: 'KK', x: 325, y: 370 },
+    { position: 'KK', x: 325, y: 490 },
+    { position: 'HY', x: 460, y: 325 },
+  ],
+
+  // ── 5v5 ──
+  '2-2': [
+    { position: 'MV', x: 75,  y: 325 },
+    { position: 'KP', x: 255, y: 230 },
+    { position: 'KP', x: 255, y: 420 },
+    { position: 'HY', x: 440, y: 230 },
+    { position: 'HY', x: 440, y: 420 },
+  ],
+  '1-2-1': [
+    { position: 'MV', x: 75,  y: 325 },
+    { position: 'KP', x: 240, y: 325 },
+    { position: 'KK', x: 370, y: 230 },
+    { position: 'KK', x: 370, y: 420 },
+    { position: 'HY', x: 460, y: 325 },
   ],
 }
 

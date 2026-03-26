@@ -168,6 +168,26 @@ input[type="time"].metaInput {
 }
 
 /* ── MUODOSTELMA ── */
+.formationGroups {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.formationGroup {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.formationGroupLabel {
+  font-size: 11px;
+  font-weight: 600;
+  color: #555870;
+  min-width: 36px;
+}
+
 .formationRow {
   display: flex;
   gap: 6px;
