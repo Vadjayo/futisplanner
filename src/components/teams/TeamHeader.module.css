@@ -1,0 +1,76 @@
+.header {
+  margin-bottom: 24px;
+}
+
+.titleRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+  gap: 16px;
+}
+
+.title {
+  font-size: 22px;
+  font-weight: 700;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.infoCard {
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.infoRow {
+  display: flex;
+  align-items: stretch;
+}
+
+.infoField {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 12px 20px;
+  flex: 1;
+}
+
+.infoDivider {
+  width: 1px;
+  align-self: stretch;
+}
+
+.infoLabel {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.infoValue {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.coachesDivider {
+  height: 1px;
+}
+
+.coachesRow {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 10px 20px 12px;
+}
+
+.coachesValue {
+  font-size: 13px;
+}

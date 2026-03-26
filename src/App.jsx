@@ -21,6 +21,7 @@ import Dashboard      from './pages/Dashboard'
 import Editor         from './pages/Editor'
 import SeasonPlanner  from './pages/SeasonPlanner'
 import MatchDay       from './pages/MatchDay'
+import Teams          from './pages/Teams'
 
 // Auth-sivut joilla ei vielä ole omaa pages/-tiedostoa
 import ForgotPasswordPage from './components/auth/ForgotPasswordPage'
@@ -81,6 +82,9 @@ export default function App() {
       } />
       <Route path={`${ROUTES.MATCH_DAY}/:id`} element={
         <ProtectedRoute><MatchDay /></ProtectedRoute>
+      } />
+      <Route path={ROUTES.TEAMS} element={
+        <ProtectedRoute><Teams /></ProtectedRoute>
       } />
 
       {/* Tuntematon polku — ohjaa etusivulle */}

@@ -1,0 +1,166 @@
+.wrapper {
+  background: #161820;
+  border: 1px solid #1e2230;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.headerRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px 12px;
+  border-bottom: 1px solid #1e2230;
+  gap: 12px;
+}
+
+.title {
+  font-size: 15px;
+  font-weight: 600;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.count {
+  font-size: 13px;
+  font-weight: 400;
+}
+
+.headerActions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.filters {
+  display: flex;
+  gap: 6px;
+  padding: 10px 20px;
+  border-bottom: 1px solid #1e2230;
+  overflow-x: auto;
+}
+
+.filterBtn {
+  background: none;
+  border: 1px solid #1e2230;
+  border-radius: 5px;
+  padding: 3px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #8b8d97;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+  font-family: inherit;
+  white-space: nowrap;
+}
+
+.filterBtn:hover {
+  color: #d0dce8;
+  border-color: #2a2d3e;
+}
+
+.filterActive {
+  font-weight: 700;
+}
+
+.tableWrapper {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.th {
+  padding: 9px 16px;
+  text-align: left;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  background: #1a1d27;
+  border-bottom: 1px solid #1e2230;
+}
+
+.row {
+  border-bottom: 1px solid #1e2230;
+  transition: background 0.12s;
+}
+
+.row:last-child {
+  border-bottom: none;
+}
+
+.row:hover {
+  background: #1a1d2780;
+}
+
+.td {
+  padding: 10px 16px;
+  vertical-align: middle;
+}
+
+.rowActions {
+  display: flex;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.row:hover .rowActions {
+  opacity: 1;
+}
+
+.iconBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 3px 5px;
+  border-radius: 4px;
+  font-size: 13px;
+  line-height: 1;
+  transition: background 0.12s;
+}
+
+.iconBtn:hover {
+  background: #1a1d27;
+}
+
+.emptyCell {
+  text-align: center;
+  padding: 48px 16px;
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.emptyIcon {
+  font-size: 28px;
+  opacity: 0.5;
+}
+
+/* Skeleton */
+.skeletonRow td {
+  padding: 11px 16px;
+}
+
+.skeletonCell {
+  height: 14px;
+  border-radius: 4px;
+  background: #1e2230;
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0%   { opacity: 0.5; }
+  50%  { opacity: 1; }
+  100% { opacity: 0.5; }
+}

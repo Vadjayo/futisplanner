@@ -60,7 +60,7 @@ export function useTeam(userId) {
   // Tallentaa joukkueen tiedot tietokantaan
   const save = useCallback(async (teamData, teamId) => {
     setSaving(true)
-    await updateTeam(teamId, {
+    await updateTeam(userId, teamId, {
       name:         teamData.name,
       age_group:    teamData.age_group,
       level:        teamData.level,
@@ -76,7 +76,7 @@ export function useTeam(userId) {
     setTeams((prev) =>
       prev.map((t) => t.id === teamId ? { ...t, name: teamData.name, season: teamData.season } : t)
     )
-  }, [])
+  }, [userId])
 
   // Debounce-tallennus kun team-tila muuttuu
   useEffect(() => {
@@ -119,7 +119,7 @@ export function useTeam(userId) {
   const handleCreateTeam = useCallback(async () => {
     if (creatingTeam || !userId) return
     setCreatingTeam(true)
-    const { data } = await createTeam(userId)
+    const { data } = await createTeam({ userId, name: 'Uusi joukkue' })
     setCreatingTeam(false)
     if (!data) return
     isFirstLoad.current = false
@@ -130,7 +130,7 @@ export function useTeam(userId) {
 
   /** Poista joukkue */
   const handleDeleteTeam = useCallback(async (teamId) => {
-    await deleteTeam(teamId)
+    await deleteTeam(userId, teamId)
     const next = teams.filter((t) => t.id !== teamId)
     setTeams(next)
     if (selectedId === teamId) {
@@ -138,7 +138,7 @@ export function useTeam(userId) {
       setSelectedId(first?.id ?? null)
       setTeam(first)
     }
-  }, [teams, selectedId])
+  }, [teams, selectedId, userId])
 
   /** Lataa tapahtumat uudelleen tietokannasta */
   const reloadEvents = useCallback(() => {
