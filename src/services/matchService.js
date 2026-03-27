@@ -32,6 +32,29 @@ export async function getMatchPlans(userId, teamId) {
 }
 
 /**
+ * Hakee kausisuunnittelun tapahtuman (ottelu) tiedot esiläytölle.
+ * @param {string} userId
+ * @param {string} eventId  - season_events.id
+ * @returns {Promise<{ data: object|null, error: object|null }>}
+ */
+export async function getSeasonEvent(userId, eventId) {
+  try {
+    const { data, error } = await supabase
+      .from('season_events')
+      .select('id, title, date, time')
+      .eq('user_id', userId)
+      .eq('id', eventId)
+      .maybeSingle()
+
+    if (error) throw error
+    return { data, error: null }
+  } catch (error) {
+    console.error('Kausisuunnittelun tapahtuman haku epäonnistui:', error)
+    return { data: null, error }
+  }
+}
+
+/**
  * Hakee pelipäiväsuunnitelman kausisuunnittelun tapahtuman id:n perusteella.
  * Palauttaa null jos suunnitelmaa ei ole vielä luotu kyseiselle ottelulle.
  * @param {string} userId

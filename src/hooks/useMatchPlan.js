@@ -15,7 +15,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useSearchParams }                  from 'react-router-dom'
 import { useAuth }  from './useAuth'
 import { useTeam }  from './useTeam'
-import { getMatchPlan, getMatchPlanByEventId, saveMatchPlan, deleteMatchPlan } from '../services/matchService'
+import { getMatchPlan, getMatchPlanByEventId, getSeasonEvent, saveMatchPlan, deleteMatchPlan } from '../services/matchService'
 
 /** Tänään YYYY-MM-DD */
 function todayStr() {
@@ -231,9 +231,22 @@ export function useMatchPlan(matchId) {
     // Tapaus 1: avattu kausisuunnittelun ottelulinkistä (?event=UUID)
     if (eventId && !matchId) {
       setLoading(true)
-      getMatchPlanByEventId(user.id, eventId).then(({ data, error: err }) => {
-        if (err) setError(err)
-        else     setPlan(data ? rowToPlan(data) : createEmptyPlan(null, team?.id, eventId))
+      getMatchPlanByEventId(user.id, eventId).then(async ({ data, error: err }) => {
+        if (err) {
+          setError(err)
+        } else if (data) {
+          setPlan(rowToPlan(data))
+        } else {
+          // Ei vielä suunnitelmaa — hae ottelun tiedot kausisuunnittelusta
+          const { data: ev } = await getSeasonEvent(user.id, eventId)
+          const emptyPlan = createEmptyPlan(null, team?.id, eventId)
+          if (ev) {
+            emptyPlan.matchDate = ev.date  ?? emptyPlan.matchDate
+            emptyPlan.matchTime = ev.time  ?? ''
+            emptyPlan.opponent  = ev.title ?? ''
+          }
+          setPlan(emptyPlan)
+        }
         setLoading(false)
       })
       return
