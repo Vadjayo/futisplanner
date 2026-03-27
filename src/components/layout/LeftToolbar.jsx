@@ -492,7 +492,6 @@ export default function LeftToolbar({ activeTool, onToolChange, toolOptions, onT
             <div className={styles.displayModeRow}>
               {[
                 { id: 'number', label: '#',  title: 'Numero' },
-                { id: 'name',   label: '#A', title: 'Numero + nimi' },
                 { id: 'jersey', label: '👕', title: 'Pelipaita' },
               ].map(({ id, label, title }) => (
                 <button key={id}

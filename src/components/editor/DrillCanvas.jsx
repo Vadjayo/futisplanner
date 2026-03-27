@@ -6,7 +6,7 @@
 import { useRef, useState, useEffect, useCallback, forwardRef, useImperativeHandle } from 'react'
 import {
   Stage, Layer, Group,
-  Circle, Rect, RegularPolygon, Arrow, Line, Ellipse, Path,
+  Circle, Rect, RegularPolygon, Arrow, Line, Ellipse, Arc, Ring,
   Text as KonvaText, Transformer,
 } from 'react-konva'
 import FieldBackground from './FieldBackground'
@@ -766,6 +766,8 @@ const DrillCanvas = forwardRef(function DrillCanvas({ elements, fieldType, activ
               const strokeW = isGk ? 2.5 * scale : 1.5 * scale
               // Pelaajan näyttötapa: 'number' | 'name' | 'jersey'
               const displayMode = toolOptions?.playerDisplayMode ?? 'number'
+              // Pelaajan kokosuhde — muuta tätä skaalaamiseen
+              const ps = 1.3
               return (
                 <Group
                   key={el.id} id={`el_${el.id}`}
@@ -811,29 +813,50 @@ const DrillCanvas = forwardRef(function DrillCanvas({ elements, fieldType, activ
                       />
                     </>
                   ) : isDefender ? (
-                    // Puolustaja – ääriviiva-kolmio kahdella RegularPolygonilla
+                    // Puolustaja – täytetty kolmio + avoin kaari
                     <>
                       <RegularPolygon
-                        sides={3} radius={13 * scale}
-                        fill="transparent" stroke={color} strokeWidth={3.5 * scale}
+                        x={10 * ps * scale} y={0}
+                        sides={3} radius={10 * ps * scale}
+                        fill={color}
+                        rotation={30}
                       />
-                      <RegularPolygon
-                        sides={3} radius={13 * scale}
-                        fill="transparent" stroke="white" strokeWidth={1 * scale}
+                      <Arc
+                        innerRadius={14 * ps * scale}
+                        outerRadius={16 * ps * scale}
+                        angle={160}
+                        rotation={-80}
+                        fill="transparent"
+                        stroke={color}
+                        strokeWidth={2 * ps * scale}
                       />
                     </>
                   ) : (
-                    <Circle radius={12 * scale} fill={color} stroke="white" strokeWidth={strokeW} />
+                    // Hyökkääjä – täytetty ympyrä + avoin kaari
+                    <>
+                      <Circle x={8 * ps * scale} y={0} radius={8 * ps * scale} fill={color} />
+                      <Arc
+                        innerRadius={14 * ps * scale}
+                        outerRadius={16 * ps * scale}
+                        angle={160}
+                        rotation={-80}
+                        fill="transparent"
+                        stroke={color}
+                        strokeWidth={2 * ps * scale}
+                      />
+                    </>
                   )}
-                  {/* Numero – kolmiossa alemmas, paidassa keskelle */}
-                  <KonvaText
-                    x={-9 * scale} y={displayMode === 'jersey' ? -4 * scale : isDefender ? -4 * scale : -7 * scale}
-                    text={String(el.number)}
-                    fontSize={11 * scale} fill="white" fontStyle="bold"
-                    width={18 * scale} height={14 * scale}
-                    align="center" verticalAlign="middle"
-                    listening={false}
-                  />
+                  {/* Numero – näytetään vain jersey-tilassa */}
+                  {displayMode === 'jersey' && (
+                    <KonvaText
+                      x={-9 * scale} y={-4 * scale}
+                      text={String(el.number)}
+                      fontSize={11 * scale} fill="white" fontStyle="bold"
+                      width={18 * scale} height={14 * scale}
+                      align="center" verticalAlign="middle"
+                      listening={false}
+                    />
+                  )}
                   {/* Nimitagi – näytetään 'name' tilassa */}
                   {displayMode === 'name' && el.name && (
                     <Group y={16 * scale} listening={false}>
@@ -961,16 +984,15 @@ const DrillCanvas = forwardRef(function DrillCanvas({ elements, fieldType, activ
               )
             }
 
-            // --- TÖTSÄ ---
+            // --- TÖTSÄ — oranssi rengas ---
             if (el.type === 'cone') {
               const colors = CONE_HEX[el.color ?? 'orange'] ?? CONE_HEX.orange
               return (
-                <RegularPolygon
+                <Ring
                   key={el.id} id={`el_${el.id}`}
                   x={el.x * scale} y={el.y * scale}
-                  sides={3} radius={14 * scale}
-                  fill={colors.fill} stroke={colors.stroke} strokeWidth={1 * scale}
-                  rotation={el.rotation ?? 0}
+                  innerRadius={5 * scale} outerRadius={9 * scale}
+                  fill={colors.fill}
                   draggable={draggable}
                   onClick={(e) => selectEl(e, el.id)}
                   onDragEnd={(e) => handleDragEnd(e, el.id)}
