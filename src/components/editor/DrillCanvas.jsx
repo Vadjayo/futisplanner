@@ -768,11 +768,14 @@ const DrillCanvas = forwardRef(function DrillCanvas({ elements, fieldType, activ
               const displayMode = toolOptions?.playerDisplayMode ?? 'number'
               // Pelaajan kokosuhde — muuta tätä skaalaamiseen
               const ps = 1.3
+              // Kääntymispiste: täytetyn muodon (ympyrä/kolmio) keskikohta
+              const pivotX = isDefender ? 10 * ps * scale : 8 * ps * scale
               return (
                 <Group
                   key={el.id} id={`el_${el.id}`}
                   x={aPos ? aPos.x * scale : el.x * scale}
                   y={aPos ? aPos.y * scale : el.y * scale}
+                  offsetX={pivotX}
                   draggable={draggable}
                   onClick={(e) => selectEl(e, el.id)}
                   onDblClick={() => { if (activeTool === 'select') setEditingPlayerLabel({ id: el.id, x: (aPos ? aPos.x : el.x) * scale, y: (aPos ? aPos.y : el.y) * scale, text: el.posLabel ?? '' }) }}
@@ -781,6 +784,7 @@ const DrillCanvas = forwardRef(function DrillCanvas({ elements, fieldType, activ
                   onDragMove={(e) => syncGroupDragMove(e, el.id)}
                   onDragEnd={(e) => handleDragEnd(e, el.id)}
                   onWheel={(e) => handleWheel(e, el.id)}
+                  rotation={el.rotation ?? 0}
                 >
                   {displayMode === 'jersey' ? (
                     // Pelipaita – sama kaikille (hyökkääjä, puolustaja, mv)
