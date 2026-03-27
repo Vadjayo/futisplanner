@@ -524,10 +524,10 @@ export default function LeftToolbar({ activeTool, onToolChange, toolOptions, onT
             <div className={styles.playerTypeLabel}>Hyökkääjät</div>
             <div className={styles.playerGrid}>
               {[
-                ['blue',  '#2563eb', 'Sin'],
-                ['red',   '#dc2626', 'Pun'],
-                ['green', '#16a34a', 'Vih'],
-                ['dark',  '#4b5563', 'Har'],
+                ['blue',  '#2563eb', ],
+                ['red',   '#dc2626', ],
+                ['green', '#16a34a', ],
+                ['dark',  '#4b5563', ],
               ].map(([role, color, label]) => (
                 <button key={role}
                   className={`${styles.playerCard} ${activeTool === 'player' && toolOptions.playerTeam === role ? styles.itemActive : ''}`}
@@ -548,10 +548,10 @@ export default function LeftToolbar({ activeTool, onToolChange, toolOptions, onT
             <div className={styles.playerTypeLabel}>Puolustajat</div>
             <div className={styles.playerGrid}>
               {[
-                ['def_blue',  '#2563eb', 'Sin'],
-                ['def_red',   '#dc2626', 'Pun'],
-                ['def_green', '#16a34a', 'Vih'],
-                ['def_dark',  '#4b5563', 'Har'],
+                ['def_blue',  '#2563eb', ],
+                ['def_red',   '#dc2626', ],
+                ['def_green', '#16a34a', ],
+                ['def_dark',  '#4b5563', ],
               ].map(([role, color, label]) => (
                 <button key={role}
                   className={`${styles.playerCard} ${activeTool === 'player' && toolOptions.playerTeam === role ? styles.itemActive : ''}`}
