@@ -118,32 +118,30 @@ export async function saveSession({ id, name, userId, drills, meta = {} }) {
 
     if (sessionError) throw sessionError
 
-    // 2. Poista vanhat drills
-    const { error: deleteError } = await supabase
-      .from('drills')
-      .delete()
-      .eq('session_id', session.id)
-
-    if (deleteError) throw deleteError
-
-    // 3. Lisää uudet drills järjestysnumeroineen
+    // 2. Upsert drills — päivittää olemassa olevat, lisää uudet.
+    //    Ei poisteta ensin, joten insertin epäonnistuminen ei hävitä dataa.
     if (drills.length > 0) {
-      const { error: insertError } = await supabase
-        .from('drills')
-        .insert(
-          drills.map((d, i) => ({
-            id:         d.id,
-            session_id: session.id,
-            user_id:    userId,
-            title:      d.title,
-            duration:   d.duration,
-            field_type: d.fieldType,
-            elements:   d.elements,
-            position:   i,
-          }))
-        )
-      if (insertError) throw insertError
+      const rows = drills.map((d, i) => ({
+        id:         d.id,
+        session_id: session.id,
+        user_id:    userId,
+        title:      d.title,
+        duration:   d.duration,
+        field_type: d.fieldType,
+        elements:   d.elements,
+        position:   i,
+      }))
+      const { error: upsertError } = await supabase.from('drills').upsert(rows)
+      if (upsertError) throw upsertError
     }
+
+    // 3. Poista vain ne drills jotka on poistettu sovelluksessa
+    const currentIds = drills.map((d) => d.id)
+    const deleteQuery = supabase.from('drills').delete().eq('session_id', session.id)
+    const { error: deleteError } = currentIds.length > 0
+      ? await deleteQuery.not('id', 'in', `(${currentIds.join(',')})`)
+      : await deleteQuery
+    if (deleteError) throw deleteError
 
     return { data: session, error: null }
   } catch (error) {

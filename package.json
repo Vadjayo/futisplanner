@@ -12,6 +12,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.80.0",
     "@supabase/supabase-js": "^2.100.0",
     "i18next": "^25.10.5",
     "jspdf": "^4.2.1",

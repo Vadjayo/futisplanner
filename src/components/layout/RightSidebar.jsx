@@ -1,6 +1,7 @@
 /**
  * RightSidebar.jsx
  * Oikean reunan sivupalkki. Harjoitelista, sessiodata ja metatieto.
+ * Sisältää välilehdet: Sisältö | AI-avustaja
  */
 
 import { useState, useRef } from 'react'
@@ -14,10 +15,24 @@ const FOCUS_FIELDS = [
   { key: 'focusMental',    label: 'Henkinen' },
 ]
 
-export default function RightSidebar({ drills, activeDrillIndex, onDrillSelect, onReorderDrill, onAddDrill, onOpenLibrary, sessionMeta, onSessionMetaChange }) {
+/**
+ * @param {object}    props
+ * @param {Array}     props.drills
+ * @param {number}    props.activeDrillIndex
+ * @param {function}  props.onDrillSelect
+ * @param {function}  props.onReorderDrill
+ * @param {function}  props.onAddDrill
+ * @param {function}  props.onOpenLibrary
+ * @param {object}    props.sessionMeta
+ * @param {function}  props.onSessionMetaChange
+ * @param {ReactNode} [props.aiPanel]          - AI-paneelin sisältö
+ */
+export default function RightSidebar({ drills, activeDrillIndex, onDrillSelect, onReorderDrill, onAddDrill, onOpenLibrary, sessionMeta, onSessionMetaChange, aiPanel }) {
   const totalMinutes = totalDuration(drills)
-  const dragFromRef = useRef(null)
+  const dragFromRef  = useRef(null)
   const [dragOverIndex, setDragOverIndex] = useState(null)
+  // Aktiivinen välilehti: 'content' | 'ai'
+  const [activeTab, setActiveTab] = useState('content')
 
   function handleDragStart(i) {
     dragFromRef.current = i
@@ -44,6 +59,32 @@ export default function RightSidebar({ drills, activeDrillIndex, onDrillSelect, 
 
   return (
     <aside className={styles.sidebar}>
+
+      {/* ── VÄLILEHDET ── */}
+      {aiPanel && (
+        <div className={styles.tabs}>
+          <button
+            className={`${styles.tab} ${activeTab === 'content' ? styles.tabActive : ''}`}
+            onClick={() => setActiveTab('content')}
+          >
+            📋 Sisältö
+          </button>
+          <button
+            className={`${styles.tab} ${activeTab === 'ai' ? styles.tabActive : ''}`}
+            onClick={() => setActiveTab('ai')}
+          >
+            🤖 AI
+          </button>
+        </div>
+      )}
+
+      {/* ── AI-PANEELI ── */}
+      {aiPanel && activeTab === 'ai' && (
+        <div className={styles.aiPanelWrap}>{aiPanel}</div>
+      )}
+
+      {/* ── NORMAALI SISÄLTÖ ── */}
+      {(!aiPanel || activeTab === 'content') && <>
 
       {/* ── HARJOITTEET ── */}
       <div className={styles.section}>
@@ -163,6 +204,8 @@ export default function RightSidebar({ drills, activeDrillIndex, onDrillSelect, 
           {totalMinutes} min
         </span>
       </div>
+
+      </>}
     </aside>
   )
 }

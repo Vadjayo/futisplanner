@@ -9,11 +9,13 @@ import './lib/i18n'
 import { useAuth } from './hooks/useAuth'
 import { ROUTES } from './constants/routes'
 import { loadRecentSession, loadSessionById, saveSession, saveToLibrary } from './lib/db'
+import { convertAIElements } from './utils/aiElementConverter'
 import TopBar from './components/layout/TopBar'
 import LeftToolbar from './components/layout/LeftToolbar'
 import RightSidebar from './components/layout/RightSidebar'
 import DrillList from './components/editor/DrillList'
 import LibraryPanel from './components/library/LibraryPanel'
+import AIAssistantPanel from './components/editor/AIAssistantPanel'
 import styles from './App.module.css'
 
 // Luo uusi tyhjä harjoite oletusarvoilla
@@ -204,6 +206,14 @@ export default function EditorApp() {
     updateDrill(activeDrill.id, { elements: [...activeDrill.elements, ...newPlayers] })
   }
 
+  // Lisää AI:n generoimat elementit aktiiviseen harjoitteeseen
+  const handleAIElements = useCallback((aiElements) => {
+    const activeDrill = drills[activeDrillIndex]
+    if (!activeDrill) return
+    const converted = convertAIElements(aiElements)
+    updateDrill(activeDrill.id, { elements: [...activeDrill.elements, ...converted] })
+  }, [drills, activeDrillIndex])
+
   // Päivitä yksittäisen harjoitteen kenttiä id:n perusteella
   function updateDrill(id, updates) {
     setDrills((prev) => prev.map((d) => (d.id === id ? { ...d, ...updates } : d)))
@@ -328,6 +338,7 @@ export default function EditorApp() {
           onOpenLibrary={() => setLibraryOpen(true)}
           sessionMeta={sessionMeta}
           onSessionMetaChange={(key, val) => setSessionMeta((prev) => ({ ...prev, [key]: val }))}
+          aiPanel={<AIAssistantPanel onElementsGenerated={handleAIElements} isPro={true} />}
         />
       </div>
 
