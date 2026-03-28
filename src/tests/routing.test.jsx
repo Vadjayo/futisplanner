@@ -7,28 +7,28 @@
 import { render, screen } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { MemoryRouter, Routes, Route, Navigate } from 'react-router-dom'
-import { ROUTES } from '../../constants/routes'
+import { ROUTES } from '../constants/routes'
 
 // Mockataan useAuth
 const mockUseAuth = vi.fn()
-vi.mock('../../hooks/useAuth', () => ({
+vi.mock('../hooks/useAuth', () => ({
   useAuth: () => mockUseAuth(),
 }))
 
 // Mockataan LoadingSpinner
-vi.mock('../../components/ui/LoadingSpinner', () => ({
+vi.mock('../components/ui/LoadingSpinner', () => ({
   default: () => <div>Ladataan...</div>,
 }))
 
 // Mockataan TeamProvider jotta App voidaan renderöidä ilman Supabase-kyselyjä
-vi.mock('../../store/teamStore', () => ({
+vi.mock('../store/teamStore', () => ({
   TeamProvider:  ({ children }) => <>{children}</>,
   useCurrentTeam: vi.fn(() => ({ currentTeam: null, switchTeam: vi.fn() })),
 }))
 
 // Reittivartijat — kopioidaan App.jsx:stä testiin jotta ei tarvita koko sovellusta
-import { useAuth } from '../../hooks/useAuth'
-import LoadingSpinner from '../../components/ui/LoadingSpinner'
+import { useAuth } from '../hooks/useAuth'
+import LoadingSpinner from '../components/ui/LoadingSpinner'
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth()
@@ -49,9 +49,10 @@ function renderRoute(initialPath, element) {
   return render(
     <MemoryRouter initialEntries={[initialPath]}>
       <Routes>
+        {/* Testattava reitti ensin — muuten React Router osuu staattiseen reittiin ensin */}
+        <Route path={initialPath}      element={element} />
         <Route path={ROUTES.LOGIN}     element={<div>Kirjautumissivu</div>} />
         <Route path={ROUTES.DASHBOARD} element={<div>Dashboard</div>} />
-        <Route path={initialPath}      element={element} />
       </Routes>
     </MemoryRouter>
   )

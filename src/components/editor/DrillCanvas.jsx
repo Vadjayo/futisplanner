@@ -830,7 +830,7 @@ const DrillCanvas = forwardRef(function DrillCanvas({ elements, fieldType, activ
                     // Puolustaja – täytetty kolmio + avoin kaari
                     <>
                       <RegularPolygon
-                        x={10 * ps * scale} y={0}
+                        x={8 * ps * scale} y={0}
                         sides={3} radius={10 * ps * scale}
                         fill={color}
                         rotation={30}
