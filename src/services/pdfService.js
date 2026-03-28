@@ -59,9 +59,10 @@ function addPage(pdf) {
  * @param {object} [sessionMeta={}]
  *   Valinnainen: theme, description, focusTechnical, focusTactical,
  *                focusPhysical, focusMental
- * @returns {Promise<void>}
+ * @returns {Promise<{ error: Error|null }>}
  */
 export async function exportSessionPdf(drillCardRefs, drills, sessionName, sessionMeta = {}) {
+  try {
   const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
 
   // Taustaväri ensimmäiselle sivulle
@@ -203,5 +204,10 @@ export async function exportSessionPdf(drillCardRefs, drills, sessionName, sessi
     .replace(/[^a-zA-Z0-9äöåÄÖÅ _-]/g, '')
     .trim() || 'harjoitus'
 
-  pdf.save(`${filename}.pdf`)
+    pdf.save(`${filename}.pdf`)
+    return { error: null }
+  } catch (error) {
+    console.error('PDF-vienti epäonnistui:', error)
+    return { error }
+  }
 }

@@ -175,9 +175,11 @@ export async function loadUserLibrary(userId) {
 
 /**
  * Poista kirjastoharjoite (vain omat).
+ * @param {string} id - Poistettavan harjoitteen UUID
+ * @param {string} userId - Käyttäjän UUID (turvasuodatin)
  */
-export async function deleteFromLibrary(id) {
-  const { error } = await supabase.from('library').delete().eq('id', id)
+export async function deleteFromLibrary(id, userId) {
+  const { error } = await supabase.from('library').delete().eq('id', id).eq('user_id', userId)
   return { error }
 }
 

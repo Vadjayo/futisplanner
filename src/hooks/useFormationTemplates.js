@@ -50,10 +50,10 @@ export function useFormationTemplates() {
    * @returns {Promise<{ error: object|null }>}
    */
   const deleteTemplate = useCallback(async (templateId) => {
-    const { error } = await deleteFormationTemplate(templateId)
+    const { error } = await deleteFormationTemplate(templateId, user?.id)
     if (!error) setTemplates((prev) => prev.filter((t) => t.id !== templateId))
     return { error }
-  }, [])
+  }, [user?.id])
 
   return { templates, saveTemplate, deleteTemplate }
 }

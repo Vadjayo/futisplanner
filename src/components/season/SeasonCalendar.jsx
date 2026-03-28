@@ -6,15 +6,16 @@
 
 import { useState, useMemo, useRef, useEffect, useCallback } from 'react'
 import { addEvent, addEvents, updateEvent, deleteEvent, deleteFutureRecurring } from '../../lib/seasonDb'
+import { COLORS } from '../../constants/colors'
 import styles from './SeasonCalendar.module.css'
 
 // ── VAKIOT ──
 
 const EVENT_TYPES = [
-  { id: 'drill',      label: 'Treeni',   color: '#1D9E75' },
-  { id: 'game',       label: 'Ottelu',   color: '#378ADD' },
-  { id: 'tournament', label: 'Turnaus',  color: '#7F77DD' },
-  { id: 'rest',       label: 'Lepo',     color: '#EF9F27' },
+  { id: 'drill',      label: 'Treeni',   color: COLORS.event.drill },
+  { id: 'game',       label: 'Ottelu',   color: COLORS.event.game },
+  { id: 'tournament', label: 'Turnaus',  color: COLORS.event.tournament },
+  { id: 'rest',       label: 'Lepo',     color: COLORS.event.rest },
 ]
 
 const FI_MONTHS = [
@@ -332,13 +333,13 @@ function StatsBar({ events, phases }) {
   const pct = Math.min(100, Math.round((eventDays / seasonDays) * 100))
   const seasonPct = `${pct}%`
   // Väri: < 25% oranssi, ≥ 75% vihreä, muuten valkoinen
-  const pctColor = pct < 25 ? '#EF9F27' : pct >= 75 ? '#1D9E75' : '#d0dce8'
+  const pctColor = pct < 25 ? COLORS.status.warning : pct >= 75 ? COLORS.brand.primary : COLORS.text.light
 
   const stats = [
-    { label: 'Treenejä',          value: drills,        color: '#1D9E75' },
-    { label: 'Otteluita',         value: games,         color: '#378ADD' },
-    { label: 'Turnauksia',        value: tournaments,   color: '#7F77DD' },
-    { label: 'Treenejä/vk',       value: drillsPerWeek, color: '#1D9E75' },
+    { label: 'Treenejä',          value: drills,        color: COLORS.event.drill },
+    { label: 'Otteluita',         value: games,         color: COLORS.event.game },
+    { label: 'Turnauksia',        value: tournaments,   color: COLORS.event.tournament },
+    { label: 'Treenejä/vk',       value: drillsPerWeek, color: COLORS.event.drill },
     { label: 'Kausi suunniteltu', value: seasonPct,     color: pctColor  },
   ]
 
@@ -527,7 +528,7 @@ export default function SeasonCalendar({ phases, events, teamId, userId, onEvent
     setConfirmDialog(null)
     setModal(null)
     try {
-      const { error } = await deleteEvent(event.id)
+      const { error } = await deleteEvent(event.id, userId)
       if (error) console.error('Poisto epäonnistui:', error.message)
       onEventsChange()
     } finally {
@@ -541,7 +542,7 @@ export default function SeasonCalendar({ phases, events, teamId, userId, onEvent
     setConfirmDialog(null)
     setModal(null)
     try {
-      const { error } = await deleteFutureRecurring(event.recurring_group_id, event.date)
+      const { error } = await deleteFutureRecurring(event.recurring_group_id, event.date, userId)
       if (error) console.error('Toistuvien poisto epäonnistui:', error.message)
       onEventsChange()
     } finally {

@@ -57,7 +57,7 @@ export default function LibraryPanel({ userId, onClose, onAddDrill }) {
   useEffect(() => { reload() }, [source, category, ageGroup, search]) // eslint-disable-line react-hooks/exhaustive-deps
 
   async function handleDelete(id) {
-    await deleteFromLibrary(id)
+    await deleteFromLibrary(id, userId)
     setDrills((prev) => prev.filter((d) => d.id !== id))
   }
 

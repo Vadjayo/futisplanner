@@ -258,9 +258,9 @@ export async function getUserLibrary(userId) {
  * @param {string} id
  * @returns {Promise<{ error: object|null }>}
  */
-export async function deleteFromLibrary(id) {
+export async function deleteFromLibrary(id, userId) {
   try {
-    const { error } = await supabase.from('library').delete().eq('id', id)
+    const { error } = await supabase.from('library').delete().eq('id', id).eq('user_id', userId)
     if (error) throw error
     return { error: null }
   } catch (error) {

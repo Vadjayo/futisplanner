@@ -119,9 +119,9 @@ export async function updateEvent(id, updates) {
  * @param {string} id
  * @returns {Promise<{ error: object|null }>}
  */
-export async function deleteEvent(id) {
+export async function deleteEvent(id, userId) {
   try {
-    const { error } = await supabase.from('season_events').delete().eq('id', id)
+    const { error } = await supabase.from('season_events').delete().eq('id', id).eq('user_id', userId)
     if (error) throw error
     return { error: null }
   } catch (error) {
@@ -136,13 +136,14 @@ export async function deleteEvent(id) {
  * @param {string} fromDate  - 'YYYY-MM-DD'
  * @returns {Promise<{ error: object|null }>}
  */
-export async function deleteFutureRecurring(recurringGroupId, fromDate) {
+export async function deleteFutureRecurring(recurringGroupId, fromDate, userId) {
   try {
     const { error } = await supabase
       .from('season_events')
       .delete()
       .eq('recurring_group_id', recurringGroupId)
       .gte('date', fromDate)
+      .eq('user_id', userId)
 
     if (error) throw error
     return { error: null }

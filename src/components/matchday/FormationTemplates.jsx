@@ -7,6 +7,7 @@
 import { useState } from 'react'
 import Modal  from '../ui/Modal'
 import Button from '../ui/Button'
+import { COLORS } from '../../constants/colors'
 import styles from './MatchDay.module.css'
 
 /**
@@ -50,8 +51,8 @@ export default function FormationTemplates({ templates, onLoad, onSaveCurrent })
           </>
         }
       >
-        <p style={{ color: '#8b8d97', fontSize: '14px', margin: 0 }}>
-          Ladataanko pohja <strong style={{ color: '#fff' }}>"{confirmTemplate?.name}"</strong>?
+        <p style={{ color: COLORS.text.secondary, fontSize: '14px', margin: 0 }}>
+          Ladataanko pohja <strong style={{ color: COLORS.text.primary }}>"{confirmTemplate?.name}"</strong>?
           Nykyinen kokoonpano ylikirjoitetaan.
         </p>
       </Modal>

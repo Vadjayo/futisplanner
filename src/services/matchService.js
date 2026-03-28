@@ -222,12 +222,13 @@ export async function saveFormationTemplate({ userId, name, formation, lineup })
  * @param {string} templateId
  * @returns {Promise<{ error: object|null }>}
  */
-export async function deleteFormationTemplate(templateId) {
+export async function deleteFormationTemplate(templateId, userId) {
   try {
     const { error } = await supabase
       .from('formation_templates')
       .delete()
       .eq('id', templateId)
+      .eq('user_id', userId)
 
     if (error) throw error
     return { error: null }

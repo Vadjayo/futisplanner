@@ -23,6 +23,7 @@
  */
 
 import { useEffect } from 'react'
+import { COLORS } from '../../constants/colors'
 
 const MAX_WIDTHS = { sm: '360px', md: '480px', lg: '640px' }
 
@@ -70,7 +71,7 @@ const Modal = ({ isOpen, onClose, title, children, footer, size = 'md' }) => {
         {/* Otsikko */}
         {title && (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-            <h3 style={{ color: '#fff', fontSize: '15px', fontWeight: 600, margin: 0 }}>
+            <h3 style={{ color: COLORS.text.primary, fontSize: '15px', fontWeight: 600, margin: 0 }}>
               {title}
             </h3>
             <button

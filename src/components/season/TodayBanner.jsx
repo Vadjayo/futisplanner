@@ -8,6 +8,7 @@
 import { useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ROUTES } from '../../constants/routes'
+import { COLORS } from '../../constants/colors'
 import styles from './TodayBanner.module.css'
 
 // Formatoi 'YYYY-MM-DD' suomeksi lyhyesti, esim. "ti 3.6."
@@ -62,7 +63,7 @@ export default function TodayBanner({ team, events }) {
     }
 
     // Kauden % väri
-    const pctColor = seasonPct < 25 ? '#EF9F27' : seasonPct >= 75 ? '#1D9E75' : '#d0dce8'
+    const pctColor = seasonPct < 25 ? COLORS.status.warning : seasonPct >= 75 ? COLORS.brand.primary : COLORS.text.light
 
     return { drillsDone, gamesDone, seasonPct, drillsPerWeek, pctColor }
   }, [events, team, today])
@@ -130,11 +131,11 @@ export default function TodayBanner({ team, events }) {
         </div>
         <div className={styles.statsGrid}>
           <div className={styles.statBox}>
-            <span className={styles.statVal} style={{ color: '#1D9E75' }}>{stats.drillsDone}</span>
+            <span className={styles.statVal} style={{ color: COLORS.event.drill }}>{stats.drillsDone}</span>
             <span className={styles.statLbl}>Treeniä tehty</span>
           </div>
           <div className={styles.statBox}>
-            <span className={styles.statVal} style={{ color: '#378ADD' }}>{stats.gamesDone}</span>
+            <span className={styles.statVal} style={{ color: COLORS.event.game }}>{stats.gamesDone}</span>
             <span className={styles.statLbl}>Ottelua pelattu</span>
           </div>
           <div className={styles.statBox}>
@@ -142,7 +143,7 @@ export default function TodayBanner({ team, events }) {
             <span className={styles.statLbl}>Kausi suunniteltu</span>
           </div>
           <div className={styles.statBox}>
-            <span className={styles.statVal} style={{ color: '#1D9E75' }}>{stats.drillsPerWeek}</span>
+            <span className={styles.statVal} style={{ color: COLORS.event.drill }}>{stats.drillsPerWeek}</span>
             <span className={styles.statLbl}>Treeniä / vk</span>
           </div>
         </div>

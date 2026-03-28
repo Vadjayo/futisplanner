@@ -105,22 +105,25 @@ export function updateEvent(id, updates) {
 /**
  * Poista yksittäinen tapahtuma.
  * @param {string} id - Poistettavan tapahtuman UUID
+ * @param {string} userId - Käyttäjän UUID (turvasuodatin)
  */
-export function deleteEvent(id) {
-  return supabase.from('season_events').delete().eq('id', id)
+export function deleteEvent(id, userId) {
+  return supabase.from('season_events').delete().eq('id', id).eq('user_id', userId)
 }
 
 /**
  * Poista kaikki saman toistuvan ryhmän tulevat tapahtumat (mukaan lukien tämä päivä).
  * @param {string} recurringGroupId - Toistuvan ryhmän UUID
  * @param {string} fromDate - Alkupäivämäärä 'YYYY-MM-DD', poistetaan tästä eteenpäin
+ * @param {string} userId - Käyttäjän UUID (turvasuodatin)
  */
-export function deleteFutureRecurring(recurringGroupId, fromDate) {
+export function deleteFutureRecurring(recurringGroupId, fromDate, userId) {
   return supabase
     .from('season_events')
     .delete()
     .eq('recurring_group_id', recurringGroupId)
     .gte('date', fromDate)
+    .eq('user_id', userId)
 }
 
 /**

@@ -12,6 +12,7 @@ import { useCurrentTeam }           from '../../store/teamStore'
 import { useMatchDayPlayers }       from '../../hooks/useMatchDayPlayers'
 import { useToast }                 from '../../hooks/useToast'
 import { ROUTES }                   from '../../constants/routes'
+import { COLORS }                   from '../../constants/colors'
 import Button              from '../ui/Button'
 import Modal               from '../ui/Modal'
 import Toast               from '../ui/Toast'
@@ -100,7 +101,7 @@ export default function MatchDayPage() {
   if (loading) {
     return (
       <div className={styles.page} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
-        <span style={{ color: '#8b8d97' }}>Ladataan...</span>
+        <span style={{ color: COLORS.text.secondary }}>Ladataan...</span>
       </div>
     )
   }

@@ -4,18 +4,18 @@
  */
 
 import { useState, useRef } from 'react'
-import { CONE_COLORS } from '../../constants/colors'
+import { CONE_COLORS, COLORS } from '../../constants/colors'
 import styles from './LeftToolbar.module.css'
 
 
 // Nuolityypit kompakteille painikkeille
 const ARROW_TYPES = [
-  { id: 'syotto',   label: 'Syöttö',      icon: '→',   color: '#fff' },
-  { id: 'liike',    label: 'Liike',        icon: '- →', color: '#fff' },
+  { id: 'syotto',   label: 'Syöttö',      icon: '→',   color: COLORS.text.primary },
+  { id: 'liike',    label: 'Liike',        icon: '- →', color: COLORS.text.primary },
   { id: 'laukaus',  label: 'Laukaus',      icon: '⚡',  color: '#f97316' },
-  { id: 'kuljetus', label: 'Kuljetus',     icon: '〜',  color: '#E24B4A' },
-  { id: 'kaareva',  label: 'Kaareva',      icon: '↗',  color: '#EF9F27' },
-  { id: 'bidir',    label: 'Molemmat',     icon: '↔',  color: '#378ADD' },
+  { id: 'kuljetus', label: 'Kuljetus',     icon: '〜',  color: COLORS.status.danger },
+  { id: 'kaareva',  label: 'Kaareva',      icon: '↗',  color: COLORS.status.warning },
+  { id: 'bidir',    label: 'Molemmat',     icon: '↔',  color: COLORS.event.game },
   { id: 'offball',  label: 'Ilman palloa', icon: '···', color: '#a78bfa' },
 ]
 
@@ -255,13 +255,13 @@ export default function LeftToolbar({ activeTool, onToolChange, toolOptions, onT
 
   // Erottaja osioiden väliin
   const Divider = () => (
-    <div style={{ height: '0.5px', background: '#1e2230', margin: '2px 0' }} />
+    <div style={{ height: '0.5px', background: COLORS.bg.border, margin: '2px 0' }} />
   )
 
   // Osion otsikko
   const SectionLabel = ({ children }) => (
     <div style={{
-      fontSize: 10, fontWeight: 600, color: '#8b8d97',
+      fontSize: 10, fontWeight: 600, color: COLORS.text.secondary,
       letterSpacing: '0.08em', textTransform: 'uppercase',
       padding: '8px 12px 4px',
     }}>
@@ -497,8 +497,8 @@ export default function LeftToolbar({ activeTool, onToolChange, toolOptions, onT
                     key={at.id}
                     onClick={() => pick('arrow', { arrowType: at.id })}
                     style={{
-                      background: isActive ? '#1D9E7520' : '#0A0D12',
-                      border: `0.5px solid ${isActive ? '#1D9E75' : '#1e2230'}`,
+                      background: isActive ? COLORS.brand.primaryLight : COLORS.bg.primary,
+                      border: `0.5px solid ${isActive ? COLORS.brand.primary : COLORS.bg.border}`,
                       borderRadius: 6,
                       color: at.color,
                       fontSize: 11,
@@ -509,7 +509,7 @@ export default function LeftToolbar({ activeTool, onToolChange, toolOptions, onT
                     }}
                   >
                     <span>{at.icon}</span>
-                    <span style={{ color: '#8b8d97', fontSize: 10 }}>{at.label}</span>
+                    <span style={{ color: COLORS.text.secondary, fontSize: 10 }}>{at.label}</span>
                   </button>
                 )
               })}
@@ -530,10 +530,10 @@ export default function LeftToolbar({ activeTool, onToolChange, toolOptions, onT
                     onClick={() => pick(tool)}
                     title={label}
                     style={{
-                      background: isActive ? '#1D9E7520' : '#0A0D12',
-                      border: `0.5px solid ${isActive ? '#1D9E75' : '#1e2230'}`,
+                      background: isActive ? COLORS.brand.primaryLight : COLORS.bg.primary,
+                      border: `0.5px solid ${isActive ? COLORS.brand.primary : COLORS.bg.border}`,
                       borderRadius: 6,
-                      color: isActive ? '#1D9E75' : '#8b8d97',
+                      color: isActive ? COLORS.brand.primary : COLORS.text.secondary,
                       fontSize: 11,
                       padding: '4px 8px',
                       cursor: 'pointer',

@@ -8,6 +8,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 import { ROUTES } from '../../constants/routes'
+import { COLORS } from '../../constants/colors'
 import {
   loadTeams,
   createTeam,
@@ -21,6 +22,8 @@ import PhaseTimeline from './PhaseTimeline'
 import GoalTags from './GoalTags'
 import SeasonCalendar from './SeasonCalendar'
 import TodayBanner from './TodayBanner'
+import Modal from '../ui/Modal'
+import Button from '../ui/Button'
 import styles from './SeasonPage.module.css'
 
 // ── HARJOITUSOHJELMAPOHJAT ──
@@ -83,6 +86,7 @@ export default function SeasonPage() {
   const [saving, setSaving]     = useState(false)
   const [isDirty, setIsDirty]   = useState(false)
   const [toast, setToast]       = useState(null)
+  const [deleteModal, setDeleteModal] = useState(null) // { teamId }
   const toastTimer = useRef(null)
 
   // Pohjan vahvistusmodaali: null | { template: object }
@@ -189,9 +193,14 @@ export default function SeasonPage() {
     setTimeout(() => { isFirstLoad.current = false }, 100)
   }
 
-  async function handleDeleteTeam(e, teamId) {
+  function handleDeleteTeam(e, teamId) {
     e.stopPropagation()
-    if (!confirm('Poistetaanko joukkue ja kaikki sen tapahtumat pysyvästi?')) return
+    setDeleteModal({ teamId })
+  }
+
+  async function confirmDeleteTeam() {
+    const { teamId } = deleteModal
+    setDeleteModal(null)
     await deleteTeam(teamId)
     const next = teams.filter((t) => t.id !== teamId)
     setTeams(next)
@@ -274,7 +283,7 @@ export default function SeasonPage() {
       {/* ── NAVIGAATIO ── */}
       <nav className={styles.nav}>
         <div className={styles.navInner}>
-          <button className={styles.btnBack} onClick={() => navigate('/dashboard')}>
+          <button className={styles.btnBack} onClick={() => navigate(ROUTES.DASHBOARD)}>
             ← Suunnitelmat
           </button>
           <span className={styles.navTitle}>Kausisuunnittelu</span>
@@ -421,6 +430,24 @@ export default function SeasonPage() {
           </div>
         </div>
       )}
+
+      {/* Joukkueen poiston vahvistusmodaali */}
+      <Modal
+        isOpen={!!deleteModal}
+        onClose={() => setDeleteModal(null)}
+        title="Poistetaanko joukkue?"
+        size="sm"
+        footer={
+          <>
+            <Button variant="danger" onClick={confirmDeleteTeam}>Poista</Button>
+            <Button variant="ghost" onClick={() => setDeleteModal(null)}>Peruuta</Button>
+          </>
+        }
+      >
+        <p style={{ color: COLORS.text.secondary, fontSize: '14px', margin: 0 }}>
+          Joukkue ja kaikki sen tapahtumat poistetaan pysyvästi.
+        </p>
+      </Modal>
     </div>
   )
 }
