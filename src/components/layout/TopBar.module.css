@@ -1,7 +1,7 @@
 .topbar {
   height: 52px;
-  background: var(--color-surface);
-  border-bottom: 1px solid var(--color-border);
+  background: #0A0D12;
+  border-bottom: 0.5px solid #1e2230;
   display: flex;
   align-items: center;
   padding: 0 12px;
@@ -26,7 +26,7 @@
 
 .btnBack:hover {
   color: var(--color-text);
-  background: #0f1923;
+  background: #0A0D12;
 }
 
 .center {
@@ -70,7 +70,7 @@
 
 .nameInput {
   background: #0f1923;
-  border: 1px solid #3b82f6;
+  border: 1px solid #1D9E75;
   border-radius: var(--radius-md);
   color: var(--color-text);
   font-size: 15px;
@@ -91,7 +91,7 @@
 }
 
 .save_idle   { color: transparent; }
-.save_saving { color: #3b82f6; }
+.save_saving { color: #1D9E75; }
 .save_saved  { color: #22c55e; }
 .save_error  { color: #ef4444; }
 
@@ -100,7 +100,7 @@
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #3b82f6;
+  background: #1D9E75;
   animation: pulse 1s ease-in-out infinite;
 }
 
@@ -128,11 +128,11 @@
 }
 
 .btnPrimary {
-  background: #3b82f6;
+  background: #1D9E75;
   color: #fff;
 }
 
-.btnPrimary:hover:not(:disabled) { background: #2563eb; }
+.btnPrimary:hover:not(:disabled) { background: #168a63; }
 .btnPrimary:disabled { opacity: 0.6; cursor: not-allowed; }
 
 .btnSaved { background: #16a34a !important; }

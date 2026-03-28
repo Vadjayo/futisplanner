@@ -111,7 +111,7 @@ export default function TodayBanner({ team, events }) {
             {nextGame.title && (
               <div className={styles.eventTheme}>{nextGame.title}</div>
             )}
-            <button className={styles.panelBtn} onClick={() => navigate(ROUTES.EDITOR)}>
+            <button className={styles.panelBtn} onClick={() => navigate(ROUTES.MATCH_DAY + '?event=' + nextGame.id)}>
               Pelipäiväsuunnitelma →
             </button>
           </>

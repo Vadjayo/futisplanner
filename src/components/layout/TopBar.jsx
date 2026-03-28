@@ -26,7 +26,7 @@ export default function TopBar({ sessionName, onSessionNameChange, onSignOut, sa
           onClick={() => { onSave(); navigate(ROUTES.DASHBOARD) }}
           title="Takaisin suunnitelmiin"
         >
-          ← Suunnitelmat
+          ← Takaisin
         </button>
       </div>
 

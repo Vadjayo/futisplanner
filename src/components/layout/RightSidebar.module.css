@@ -1,7 +1,7 @@
 .sidebar {
-  width: 210px;
-  background: var(--color-surface);
-  border-left: 1px solid var(--color-border);
+  width: 280px;
+  background: #161820;
+  border-left: 0.5px solid #1e2230;
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
@@ -17,8 +17,8 @@
 
 .tab {
   flex: 1;
-  padding: 7px 4px;
-  font-size: 11px;
+  padding: 12px 0;
+  font-size: 13px;
   background: transparent;
   border: none;
   color: var(--color-text-muted);
@@ -45,7 +45,7 @@
   display: flex;
   flex-direction: column;
   padding: 12px 0;
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: 0.5px solid #1e2230;
 }
 
 .sectionTitle {
@@ -91,16 +91,15 @@
 .drillItem {
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
-  gap: 4px 8px;
+  gap: 8px;
   flex: 1;
   min-width: 0;
-  padding: 8px 8px 6px 0;
+  padding: 9px 8px 9px 0;
   position: relative;
   background: none;
   border: none;
   cursor: pointer;
-  color: var(--color-text-muted);
+  color: #8b8d97;
   text-align: left;
   transition: background 0.15s;
 }
@@ -111,8 +110,8 @@
 }
 
 .drillItem.active {
-  background: #0f1923;
-  color: #3b82f6;
+  background: #1A1D27;
+  color: #fff;
 }
 
 .drillNum {
@@ -124,21 +123,37 @@
 }
 
 .drillItem.active .drillNum {
-  color: #3b82f6;
+  color: #1D9E75;
+}
+
+.drillInfo {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
 }
 
 .drillName {
-  flex: 1;
   font-size: 13px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  display: block;
 }
 
 .drillDuration {
   font-size: 11px;
-  color: #3d5068;
+  color: #8b8d97;
   flex-shrink: 0;
+  display: block;
+}
+
+.drillDots {
+  font-size: 11px;
+  color: #8b8d97;
+  flex-shrink: 0;
+  letter-spacing: 1px;
 }
 
 /* Ohut suhteellinen kestopalkki harjoitteen alla */
@@ -152,42 +167,52 @@
 }
 
 .drillItem.active .durationBar {
-  background: #3b82f6;
+  background: #1D9E75;
+}
+
+/* Aktiivisen harjoitteen vasemman reunan korostin */
+.drillListItemActive {
+  border-left: 2px solid #1D9E75;
 }
 
 .addBtn {
-  margin: 8px 12px 0;
+  margin: 6px 14px;
   padding: 8px;
-  background: none;
-  border: 1px dashed var(--color-border);
-  border-radius: var(--radius-md);
-  color: #3b82f6;
-  font-size: 13px;
+  width: calc(100% - 28px);
+  background: transparent;
+  border: 0.5px dashed #1e2230;
+  border-radius: 8px;
+  color: #1D9E75;
+  font-size: 12px;
   cursor: pointer;
+  text-align: center;
   transition: background 0.15s, border-color 0.15s;
 }
 
 .addBtn:hover {
-  background: #0f1923;
-  border-color: #3b82f6;
+  background: #1A1D27;
+  border-color: #1D9E75;
 }
 
 .libraryBtn {
-  margin: 6px 12px 0;
+  margin: 4px 14px 8px;
   padding: 8px;
-  background: none;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  color: var(--color-text-muted);
-  font-size: 13px;
+  width: calc(100% - 28px);
+  background: #1A1D27;
+  border: 0.5px solid #1e2230;
+  border-radius: 8px;
+  color: #8b8d97;
+  font-size: 12px;
   cursor: pointer;
-  transition: background 0.15s, border-color 0.15s, color 0.15s;
-  width: calc(100% - 24px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: background 0.15s, color 0.15s;
 }
 
 .libraryBtn:hover {
-  background: #0f1923;
-  border-color: #3d5068;
+  background: #252838;
   color: #d0dce8;
 }
 
@@ -297,9 +322,9 @@
 }
 
 .summaryCard {
-  background: #161820;
-  border: 1px solid #1e2230;
-  border-radius: 8px;
+  background: #1A1D27;
+  border: 0.5px solid #1e2230;
+  border-radius: 12px;
   padding: 10px 12px;
   display: flex;
   flex-direction: column;

@@ -1,19 +1,11 @@
 /**
  * RightSidebar.jsx
- * Oikean reunan sivupalkki. Harjoitelista, sessiodata ja metatieto.
- * Sisältää välilehdet: Sisältö | AI-avustaja
+ * Oikean reunan sivupalkki. Harjoitelista ja sessiotiedot.
  */
 
 import { useState, useRef } from 'react'
 import { totalDuration } from '../../utils/drillUtils'
 import styles from './RightSidebar.module.css'
-
-const FOCUS_FIELDS = [
-  { key: 'focusTechnical', label: 'Tekninen' },
-  { key: 'focusTactical',  label: 'Taktinen' },
-  { key: 'focusPhysical',  label: 'Fyysinen' },
-  { key: 'focusMental',    label: 'Henkinen' },
-]
 
 /**
  * @param {object}    props
@@ -25,14 +17,12 @@ const FOCUS_FIELDS = [
  * @param {function}  props.onOpenLibrary
  * @param {object}    props.sessionMeta
  * @param {function}  props.onSessionMetaChange
- * @param {ReactNode} [props.aiPanel]          - AI-paneelin sisältö
+ * @param {ReactNode} [props.aiPanel] - AI-paneeli (ei käytetä toistaiseksi)
  */
-export default function RightSidebar({ drills, activeDrillIndex, onDrillSelect, onReorderDrill, onAddDrill, onOpenLibrary, sessionMeta, onSessionMetaChange, aiPanel }) {
+export default function RightSidebar({ drills, activeDrillIndex, onDrillSelect, onReorderDrill, onAddDrill, onOpenLibrary, sessionMeta, onSessionMetaChange }) {
   const totalMinutes = totalDuration(drills)
   const dragFromRef  = useRef(null)
   const [dragOverIndex, setDragOverIndex] = useState(null)
-  // Aktiivinen välilehti: 'content' | 'ai'
-  const [activeTab, setActiveTab] = useState('content')
 
   function handleDragStart(i) {
     dragFromRef.current = i
@@ -60,32 +50,6 @@ export default function RightSidebar({ drills, activeDrillIndex, onDrillSelect, 
   return (
     <aside className={styles.sidebar}>
 
-      {/* ── VÄLILEHDET ── */}
-      {aiPanel && (
-        <div className={styles.tabs}>
-          <button
-            className={`${styles.tab} ${activeTab === 'content' ? styles.tabActive : ''}`}
-            onClick={() => setActiveTab('content')}
-          >
-            📋 Sisältö
-          </button>
-          <button
-            className={`${styles.tab} ${activeTab === 'ai' ? styles.tabActive : ''}`}
-            onClick={() => setActiveTab('ai')}
-          >
-            🤖 AI
-          </button>
-        </div>
-      )}
-
-      {/* ── AI-PANEELI ── */}
-      {aiPanel && activeTab === 'ai' && (
-        <div className={styles.aiPanelWrap}>{aiPanel}</div>
-      )}
-
-      {/* ── NORMAALI SISÄLTÖ ── */}
-      {(!aiPanel || activeTab === 'content') && <>
-
       {/* ── HARJOITTEET ── */}
       <div className={styles.section}>
         <h3 className={styles.sectionTitle}>Harjoitteet</h3>
@@ -94,7 +58,7 @@ export default function RightSidebar({ drills, activeDrillIndex, onDrillSelect, 
           {drills.map((drill, i) => (
             <li
               key={drill.id}
-              className={`${styles.drillListItem} ${dragOverIndex === i ? styles.dragOver : ''}`}
+              className={`${styles.drillListItem} ${i === activeDrillIndex ? styles.drillListItemActive : ''} ${dragOverIndex === i ? styles.dragOver : ''}`}
               draggable
               onDragStart={() => handleDragStart(i)}
               onDragOver={(e) => handleDragOver(e, i)}
@@ -107,19 +71,15 @@ export default function RightSidebar({ drills, activeDrillIndex, onDrillSelect, 
                 onClick={() => onDrillSelect(i)}
               >
                 <span className={styles.drillNum}>{i + 1}</span>
-                <span className={styles.drillName}>
-                  {drill.title || 'Nimetön harjoite'}
-                </span>
-                <span className={styles.drillDuration}>
-                  {drill.duration || 0} min
-                </span>
-                {/* Suhteellinen kestopalkki */}
-                {totalMinutes > 0 && (
-                  <span
-                    className={styles.durationBar}
-                    style={{ width: `${Math.round((drill.duration / totalMinutes) * 100)}%` }}
-                  />
-                )}
+                <div className={styles.drillInfo}>
+                  <span className={styles.drillName}>
+                    {drill.title || 'Nimetön harjoite'}
+                  </span>
+                  <span className={styles.drillDuration}>
+                    {drill.duration ?? 10} min
+                  </span>
+                </div>
+                <span className={styles.drillDots}>···</span>
               </button>
             </li>
           ))}
@@ -167,21 +127,6 @@ export default function RightSidebar({ drills, activeDrillIndex, onDrillSelect, 
             </div>
           )}
 
-          {/* Tekninen, taktinen, fyysinen, henkinen */}
-          {FOCUS_FIELDS.map(({ key, label }) => (
-            <div key={key} className={styles.summaryRow}>
-              <span className={styles.summaryLabel}>{label}</span>
-              <input
-                className={styles.summaryInput}
-                type="text"
-                value={sessionMeta?.[key] ?? ''}
-                onChange={(e) => onSessionMetaChange(key, e.target.value)}
-                placeholder={`${label} tavoite...`}
-                maxLength={80}
-              />
-            </div>
-          ))}
-
           {/* Kuvaus */}
           <div className={styles.summaryRow}>
             <span className={styles.summaryLabel}>Kuvaus</span>
@@ -189,8 +134,8 @@ export default function RightSidebar({ drills, activeDrillIndex, onDrillSelect, 
               className={styles.summaryTextarea}
               value={sessionMeta?.description ?? ''}
               onChange={(e) => onSessionMetaChange('description', e.target.value)}
-              placeholder="Lyhyt kuvaus..."
-              rows={2}
+              placeholder="Harjoitteen kuvaus ja tavoitteet..."
+              rows={4}
             />
           </div>
 
@@ -205,7 +150,6 @@ export default function RightSidebar({ drills, activeDrillIndex, onDrillSelect, 
         </span>
       </div>
 
-      </>}
     </aside>
   )
 }

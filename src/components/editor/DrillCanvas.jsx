@@ -18,6 +18,9 @@ import styles from './DrillCanvas.module.css'
 const FIELD_W = 1000
 const FIELD_H = 650
 
+// Piirtotyökalut — elementin drag/valinta ohitetaan näiden aikana
+const DRAWING_TOOLS = ['arrow', 'line', 'circle', 'freehand', 'freearrow', 'zone', 'triangle']
+
 // Pelaajan värit joukkueroolin mukaan — vakio komponentin ulkopuolella (ei luoda per render)
 const ROLE_COLORS = {
   gk: '#EF9F27', blue: '#2563eb', red: '#dc2626', green: '#16a34a', dark: '#374151',
@@ -177,9 +180,9 @@ const DrillCanvas = forwardRef(function DrillCanvas({ elements, fieldType, activ
     return () => ro.disconnect()
   }, [])
 
-  // Poistetaan valinta aina kun työkalu vaihtuu pois valinta-tilasta
+  // Poistetaan valinta kun siirrytään piirto- tai animaatiotilaan
   useEffect(() => {
-    if (activeTool !== 'select') setSelectedIds([])
+    if ([...DRAWING_TOOLS, 'animate'].includes(activeTool)) setSelectedIds([])
   }, [activeTool])
 
   // Pysäytetään animaatio ja nollataan tila kun poistutaan animaatiotilasta
@@ -242,6 +245,9 @@ const DrillCanvas = forwardRef(function DrillCanvas({ elements, fieldType, activ
   useEffect(() => {
     function handleKey(e) {
       if (editingText) return
+      // Älä reagoi kun fokus on syötekentässä (sivupalkin kentät)
+      const tag = document.activeElement?.tagName
+      if (tag === 'INPUT' || tag === 'TEXTAREA') return
       const mod = e.ctrlKey || e.metaKey
 
       // Undo
@@ -408,6 +414,8 @@ const DrillCanvas = forwardRef(function DrillCanvas({ elements, fieldType, activ
       if (isBackground) setSelectedIds([])
       return
     }
+    // Tyhjään kohtaan klikkaus poistaa valinnan kaikissa muissa tiloissa
+    if (isBackground) setSelectedIds([])
     // Teksti lisätään klikkaamalla — kaikki muut elementit vain drag & dropilla toolbarista
     if (activeTool === 'text') {
       addElement(stageRef.current.getPointerPosition())
@@ -571,13 +579,12 @@ const DrillCanvas = forwardRef(function DrillCanvas({ elements, fieldType, activ
 
   // Pyörittää elementtiä hiiren rullalla — vain jos elementti on valittuna (estää vahingossa pyörittämisen)
   const handleWheel = useCallback((e, id) => {
-    if (!selectedIds.includes(id)) return
     e.evt.preventDefault()
-    const delta = e.evt.deltaY > 0 ? 5 : -5
+    const delta = e.evt.deltaY > 0 ? 45 : -45
     commitChange(elements.map((el) =>
       el.id === id ? { ...el, rotation: ((el.rotation ?? 0) + delta + 360) % 360 } : el
     ))
-  }, [elements, commitChange, selectedIds])
+  }, [elements, commitChange])
 
   // Siirtää nuolen/viivan molempia päätepisteitä yhtä paljon – tukee ryhmäsiirtoa
   const handleArrowDragEnd = useCallback((e, id) => {
@@ -599,9 +606,10 @@ const DrillCanvas = forwardRef(function DrillCanvas({ elements, fieldType, activ
     e.target.position({ x: 0, y: 0 })
   }, [elements, commitChange, scale, selectedIds])
 
-  // Asettaa elementin valituksi valinta-tilassa tai polunmuokkaukseen animaatiotilassa
+  // Asettaa elementin valituksi tai polunmuokkaukseen animaatiotilassa
+  // Piirtotyökalujen aikana klikkaus ohitetaan — piirto menee edelle
   function selectEl(e, id) {
-    e.cancelBubble = true  // Estetään aina klikkauksen kupliminen stagelle
+    e.cancelBubble = true  // Estetään klikkauksen kupliminen stagelle
     if (activeTool === 'animate') {
       // Vain pelaaja, valmentaja ja pallo voivat saada animaatiopolun
       const el = elements.find((el) => el.id === id)
@@ -610,7 +618,8 @@ const DrillCanvas = forwardRef(function DrillCanvas({ elements, fieldType, activ
       }
       return
     }
-    if (activeTool !== 'select') return
+    // Piirtotyökalujen aikana elementtien klikkaus ohitetaan
+    if (DRAWING_TOOLS.includes(activeTool)) return
     if (e.evt?.shiftKey) {
       // Shift+klikkaus lisää tai poistaa valinnan
       setSelectedIds((prev) => prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id])
@@ -631,10 +640,11 @@ const DrillCanvas = forwardRef(function DrillCanvas({ elements, fieldType, activ
   // Valinta-tilassa normaalikursori, piirtotyökaluissa tähtäinkursori, välineillä plus-kursori
   // Animaatiotilassa: tähtäin kun pelaaja valittu (lisätään reittipisteitä), muuten osoitin
   // Elementit ovat aina raahattavia paitsi piirtotyökalujen aikana
-  const draggable = !['arrow', 'line', 'circle', 'freehand', 'freearrow', 'zone', 'triangle', 'animate'].includes(activeTool)
+  // Elementit aina raahattavia paitsi animaatiotilan aikana
+  const draggable = activeTool !== 'animate'
   const cursor = activeTool === 'select' ? 'default'
     : activeTool === 'animate' ? (animSelectedId ? 'crosshair' : 'pointer')
-    : ['arrow', 'line', 'circle', 'freehand', 'freearrow', 'triangle'].includes(activeTool) ? 'crosshair'
+    : DRAWING_TOOLS.includes(activeTool) ? 'crosshair'
     : 'cell'
 
   // Aloittaa ryhmäsiirron – tallentaa kaikkien valittujen elementtien lähtötilan
@@ -824,6 +834,8 @@ const DrillCanvas = forwardRef(function DrillCanvas({ elements, fieldType, activ
                         sides={3} radius={10 * ps * scale}
                         fill={color}
                         rotation={30}
+                        stroke="white"
+                        strokeWidth={2.5 * scale}
                       />
                       <Arc
                         innerRadius={14 * ps * scale}
@@ -831,22 +843,22 @@ const DrillCanvas = forwardRef(function DrillCanvas({ elements, fieldType, activ
                         angle={160}
                         rotation={-80}
                         fill="transparent"
-                        stroke={color}
-                        strokeWidth={2 * ps * scale}
+                        stroke="white"
+                        strokeWidth={2 * scale}
                       />
                     </>
                   ) : (
                     // Hyökkääjä – täytetty ympyrä + avoin kaari
                     <>
-                      <Circle x={8 * ps * scale} y={0} radius={8 * ps * scale} fill={color} />
+                      <Circle x={8 * ps * scale} y={0} radius={8 * ps * scale} fill={color} stroke="white" strokeWidth={isGk ? 3.5 * scale : 2.5 * scale} />
                       <Arc
                         innerRadius={14 * ps * scale}
                         outerRadius={16 * ps * scale}
                         angle={160}
                         rotation={-80}
                         fill="transparent"
-                        stroke={color}
-                        strokeWidth={2 * ps * scale}
+                        stroke="white"
+                        strokeWidth={2 * scale}
                       />
                     </>
                   )}

@@ -3,160 +3,32 @@
  * Vasemman reunan työkalupalkki. Flyout-valikko kaikille kenttäelementeille.
  */
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useRef } from 'react'
 import { CONE_COLORS } from '../../constants/colors'
 import styles from './LeftToolbar.module.css'
 
 
-// Nuolityypit liike-osion painikkeisiin
+// Nuolityypit kompakteille painikkeille
 const ARROW_TYPES = [
-  { id: 'syotto',   label: 'Syöttö' },
-  { id: 'liike',    label: 'Liike' },
-  { id: 'laukaus',  label: 'Laukaus' },
-  { id: 'kuljetus', label: 'Kuljetus' },
-  { id: 'kaareva',  label: 'Kaareva' },
-  { id: 'bidir',    label: 'Edestakaisin' },
-  { id: 'offball',  label: 'Ilman palloa' },
+  { id: 'syotto',   label: 'Syöttö',      icon: '→',   color: '#fff' },
+  { id: 'liike',    label: 'Liike',        icon: '- →', color: '#fff' },
+  { id: 'laukaus',  label: 'Laukaus',      icon: '⚡',  color: '#f97316' },
+  { id: 'kuljetus', label: 'Kuljetus',     icon: '〜',  color: '#E24B4A' },
+  { id: 'kaareva',  label: 'Kaareva',      icon: '↗',  color: '#EF9F27' },
+  { id: 'bidir',    label: 'Molemmat',     icon: '↔',  color: '#378ADD' },
+  { id: 'offball',  label: 'Ilman palloa', icon: '···', color: '#a78bfa' },
 ]
 
-// Kaikki välinetyökalut – käytetään tarkistamaan, onko jokin väline aktiivisena
-const EQUIPMENT_TOOLS = ['player', 'coach', 'ball', 'cone', 'pole', 'smallgoal', 'goal', 'ladder', 'hurdle', 'mannequin', 'hoop', 'minifield', 'arrow', 'freearrow', 'text', 'line', 'circle', 'freehand', 'zone', 'triangle']
-
-// Piirtää pienen SVG-esikatselun nuolityypille flyout-valikkoon
-function ArrowPreview({ type }) {
-  const W = 52, H = 18, y = H / 2
-  const lineEnd = W - 11
-  // Nuolenpään kolmion kärjet
-  const head = `${lineEnd},${y - 5} ${W},${y} ${lineEnd},${y + 5}`
-  switch (type) {
-    case 'syotto':
-      // Yhtenäinen valkoinen viiva nuolenpäällä
-      return <svg width={W} height={H} style={{ display: 'block', flexShrink: 0 }}>
-        <line x1={3} y1={y} x2={lineEnd} y2={y} stroke="white" strokeWidth={2.5} />
-        <polygon points={head} fill="white" />
-      </svg>
-    case 'liike':
-      // Katkoviiva nuolenpäällä
-      return <svg width={W} height={H} style={{ display: 'block', flexShrink: 0 }}>
-        <line x1={3} y1={y} x2={lineEnd} y2={y} stroke="white" strokeWidth={2} strokeDasharray="6,4" />
-        <polygon points={head} fill="white" />
-      </svg>
-    case 'laukaus': {
-      // Leveämpi oranssi nuoli laukaukselle
-      const hL = `${lineEnd - 2},${y - 6} ${W},${y} ${lineEnd - 2},${y + 6}`
-      return <svg width={W} height={H} style={{ display: 'block', flexShrink: 0 }}>
-        <line x1={3} y1={y} x2={lineEnd - 2} y2={y} stroke="#f97316" strokeWidth={4} />
-        <polygon points={hL} fill="#f97316" />
-      </svg>
-    }
-    case 'kuljetus': {
-      // Sileä sine-aalto kubisilla bezier-käyrillä (2.5 sykliä)
-      const cy = H / 2
-      const a = 3.8 // amplitudi
-      const waveD = [
-        `M 3 ${cy}`,
-        `C ${5.5} ${cy-a}, ${7.5} ${cy-a}, ${10} ${cy}`,
-        `C ${12.5} ${cy+a}, ${14.5} ${cy+a}, ${17} ${cy}`,
-        `C ${19.5} ${cy-a}, ${21.5} ${cy-a}, ${24} ${cy}`,
-        `C ${26.5} ${cy+a}, ${28.5} ${cy+a}, ${31} ${cy}`,
-        `C ${33.5} ${cy-a}, ${35.5} ${cy-a}, ${38} ${cy}`,
-        `L 40 ${cy}`,
-      ].join(' ')
-      return <svg width={W} height={H} style={{ display: 'block', flexShrink: 0 }}>
-        <path d={waveD} stroke="#fbbf24" strokeWidth={2} fill="none" strokeDasharray="4,2.5" />
-        <polygon points={`40,${cy-5} ${W},${cy} 40,${cy+5}`} fill="#fbbf24" />
-      </svg>
-    }
-    case 'kaareva': {
-      // Kaareva oranssi quadratic bezier nuoli
-      const cy = H / 2
-      return <svg width={W} height={H} style={{ display: 'block', flexShrink: 0 }}>
-        <path d={`M 4 ${cy+4} Q ${W/2} ${cy-8} ${lineEnd} ${cy}`} stroke="#EF9F27" strokeWidth={2} fill="none" />
-        <polygon points={`${lineEnd},${cy-5} ${W},${cy} ${lineEnd},${cy+5}`} fill="#EF9F27" />
-      </svg>
-    }
-    case 'bidir': {
-      // Kaksisuuntainen nuoli molemmissa päissä
-      return <svg width={W} height={H} style={{ display: 'block', flexShrink: 0 }}>
-        <line x1={8} y1={y} x2={lineEnd} y2={y} stroke="white" strokeWidth={2.5} />
-        <polygon points={head} fill="white" />
-        <polygon points={`${8},${y-5} ${0},${y} ${8},${y+5}`} fill="white" />
-      </svg>
-    }
-    case 'offball': {
-      // Violetti katkoviiva nuolenpäällä – ilman palloa -liike
-      return <svg width={W} height={H} style={{ display: 'block', flexShrink: 0 }}>
-        <line x1={3} y1={y} x2={lineEnd} y2={y} stroke="#a78bfa" strokeWidth={2} strokeDasharray="5,4" />
-        <polygon points={head} fill="#a78bfa" />
-      </svg>
-    }
-    default: return null
-  }
-}
-
-// SVG-esikatselu vapaalle nuolelle – käyrä viiva nuolenpäällä
-function FreeArrowPreview() {
-  const W = 52, H = 28
-  // Kaarevan polun suunta lopussa: ohjauspiste (32,26) → päätepiste (46,10)
-  const angle = Math.atan2(10 - 26, 46 - 32)
-  const len = 8, spread = Math.PI / 6
-  const p1x = 46 - len * Math.cos(angle - spread)
-  const p1y = 10 - len * Math.sin(angle - spread)
-  const p2x = 46 - len * Math.cos(angle + spread)
-  const p2y = 10 - len * Math.sin(angle + spread)
-  return (
-    <svg width={W} height={H} style={{ display: 'block', flexShrink: 0 }}>
-      <path d="M 3 22 C 12 4, 32 26, 46 10"
-        stroke="white" strokeWidth="2.5" fill="none" strokeLinecap="round" />
-      <polyline
-        points={`${p1x.toFixed(1)},${p1y.toFixed(1)} 46,10 ${p2x.toFixed(1)},${p2y.toFixed(1)}`}
-        stroke="white" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  )
-}
-
-// Pieni SVG-ikoni viiva-työkalulle
-function LineIcon() {
-  return (
-    <svg width="36" height="20" viewBox="0 0 36 20" style={{ display: 'block' }}>
-      <line x1="3" y1="17" x2="33" y2="3" stroke="white" strokeWidth="2.5" strokeLinecap="round" />
-    </svg>
-  )
-}
-
-// Pieni SVG-ikoni ympyrä-työkalulle
-function CircleIcon() {
-  return (
-    <svg width="24" height="24" viewBox="0 0 24 24" style={{ display: 'block' }}>
-      <circle cx="12" cy="12" r="9" stroke="white" strokeWidth="2.5" fill="none" />
-    </svg>
-  )
-}
-
-// Pieni SVG-ikoni vapaapiirto-työkalulle – epäsäännöllinen käyrä
-function FreehandIcon() {
-  return (
-    <svg width="36" height="24" viewBox="0 0 36 24" style={{ display: 'block' }}>
-      <path d="M 3 18 C 8 5, 13 22, 19 12 C 25 2, 30 18, 33 10" stroke="white" strokeWidth="2.5" fill="none" strokeLinecap="round" />
-    </svg>
-  )
-}
-
-function ZoneIcon() {
-  return (
-    <svg width="36" height="24" viewBox="0 0 36 24" style={{ display: 'block' }}>
-      <rect x="3" y="4" width="30" height="16" rx="2" fill="rgba(59,130,246,0.35)" stroke="#3b82f6" strokeWidth="2" />
-    </svg>
-  )
-}
-
-function TriangleIcon() {
-  return (
-    <svg width="28" height="26" viewBox="0 0 28 26" style={{ display: 'block' }}>
-      <polygon points="14,2 26,24 2,24" stroke="white" strokeWidth="2.5" fill="transparent" strokeLinejoin="round" />
-    </svg>
-  )
-}
+// Piirtotyökalut kompakteille painikkeille
+const DRAW_TOOLS = [
+  { tool: 'line',      label: 'Viiva',       icon: '╱' },
+  { tool: 'circle',    label: 'Ympyrä',      icon: '○' },
+  { tool: 'zone',      label: 'Vyöhyke',     icon: '▭' },
+  { tool: 'triangle',  label: 'Kolmio',      icon: '△' },
+  { tool: 'freehand',  label: 'Vapaa',       icon: '✏' },
+  { tool: 'freearrow', label: 'Vapaa nuoli', icon: '↝' },
+  { tool: 'text',      label: 'Teksti',      icon: 'T' },
+]
 
 // Pieni SVG-ikoni pienelle maalille (harjoitusmaalityyppi)
 function SmallGoalIcon() {
@@ -336,9 +208,6 @@ const TEMPLATES = {
 //        toolOptions – lisäasetukset (väri, joukkue jne.), onToolOptionChange – asetus vaihtuu,
 //        onAddTemplate – lisää mallipohjapelaajat aktiiviseen harjoitteeseen
 export default function LeftToolbar({ activeTool, onToolChange, toolOptions, onToolOptionChange, onAddTemplate }) {
-  // Flyout-valikon avaus/sulkeminen
-  const [toolsOpen, setToolsOpen] = useState(false)
-
   // ── TOUCH DRAG ──
   // Mobiilissa HTML5 drag-tapahtumat eivät toimi – toteutetaan touch-versio
   const touchDragRef = useRef(null)
@@ -384,10 +253,21 @@ export default function LeftToolbar({ activeTool, onToolChange, toolOptions, onT
     }
   }
 
-  // Sulje flyout kun valinta-työkalu aktivoituu (esim. spacebar)
-  useEffect(() => {
-    if (activeTool === 'select') setToolsOpen(false)
-  }, [activeTool])
+  // Erottaja osioiden väliin
+  const Divider = () => (
+    <div style={{ height: '0.5px', background: '#1e2230', margin: '2px 0' }} />
+  )
+
+  // Osion otsikko
+  const SectionLabel = ({ children }) => (
+    <div style={{
+      fontSize: 10, fontWeight: 600, color: '#8b8d97',
+      letterSpacing: '0.08em', textTransform: 'uppercase',
+      padding: '8px 12px 4px',
+    }}>
+      {children}
+    </div>
+  )
 
   // Valitsee työkalun ja asettaa siihen liittyvät lisäasetukset kerralla
   function pick(tool, options = {}) {
@@ -395,67 +275,13 @@ export default function LeftToolbar({ activeTool, onToolChange, toolOptions, onT
     Object.entries(options).forEach(([k, v]) => onToolOptionChange(k, v))
   }
 
-  // Vaihtaa valinta-työkaluun ja sulkee flyout-valikon
+  // Vaihtaa valinta-työkaluun
   function handleSelect() {
     onToolChange('select')
-    setToolsOpen(false)
   }
-
-  // Tarkistetaan, onko jokin välinetyökalu parhaillaan aktiivinen
-  const isEquip = EQUIPMENT_TOOLS.includes(activeTool)
 
   return (
     <>
-      <aside className={styles.toolbar}>
-        <button
-          className={`${styles.toolBtn} ${activeTool === 'select' && !toolsOpen ? styles.active : ''}`}
-          onClick={handleSelect} title="Valitse (välilyönti)"
-        >
-          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-            <path d="M4 3l12 7-6 1.5L7 18 4 3z" fill="currentColor" />
-          </svg>
-          <span className={styles.label}>Valitse</span>
-        </button>
-
-        <button
-          className={styles.toolBtn}
-          onClick={() => {
-            // Lähettää Ctrl+Z-näppäinkomennon ikkunalle
-            window.dispatchEvent(new KeyboardEvent('keydown', { key: 'z', ctrlKey: true, bubbles: true }))
-          }}
-          title="Kumoa (Ctrl+Z)"
-        >
-          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-            <path d="M4 8 C4 4 8 2 12 4 C16 6 16 10 14 13" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round"/>
-            <polyline points="2,6 4,10 8,8" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-          <span className={styles.label}>Kumoa</span>
-        </button>
-
-        <button
-          className={`${styles.toolBtn} ${isEquip || toolsOpen ? styles.active : ''}`}
-          onClick={() => setToolsOpen((o) => !o)} title="Välineet"
-        >
-          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-            <rect x="2" y="2" width="7" height="7" rx="1.5" fill="currentColor" opacity=".85"/>
-            <rect x="11" y="2" width="7" height="7" rx="1.5" fill="currentColor" opacity=".85"/>
-            <rect x="2" y="11" width="7" height="7" rx="1.5" fill="currentColor" opacity=".85"/>
-            <rect x="11" y="11" width="7" height="7" rx="1.5" fill="currentColor" opacity=".85"/>
-          </svg>
-          <span className={styles.label}>Välineet</span>
-        </button>
-
-        <button
-          className={`${styles.toolBtn} ${activeTool === 'animate' && !toolsOpen ? styles.active : ''}`}
-          onClick={() => { setToolsOpen(false); onToolChange(activeTool === 'animate' ? 'select' : 'animate') }} title="Animoi"
-        >
-          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-            <path d="M5 3.5l12 6.5-12 6.5V3.5z" fill="currentColor" />
-          </svg>
-          <span className={styles.label}>Animoi</span>
-        </button>
-      </aside>
-
       {/* Touch-raahauksen ghost-elementti – seuraa sormea */}
       {ghostPos && (
         <div
@@ -466,27 +292,52 @@ export default function LeftToolbar({ activeTool, onToolChange, toolOptions, onT
         </div>
       )}
 
-      {/* Flyout-valikko – näytetään vain kun toolsOpen on true */}
-      {toolsOpen && (
-        <div className={styles.flyout}>
+      <aside className={styles.panel}>
 
-          {/* MUODOSTELMAT – lisää valmiit pelaajapaikat kentälle */}
+        {/* Toiminto-napit */}
+        <div className={styles.actionRow}>
+          <button
+            className={`${styles.actionBtn} ${activeTool === 'select' ? styles.actionBtnActive : ''}`}
+            onClick={handleSelect}
+            title="Valitse (välilyönti)"
+          >
+            <svg width="14" height="14" viewBox="0 0 20 20" fill="none">
+              <path d="M4 3l12 7-6 1.5L7 18 4 3z" fill="currentColor" />
+            </svg>
+            Valitse
+          </button>
+          <button
+            className={styles.actionBtn}
+            onClick={() => window.dispatchEvent(new KeyboardEvent('keydown', { key: 'z', ctrlKey: true, bubbles: true }))}
+            title="Kumoa (Ctrl+Z)"
+          >
+            ↩ Kumoa
+          </button>
+          <button
+            className={`${styles.actionBtn} ${activeTool === 'animate' ? styles.actionBtnActive : ''}`}
+            onClick={() => onToolChange(activeTool === 'animate' ? 'select' : 'animate')}
+            title="Animoi"
+          >
+            ▶ Animoi
+          </button>
+        </div>
+
           {/* 1 — MUODOSTELMAT */}
-          <div className={styles.section}>
-            <div className={styles.sectionLabel}>Muodostelmat</div>
-            <div className={styles.templateRow}>
-              {Object.entries(TEMPLATES).map(([key, players]) => (
-                <button key={key} className={styles.templateBtn}
-                  onClick={() => onAddTemplate?.(players)} title={`${key} muodostelma`}>
-                  {key}
-                </button>
-              ))}
-            </div>
+          <SectionLabel>Muodostelmat</SectionLabel>
+          <div className={styles.templateRow} style={{ padding: '0 8px 8px' }}>
+            {Object.entries(TEMPLATES).map(([key, players]) => (
+              <button key={key} className={styles.templateBtn}
+                onClick={() => onAddTemplate?.(players)} title={`${key} muodostelma`}>
+                {key}
+              </button>
+            ))}
           </div>
+
+          <Divider />
 
           {/* 2 — PELAAJAT */}
           <div className={styles.section}>
-            <div className={styles.sectionLabel}>Pelaajat</div>
+            <SectionLabel>Pelaajat</SectionLabel>
 
             {/* Näyttötapa */}
             <div className={styles.displayModeRow}>
@@ -569,9 +420,11 @@ export default function LeftToolbar({ activeTool, onToolChange, toolOptions, onT
             </div>
           </div>
 
+          <Divider />
+
           {/* 3 — KENTTÄVÄLINEET: pallo, valmentaja, maalit, tikkaat, aita */}
           <div className={styles.section}>
-            <div className={styles.sectionLabel}>Kenttävälineet</div>
+            <SectionLabel>Kenttävälineet</SectionLabel>
             <div className={styles.equipGrid}>
               {[
                 { tool: 'ball',      label: 'Pallo',      icon: <span className={styles.bigIcon}>⚽</span> },
@@ -598,9 +451,11 @@ export default function LeftToolbar({ activeTool, onToolChange, toolOptions, onT
             </div>
           </div>
 
+          <Divider />
+
           {/* 4 — MERKKAAJAT: tötsät + kepit samassa sektiossa */}
           <div className={styles.section}>
-            <div className={styles.sectionLabel}>Merkkaajat</div>
+            <SectionLabel>Merkkaajat</SectionLabel>
             <div className={styles.playerTypeLabel}>Tötsät</div>
             <div className={styles.colorGrid}>
               {CONE_COLORS.map((c) => (
@@ -629,47 +484,72 @@ export default function LeftToolbar({ activeTool, onToolChange, toolOptions, onT
             </div>
           </div>
 
-          {/* 5 — LIIKE */}
-          <div className={styles.section}>
-            <div className={styles.sectionLabel}>Liike</div>
-            {ARROW_TYPES.map((at) => (
-              <button key={at.id}
-                className={`${styles.arrowBtn} ${activeTool === 'arrow' && toolOptions.arrowType === at.id ? styles.itemActive : ''}`}
-                onClick={() => pick('arrow', { arrowType: at.id })}>
-                <ArrowPreview type={at.id} />
-                <span className={styles.arrowLabel}>{at.label}</span>
-              </button>
-            ))}
-            <button
-              className={`${styles.arrowBtn} ${activeTool === 'freearrow' ? styles.itemActive : ''}`}
-              onClick={() => pick('freearrow')}>
-              <FreeArrowPreview />
-              <span className={styles.arrowLabel}>Vapaa nuoli</span>
-            </button>
+          <Divider />
+
+          {/* 5 — NUOLET */}
+          <div>
+            <SectionLabel>Nuolet</SectionLabel>
+            <div style={{ padding: '0 8px 8px', display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+              {ARROW_TYPES.map((at) => {
+                const isActive = activeTool === 'arrow' && toolOptions.arrowType === at.id
+                return (
+                  <button
+                    key={at.id}
+                    onClick={() => pick('arrow', { arrowType: at.id })}
+                    style={{
+                      background: isActive ? '#1D9E7520' : '#0A0D12',
+                      border: `0.5px solid ${isActive ? '#1D9E75' : '#1e2230'}`,
+                      borderRadius: 6,
+                      color: at.color,
+                      fontSize: 11,
+                      padding: '4px 8px',
+                      cursor: 'pointer',
+                      display: 'flex', alignItems: 'center', gap: 4,
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    <span>{at.icon}</span>
+                    <span style={{ color: '#8b8d97', fontSize: 10 }}>{at.label}</span>
+                  </button>
+                )
+              })}
+            </div>
           </div>
 
-          {/* 6 — PIIRUSTUS + TEKSTI */}
-          <div className={styles.section}>
-            <div className={styles.sectionLabel}>Piirustus</div>
-            <div className={styles.iconRow} style={{ flexWrap: 'wrap', gap: 4 }}>
-              {[
-                { tool: 'line',     label: 'Viiva',    icon: <LineIcon /> },
-                { tool: 'circle',   label: 'Ympyrä',   icon: <CircleIcon /> },
-                { tool: 'triangle', label: 'Kolmio',   icon: <TriangleIcon /> },
-                { tool: 'freehand', label: 'Piirto',   icon: <FreehandIcon /> },
-                { tool: 'zone',     label: 'Vyöhyke',  icon: <ZoneIcon /> },
-                { tool: 'text',     label: 'Teksti',   icon: <span style={{ fontSize: 20, fontWeight: 700, color: 'white', lineHeight: 1 }}>T</span> },
-              ].map(({ tool, label, icon }) => (
-                <button key={tool}
-                  className={`${styles.iconBtn} ${activeTool === tool ? styles.itemActive : ''}`}
-                  onClick={() => pick(tool)} title={label}>
-                  {icon}
-                  <span className={styles.iconLabel}>{label}</span>
-                </button>
-              ))}
+          <Divider />
+
+          {/* 6 — PIIRTOTYÖKALUT */}
+          <div>
+            <SectionLabel>Piirtotyökalut</SectionLabel>
+            <div style={{ padding: '0 8px 8px', display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+              {DRAW_TOOLS.map(({ tool, label, icon }) => {
+                const isActive = activeTool === tool
+                return (
+                  <button
+                    key={tool}
+                    onClick={() => pick(tool)}
+                    title={label}
+                    style={{
+                      background: isActive ? '#1D9E7520' : '#0A0D12',
+                      border: `0.5px solid ${isActive ? '#1D9E75' : '#1e2230'}`,
+                      borderRadius: 6,
+                      color: isActive ? '#1D9E75' : '#8b8d97',
+                      fontSize: 11,
+                      padding: '4px 8px',
+                      cursor: 'pointer',
+                      display: 'flex', alignItems: 'center', gap: 4,
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    <span style={{ fontSize: 13 }}>{icon}</span>
+                    <span style={{ fontSize: 10 }}>{label}</span>
+                  </button>
+                )
+              })}
             </div>
+            {/* Väripaletti piirtotyökaluille */}
             {['line', 'circle', 'triangle', 'freehand', 'zone'].includes(activeTool) && (
-              <div className={styles.colorGrid} style={{ marginTop: 8 }}>
+              <div className={styles.colorGrid} style={{ padding: '0 8px 8px' }}>
                 {CONE_COLORS.map((c) => (
                   <button key={c.id}
                     className={`${styles.swatch} ${toolOptions.drawColor === c.id ? styles.swatchActive : ''}`}
@@ -681,8 +561,7 @@ export default function LeftToolbar({ activeTool, onToolChange, toolOptions, onT
             )}
           </div>
 
-        </div>
-      )}
+      </aside>
     </>
   )
 }
